@@ -37,6 +37,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    buildFeatures {
+        viewBinding true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -44,6 +49,7 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+
 }
 
 dependencies {
@@ -76,6 +82,9 @@ dependencies {
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltAndroidXVersion"
     kapt "androidx.hilt:hilt-compiler:$hiltAndroidXVersion"
 
+    androidTestImplementation "com.google.dagger:hilt-android-testing:$hiltVersion"
+    kaptAndroidTest "com.google.dagger:hilt-android-compiler:$hiltVersion"
+
     // DataStore
     implementation "androidx.datastore:datastore-preferences:$dataStoreVersion"
 
@@ -100,6 +109,20 @@ dependencies {
 //    implementation 'com.github.bumptech.glide:glide:4.4.0'
     //kapt 'com.github.bumptech.glide:compiler:4.4.0'
 
+    implementation "androidx.core:core-splashscreen:1.0.0"
+
+    implementation 'com.hbb20:ccp:2.5.1'
+
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
+
+    // Add the dependency for the Cloud Storage library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-storage-ktx")
+
+    // Declare the dependency for the Cloud Firestore library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-firestore-ktx")
 }
 
 kapt {

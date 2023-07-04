@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Radeef</string>
+    <string name="enter_number">Enter phone number</string>
 </resources>

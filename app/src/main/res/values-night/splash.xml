@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="splashScreenTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/md_theme_light_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/about_icon_github</item>
+        <item name="postSplashScreenTheme">@style/AppTheme</item>
+    </style>
+</resources>

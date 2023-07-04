@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.enternumber.EnterNumberFragment">
+
+
+    <TextView
+        android:id="@+id/enter_phone_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter your phone number"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="16dp" />
+
+    <com.hbb20.CountryCodePicker
+        android:id="@+id/country_code_picker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:ccp_showNameCode="false"
+        app:ccp_showPhoneCode="true"
+        android:padding="8dp"
+        android:layout_margin="8dp"
+        app:ccp_defaultPhoneCode="966"
+        tools:ccp_defaultPhoneCode="966"
+        app:layout_constraintTop_toTopOf="@id/textInputLayout"
+        app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
+
+        app:layout_constraintStart_toStartOf="parent" >
+
+    </com.hbb20.CountryCodePicker>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="24dp"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        app:layout_constraintStart_toEndOf="@id/country_code_picker"
+        app:layout_constraintTop_toBottomOf="@id/enter_phone_tv">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/phone_et"
+            android:text="536735321"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/enter_number"
+            android:inputType="phone" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <Button
+        android:id="@+id/register_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="9dp"
+        android:layout_marginEnd="32dp"
+        android:text="Continue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

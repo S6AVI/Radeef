@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph.xml"
+    app:startDestination="@id/enterNumberFragment">
+    <fragment
+        android:id="@+id/welcomeFragment2"
+        android:name="com.saleem.radeef.ui.welcome.WelcomeFragment"
+        android:label="fragment_welcome"
+        tools:layout="@layout/fragment_welcome" >
+        <action
+            android:id="@+id/action_welcomeFragment2_to_enterNumberFragment"
+            app:destination="@id/enterNumberFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/enterNumberFragment"
+        android:name="com.saleem.radeef.ui.enternumber.EnterNumberFragment"
+        android:label="fragement_enter_number"
+        tools:layout="@layout/fragement_enter_number" >
+        <action
+            android:id="@+id/action_enterNumberFragment_to_otpFragment"
+            app:destination="@id/otpFragment" />
+        <action
+            android:id="@+id/action_enterNumberFragment_to_enterNameFragment"
+            app:destination="@id/enterNameFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/otpFragment"
+        android:name="com.saleem.radeef.ui.otp.OtpFragment"
+        android:label="fragment_otp"
+        tools:layout="@layout/fragment_otp" >
+
+
+        <!--        <argument android:name="token"-->
+<!--            app:argType="com.google.firebase.auth.PhoneAuthProvider.ForceResendingToken" />-->
+        <argument
+            android:name="verId"
+            app:argType="string" />
+        <argument
+            android:name="phone"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_otpFragment_to_enterNameFragment"
+            app:destination="@id/enterNameFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/enterNameFragment"
+        android:name="com.saleem.radeef.ui.entername.EnterNameFragment"
+        android:label="fragment_enter_name"
+        tools:layout="@layout/fragment_enter_name" />
+</navigation>
