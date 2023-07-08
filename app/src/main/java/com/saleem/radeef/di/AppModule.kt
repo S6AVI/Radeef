@@ -6,15 +6,28 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import javax.inject.Singleton
 import androidx.room.Room
-import com.saleem.radeef.data.RadeefDatabase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.saleem.radeef.data.relations.RadeefDatabase
 import dagger.hilt.android.components.ApplicationComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import javax.inject.Qualifier
 
 @Module
 @InstallIn(ApplicationComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideFirestore(): FirebaseFirestore {
+        return FirebaseFirestore.getInstance()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth {
+        return FirebaseAuth.getInstance()
+    }
 
     @Provides
     @Singleton
@@ -29,15 +42,15 @@ object AppModule {
         .build()
 
     @Provides
-    fun provideRadeefDao(db:RadeefDatabase) = db.radeefDao()
+    fun provideRadeefDao(db: RadeefDatabase) = db.radeefDao()
 
 
-    @ApplicationScope
+    //@ApplicationScope
     @Provides
     @Singleton
     fun provideApplicationScope() = CoroutineScope(SupervisorJob())
 }
 
-@Retention(AnnotationRetention.RUNTIME)
-@Qualifier
-annotation class ApplicationScope
+//@Retention(AnnotationRetention.RUNTIME)
+//@Qualifier
+//annotation class ApplicationScope

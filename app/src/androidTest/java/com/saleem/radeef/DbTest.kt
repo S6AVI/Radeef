@@ -5,9 +5,9 @@ package com.saleem.radeef
 //import androidx.room.Room
 //import androidx.test.ext.junit.runners.AndroidJUnit4
 //import androidx.test.platform.app.InstrumentationRegistry
-//import com.saleem.radeef.data.Passenger
-//import com.saleem.radeef.data.RadeefDao
-//import com.saleem.radeef.data.RadeefDatabase
+//import com.saleem.radeef.data.relations.Passenger
+//import com.saleem.radeef.data.relations.RadeefDao
+//import com.saleem.radeef.data.relations.RadeefDatabase
 //import org.junit.Assert.assertEquals
 //import org.junit.After
 //import org.junit.Before

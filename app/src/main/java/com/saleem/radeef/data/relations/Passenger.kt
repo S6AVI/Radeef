@@ -1,25 +1,22 @@
-package com.saleem.radeef.data
+package com.saleem.radeef.data.relations
 
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
-@Entity(tableName = "driver_table")
+@Entity(tableName = "passenger_table")
 @Parcelize
-data class Driver(
+data class Passenger (
 
     val userName: String,
     val email: String,
     val phoneNumber: String,
     val sex: Char,
     val rating: Int,
-    val nationality: String,
+
     @PrimaryKey(autoGenerate = true)
-    val driverID: Int = 0,
+    val passengerID: Int = 0,
 
-    // foreign keys
-    val licenseID: Int,
-    val vehicleID: Int
 
-) : Parcelable
+        ): Parcelable

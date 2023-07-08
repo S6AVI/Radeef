@@ -1,4 +1,4 @@
-package com.saleem.radeef.data
+package com.saleem.radeef.data.relations
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.google.android.gms.tasks.Task
 
 @Dao
 interface RadeefDao {

@@ -48,5 +48,14 @@
         android:id="@+id/enterNameFragment"
         android:name="com.saleem.radeef.ui.entername.EnterNameFragment"
         android:label="fragment_enter_name"
-        tools:layout="@layout/fragment_enter_name" />
+        tools:layout="@layout/fragment_enter_name" >
+        <action
+            android:id="@+id/action_enterNameFragment_to_ridesFragment"
+            app:destination="@id/ridesFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/ridesFragment"
+        android:name="com.saleem.radeef.ui.rides.RidesFragment"
+        android:label="fragment_rides"
+        tools:layout="@layout/fragment_rides" />
 </navigation>

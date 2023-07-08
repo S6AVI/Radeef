@@ -3,6 +3,7 @@ package com.saleem.radeef.ui.entername
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -15,5 +16,8 @@ class EnterNameFragment(): Fragment(R.layout.fragment_enter_name) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentEnterNameBinding.bind(view)
+
+        val action = EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
+        findNavController().navigate(action)
     }
 }

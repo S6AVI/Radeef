@@ -1,4 +1,4 @@
-package com.saleem.radeef.data
+package com.saleem.radeef.data.relations
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

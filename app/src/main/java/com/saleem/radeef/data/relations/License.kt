@@ -1,4 +1,4 @@
-package com.saleem.radeef.data
+package com.saleem.radeef.data.relations
 
 import android.os.Parcelable
 import androidx.room.Entity
