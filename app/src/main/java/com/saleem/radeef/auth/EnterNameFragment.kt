@@ -1,4 +1,4 @@
-package com.saleem.radeef.ui.entername
+package com.saleem.radeef.auth
 
 import android.os.Bundle
 import android.view.View
@@ -6,7 +6,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
-import com.saleem.radeef.auth.EnterNameFragmentDirections
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
 import com.saleem.radeef.ui.enternumber.RegisterViewModel
 import com.saleem.radeef.util.UiState
@@ -36,7 +35,8 @@ class EnterNameFragment(): Fragment(R.layout.fragment_enter_name) {
                 UiState.Loading -> {}
                 is UiState.Success -> {
                     toast(state.data)
-                    val action = EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
+                    val action =
+                        EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
                     findNavController().navigate(action)
                 }
                 is UiState.Failure -> toast(state.error)

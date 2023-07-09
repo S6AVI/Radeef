@@ -15,4 +15,7 @@ interface AuthRepository {
     fun loginPassenger(passenger: Passenger, result: (UiState<String>) -> Unit)
 
     fun logout()
+    fun signIn(code: String, result: (UiState<String>) -> Unit)
+
+    fun updateName(name:String, result: (UiState<String>) -> Unit)
 }

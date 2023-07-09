@@ -17,6 +17,7 @@ class AuthRepositoryImpl(
     private val auth: FirebaseAuth
 ) : AuthRepository {
     private lateinit var verificationId: String
+    private lateinit var passenger: Passenger
 //    override val currentUser: FirebaseUser?
 //        get() =
 
@@ -28,12 +29,13 @@ class AuthRepositoryImpl(
     ) {
 
         val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(phone) // Phone number to verify
-            .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
-            .setActivity(activity) // Activity (for callback binding)
+            .setPhoneNumber(phone)
+            .setTimeout(60L, TimeUnit.SECONDS)
+            .setActivity(activity)
             //.setCallbacks(callbacks) // OnVerificationStateChangedCallbacks
             .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                    //signIn(passenger, credential, result)
                     auth.signInWithCredential(credential)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
@@ -58,6 +60,13 @@ class AuthRepositoryImpl(
                                 )
                             }
                         }
+                        .addOnFailureListener {
+                            result.invoke(
+                                UiState.Failure(
+                                    it.localizedMessage
+                                )
+                            )
+                        }
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {
@@ -68,6 +77,7 @@ class AuthRepositoryImpl(
                     verificationId: String,
                     token: PhoneAuthProvider.ForceResendingToken
                 ) {
+                    this@AuthRepositoryImpl.passenger = passenger
                     this@AuthRepositoryImpl.verificationId = verificationId
                     result.invoke(UiState.Success("Verification code sent"))
                 }
@@ -97,6 +107,61 @@ class AuthRepositoryImpl(
             }
 
     }
+
+
+    override fun signIn(code: String, result: (UiState<String>) -> Unit) {
+        val credential = PhoneAuthProvider.getCredential(verificationId, code)
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    passenger.passengerID = task.result?.user?.uid ?: ""
+                    updatePassengerInfo(passenger) { state ->
+                        when (state) {
+                            is UiState.Success -> {
+                                result.invoke(UiState.Success(state.data))
+                            }
+
+                            is UiState.Failure -> {
+                                result.invoke(UiState.Failure(state.error))
+                            }
+
+                            else -> {}
+                        }
+                    }
+                } else {
+                    result.invoke(
+                        UiState.Failure(
+                            "Authentication failed, ${task.exception?.message ?: "unknown error"}"
+                        )
+                    )
+                }
+            }
+            .addOnFailureListener {
+                result.invoke(
+                    UiState.Failure(
+                        it.localizedMessage
+                    )
+                )
+            }
+    }
+
+    override fun updateName(name: String, result: (UiState<String>) -> Unit) {
+        updatePassengerInfo(passenger.copy(name = name)) { state ->
+            when (state) {
+                is UiState.Success -> {
+                    result.invoke(UiState.Success(state.data))
+                }
+
+                is UiState.Failure -> {
+                    result.invoke(UiState.Failure(state.error))
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+    //val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks()
 
 
     override fun loginPassenger(passenger: Passenger, result: (UiState<String>) -> Unit) {
