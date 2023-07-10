@@ -1,4 +1,4 @@
-package com.saleem.radeef.ui.entername
+package com.saleem.radeef.ui.auth
 
 import android.os.Bundle
 import android.view.View
@@ -8,9 +8,10 @@ import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.auth.EnterNameFragmentDirections
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
-import com.saleem.radeef.ui.enternumber.RegisterViewModel
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
+import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -33,20 +34,26 @@ class EnterNameFragment(): Fragment(R.layout.fragment_enter_name) {
 
         viewModel.name.observe(viewLifecycleOwner) {state ->
             when(state) {
-                UiState.Loading -> {}
+                UiState.Loading -> {
+                    binding.continueBt.setText("")
+                    binding.progressBar.show()
+                }
                 is UiState.Success -> {
+                    binding.progressBar.hide()
                     toast(state.data)
                     val action = EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
                     findNavController().navigate(action)
                 }
-                is UiState.Failure -> toast(state.error)
+                is UiState.Failure -> {
+                    binding.progressBar.hide()
+                    binding.continueBt.setText("CONTINUE")
+                    toast(state.error)
+                }
 
 
             }.exhaustive
 
         }
 
-//        val action = EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
-//        findNavController().navigate(action)
     }
 }

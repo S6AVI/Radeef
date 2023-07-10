@@ -19,9 +19,10 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideRideRepository(
-        database: FirebaseFirestore
+        database: FirebaseFirestore,
+        auth: FirebaseAuth
     ): RideRepository {
-        return RideRepositoryImpl(database)
+        return RideRepositoryImpl(database, auth)
     }
 
     @Provides

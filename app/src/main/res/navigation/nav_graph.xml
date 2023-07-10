@@ -15,19 +15,21 @@
     </fragment>
     <fragment
         android:id="@+id/enterNumberFragment"
-        android:name="com.saleem.radeef.ui.enternumber.EnterNumberFragment"
+        android:name="com.saleem.radeef.ui.auth.EnterNumberFragment"
         android:label="fragement_enter_number"
         tools:layout="@layout/fragement_enter_number" >
         <action
             android:id="@+id/action_enterNumberFragment_to_otpFragment"
             app:destination="@id/otpFragment" />
         <action
-            android:id="@+id/action_enterNumberFragment_to_enterNameFragment"
-            app:destination="@id/enterNameFragment" />
+            android:id="@+id/action_enterNumberFragment_to_ridesFragment"
+            app:destination="@id/ridesFragment"
+            app:popUpTo="@id/enterNumberFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/otpFragment"
-        android:name="com.saleem.radeef.ui.otp.OtpFragment"
+        android:name="com.saleem.radeef.ui.auth.OtpFragment"
         android:label="fragment_otp"
         tools:layout="@layout/fragment_otp" >
 
@@ -39,7 +41,9 @@
             app:argType="string" />
         <action
             android:id="@+id/action_otpFragment_to_enterNameFragment"
-            app:destination="@id/enterNameFragment" />
+            app:destination="@id/enterNameFragment"
+            app:popUpTo="@id/enterNumberFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/enterNameFragment"
@@ -48,7 +52,9 @@
         tools:layout="@layout/fragment_enter_name" >
         <action
             android:id="@+id/action_enterNameFragment_to_ridesFragment"
-            app:destination="@id/ridesFragment" />
+            app:destination="@id/ridesFragment"
+            app:popUpTo="@id/enterNameFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/ridesFragment"

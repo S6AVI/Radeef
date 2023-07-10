@@ -1,6 +1,7 @@
 package com.saleem.radeef.data.repository
 
 import android.app.Activity
+import android.util.Log
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
@@ -18,6 +19,7 @@ class AuthRepositoryImpl(
 ) : AuthRepository {
     private lateinit var verificationId: String
     private lateinit var passenger: Passenger
+    private lateinit var token: PhoneAuthProvider.ForceResendingToken
 //    override val currentUser: FirebaseUser?
 //        get() =
 
@@ -79,6 +81,7 @@ class AuthRepositoryImpl(
                 ) {
                     this@AuthRepositoryImpl.passenger = passenger
                     this@AuthRepositoryImpl.verificationId = verificationId
+                    this@AuthRepositoryImpl.token = token
                     result.invoke(UiState.Success("Verification code sent"))
                 }
             })
@@ -89,7 +92,15 @@ class AuthRepositoryImpl(
 
     override fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit) {
 
-        val document = database.collection(FirestoreTables.PASSENGERS).document()
+        val document = if (passenger.passengerID.isNotEmpty()) {
+            database.collection(FirestoreTables.PASSENGERS).document(passenger.passengerID)
+
+
+        } else {
+            database.collection(FirestoreTables.PASSENGERS).document()
+        }
+
+
         passenger.passengerID = document.id
         document
             .set(passenger)
@@ -161,15 +172,44 @@ class AuthRepositoryImpl(
         }
     }
 
+
+
     //val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks()
 
+    override fun resendCode(activity: Activity, result: (UiState<String>) -> Unit) {
+        val options = PhoneAuthOptions.newBuilder(auth)
+            .setPhoneNumber(passenger.phoneNumber)
+            .setTimeout(60L, TimeUnit.SECONDS)
+            .setActivity(activity)
+            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                    // This method will be called if the user has already been verified
+                }
 
-    override fun loginPassenger(passenger: Passenger, result: (UiState<String>) -> Unit) {
-        TODO("Not yet implemented")
+                override fun onVerificationFailed(e: FirebaseException) {
+                    result.invoke(UiState.Failure("Verification failed, ${e.message ?: "unknown error"}"))
+                }
+
+                override fun onCodeSent(
+                    verificationId: String,
+                    token: PhoneAuthProvider.ForceResendingToken
+                ) {
+                    this@AuthRepositoryImpl.verificationId = verificationId
+                    result.invoke(UiState.Success("Verification code sent"))
+                }
+            })
+            .setForceResendingToken(token)
+            .build()
+
+        PhoneAuthProvider.verifyPhoneNumber(options)
+    }
+
+    override fun isRegistered(): Boolean {
+        return auth.currentUser != null
     }
 
     override fun logout() {
-        TODO("Not yet implemented")
+        auth.signOut()
     }
 
 

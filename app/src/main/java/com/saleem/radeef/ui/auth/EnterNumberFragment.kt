@@ -1,4 +1,4 @@
-package com.saleem.radeef.ui.enternumber
+package com.saleem.radeef.ui.auth
 
 import android.os.Bundle
 import android.view.View
@@ -8,8 +8,11 @@ import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.Passenger
 import com.saleem.radeef.databinding.FragementEnterNumberBinding
+
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
+import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,6 +27,8 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragementEnterNumberBinding.bind(view)
+
+
 
         observer()
 
@@ -46,16 +51,24 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
     private fun observer() {
         viewModel.register.observe(viewLifecycleOwner) { state ->
                 when(state) {
-                    UiState.Loading -> {}
+                    UiState.Loading -> {
+                        binding.registerButton.setText("")
+                        binding.progressBar.show()
+                    }
                     is UiState.Success -> {
+                        binding.progressBar.hide()
+                        //binding.registerButton.setText("Continue")
                         toast(state.data)
-                        val action =
-                            EnterNumberFragmentDirections.actionEnterNumberFragmentToOtpFragment(
+                        val action = EnterNumberFragmentDirections.actionEnterNumberFragmentToOtpFragment(
                                 phoneNumber
                             )
                         findNavController().navigate(action)
                     }
-                    is UiState.Failure -> toast(state.error)
+                    is UiState.Failure -> {
+                        binding.progressBar.hide()
+                        binding.registerButton.setText("Continue")
+                        toast(state.error)
+                    }
                 }.exhaustive
 
         }
@@ -117,6 +130,14 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
 //            }
 //    }
 
+    override fun onStart() {
+        super.onStart()
+        if (viewModel.isRegistered()) {
+            val action = EnterNumberFragmentDirections.actionEnterNumberFragmentToRidesFragment()
+            findNavController().navigate(action)
+        }
+
+    }
 //    override fun onStart() {
 //        super.onStart()
 //        if (auth.currentUser != null) {

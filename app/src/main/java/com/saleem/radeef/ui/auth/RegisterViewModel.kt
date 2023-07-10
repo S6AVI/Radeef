@@ -1,4 +1,4 @@
-package com.saleem.radeef.ui.enternumber
+package com.saleem.radeef.ui.auth
 
 import android.app.Activity
 import androidx.hilt.lifecycle.ViewModelInject
@@ -60,6 +60,14 @@ class RegisterViewModel @ViewModelInject constructor(
     fun updateName(name: String) {
         repository.updateName(name) {state ->
             _name.value = state
+        }
+    }
+
+    fun isRegistered() = repository.isRegistered()
+
+    fun resendCode(activity: Activity) {
+        repository.resendCode(activity) {
+
         }
     }
 }

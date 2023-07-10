@@ -1,17 +1,20 @@
 package com.saleem.radeef.data.repository
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
 
 class RideRepositoryImpl(
-    val database: FirebaseFirestore
+    val database: FirebaseFirestore,
+    val auth: FirebaseAuth
 ) : RideRepository {
 
     override fun getRides(result: (UiState<List<Ride>>) -> Unit) {
         database.collection(FirestoreTables.RIDES)
+            .whereEqualTo("passengerID", auth.currentUser?.uid)
             .get()
             .addOnSuccessListener {
                 Log.d("savii", "success in getRides()")
