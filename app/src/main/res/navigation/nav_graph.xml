@@ -5,12 +5,12 @@
     android:id="@+id/nav_graph.xml"
     app:startDestination="@id/enterNumberFragment">
     <fragment
-        android:id="@+id/welcomeFragment2"
+        android:id="@+id/welcomeFragment"
         android:name="com.saleem.radeef.ui.welcome.WelcomeFragment"
         android:label="fragment_welcome"
         tools:layout="@layout/fragment_welcome" >
         <action
-            android:id="@+id/action_welcomeFragment2_to_enterNumberFragment"
+            android:id="@+id/action_welcomeFragment_to_enterNumberFragment"
             app:destination="@id/enterNumberFragment" />
     </fragment>
     <fragment
@@ -22,10 +22,8 @@
             android:id="@+id/action_enterNumberFragment_to_otpFragment"
             app:destination="@id/otpFragment" />
         <action
-            android:id="@+id/action_enterNumberFragment_to_ridesFragment"
-            app:destination="@id/ridesFragment"
-            app:popUpTo="@id/enterNumberFragment"
-            app:popUpToInclusive="true" />
+            android:id="@+id/action_enterNumberFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
     </fragment>
     <fragment
         android:id="@+id/otpFragment"
@@ -33,9 +31,6 @@
         android:label="fragment_otp"
         tools:layout="@layout/fragment_otp" >
 
-
-        <!--        <argument android:name="token"-->
-<!--            app:argType="com.google.firebase.auth.PhoneAuthProvider.ForceResendingToken" />-->
         <argument
             android:name="phone"
             app:argType="string" />
@@ -47,18 +42,65 @@
     </fragment>
     <fragment
         android:id="@+id/enterNameFragment"
-        android:name="com.saleem.radeef.auth.EnterNameFragment"
+        android:name="com.saleem.radeef.ui.auth.EnterNameFragment"
         android:label="fragment_enter_name"
         tools:layout="@layout/fragment_enter_name" >
         <action
-            android:id="@+id/action_enterNameFragment_to_ridesFragment"
-            app:destination="@id/ridesFragment"
-            app:popUpTo="@id/enterNameFragment"
-            app:popUpToInclusive="true" />
+            android:id="@+id/action_enterNameFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
     </fragment>
     <fragment
         android:id="@+id/ridesFragment"
         android:name="com.saleem.radeef.ui.rides.RidesFragment"
         android:label="fragment_rides"
         tools:layout="@layout/fragment_rides" />
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.saleem.radeef.ui.map.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_settingsFragment2"
+            app:destination="@id/settingsFragment2" />
+        <action
+            android:id="@+id/action_homeFragment_to_helpFragment2"
+            app:destination="@id/helpFragment2" />
+        <action
+            android:id="@+id/action_homeFragment_to_profileFragment2"
+            app:destination="@id/profileFragment2" />
+        <action
+            android:id="@+id/action_homeFragment_to_walletFragment2"
+            app:destination="@id/walletFragment2" />
+        <action
+            android:id="@+id/action_homeFragment_to_ridesFragment"
+            app:destination="@id/ridesFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_paymentFragment2"
+            app:destination="@id/paymentFragment2" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsFragment2"
+        android:name="com.saleem.radeef.ui.drawer.settings.SettingsFragment"
+        android:label="fragment_settings"
+        tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/helpFragment2"
+        android:name="com.saleem.radeef.ui.drawer.help.HelpFragment"
+        android:label="fragment_help"
+        tools:layout="@layout/fragment_help" />
+    <fragment
+        android:id="@+id/profileFragment2"
+        android:name="com.saleem.radeef.ui.drawer.profile.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/walletFragment2"
+        android:name="com.saleem.radeef.ui.drawer.wallet.WalletFragment"
+        android:label="fragment_wallet"
+        tools:layout="@layout/fragment_wallet" />
+    <fragment
+        android:id="@+id/paymentFragment2"
+        android:name="com.saleem.radeef.ui.drawer.payment.PaymentFragment"
+        android:label="fragment_payment"
+        tools:layout="@layout/fragment_payment" />
 </navigation>

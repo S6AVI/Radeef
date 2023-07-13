@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
-import com.saleem.radeef.auth.EnterNameFragmentDirections
+import com.saleem.radeef.ui.auth.EnterNameFragmentDirections
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
@@ -41,7 +41,8 @@ class EnterNameFragment(): Fragment(R.layout.fragment_enter_name) {
                 is UiState.Success -> {
                     binding.progressBar.hide()
                     toast(state.data)
-                    val action = EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
+                    val action = EnterNameFragmentDirections.actionEnterNameFragmentToHomeFragment()
+                        //EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
                     findNavController().navigate(action)
                 }
                 is UiState.Failure -> {

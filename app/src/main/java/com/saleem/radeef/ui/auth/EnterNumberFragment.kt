@@ -133,7 +133,7 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
     override fun onStart() {
         super.onStart()
         if (viewModel.isRegistered()) {
-            val action = EnterNumberFragmentDirections.actionEnterNumberFragmentToRidesFragment()
+            val action = EnterNumberFragmentDirections.actionEnterNumberFragmentToHomeFragment()
             findNavController().navigate(action)
         }
 

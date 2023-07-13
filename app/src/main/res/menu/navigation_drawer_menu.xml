@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+
+    <item
+        android:id="@+id/nav_item_profile"
+        android:title="My Profile"
+        android:icon="@drawable/account"
+        />
+
+    <item
+        android:id="@+id/nav_item_wallet"
+        android:title="My Pocket"
+        android:icon="@drawable/wallet"/>
+
+    <item
+        android:id="@+id/nav_item_payment"
+        android:title="Payment"
+        android:icon="@drawable/credit_card"/>
+
+    <item
+        android:id="@+id/nav_item_rides"
+        android:title="Rides"
+        android:icon="@drawable/map"/>
+
+    <item
+        android:id="@+id/nav_item_help"
+        android:title="Help"
+        android:icon="@drawable/help"/>
+
+    <item
+        android:id="@+id/nav_item_Settings"
+        android:title="Settings"
+        android:icon="@drawable/settings"/>
+
+
+
+
+</menu>
