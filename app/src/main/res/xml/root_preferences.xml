@@ -1,0 +1,24 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <Preference
+        app:key="terms"
+        android:title="Terms and Conditions"
+        android:icon="@drawable/contract"
+        android:summary="Rights and rules"/>
+
+
+    <Preference
+        app:key="logout"
+        android:title="Sign out"
+        android:icon="@drawable/logout"
+        android:summary="We will miss you ):"/>
+
+
+
+
+
+
+</PreferenceScreen>

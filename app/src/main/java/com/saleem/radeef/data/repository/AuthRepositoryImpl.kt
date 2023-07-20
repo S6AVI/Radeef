@@ -208,8 +208,25 @@ class AuthRepositoryImpl(
         return auth.currentUser != null
     }
 
-    override fun logout() {
+    override fun hasName(): Boolean {
+        var name = ""
+        val db = database.collection(FirestoreTables.PASSENGERS).document(passenger.passengerID)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    name = document.getString("name")!!
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle any exceptions that occurred while retrieving the document
+            }
+
+        return name.isNotEmpty()
+    }
+
+    override fun logout(result: (UiState<String>) -> Unit) {
         auth.signOut()
+        result.invoke(UiState.Success("user signed out"))
     }
 
 

@@ -13,10 +13,11 @@ interface AuthRepository {
 
     fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit)
 
-    fun logout()
+    fun logout(result: (UiState<String>) -> Unit)
     fun signIn(code: String, result: (UiState<String>) -> Unit)
 
     fun updateName(name:String, result: (UiState<String>) -> Unit)
     abstract fun isRegistered(): Boolean
     fun resendCode(activity: Activity, result: (UiState<String>) -> Unit)
+    abstract fun hasName(): Boolean
 }

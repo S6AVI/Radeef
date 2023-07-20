@@ -48,6 +48,9 @@
         <action
             android:id="@+id/action_enterNameFragment_to_homeFragment"
             app:destination="@id/homeFragment" />
+        <action
+            android:id="@+id/action_enterNameFragment_to_homeFragment2"
+            app:destination="@id/homeFragment" />
     </fragment>
     <fragment
         android:id="@+id/ridesFragment"
@@ -77,6 +80,12 @@
         <action
             android:id="@+id/action_homeFragment_to_paymentFragment2"
             app:destination="@id/paymentFragment2" />
+        <action
+            android:id="@+id/action_homeFragment_to_setFragment"
+            app:destination="@id/setFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment2"
@@ -102,5 +111,34 @@
         android:id="@+id/paymentFragment2"
         android:name="com.saleem.radeef.ui.drawer.payment.PaymentFragment"
         android:label="fragment_payment"
-        tools:layout="@layout/fragment_payment" />
+        tools:layout="@layout/fragment_payment" >
+        <action
+            android:id="@+id/action_paymentFragment2_to_addMethodFragment"
+            app:destination="@id/addMethodFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/setFragment"
+        android:name="com.saleem.radeef.ui.SetFragment"
+        android:label="SetFragment" >
+        <action
+            android:id="@+id/action_setFragment_to_enterNumberFragment"
+            app:destination="@id/enterNumberFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addMethodFragment"
+        android:name="com.saleem.radeef.ui.drawer.wallet.AddMethodFragment"
+        android:label="fragment_add_method"
+        tools:layout="@layout/fragment_add_method" />
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.saleem.radeef.ui.map.SearchFragment"
+        android:label="fragment_search"
+        tools:layout="@layout/fragment_search" >
+        <argument
+            android:name="current"
+            app:argType="com.google.android.gms.maps.model.LatLng" />
+        <action
+            android:id="@+id/action_searchFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </fragment>
 </navigation>

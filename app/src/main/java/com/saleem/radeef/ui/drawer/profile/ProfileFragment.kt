@@ -3,6 +3,7 @@ package com.saleem.radeef.ui.drawer.profile
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 
 import com.saleem.radeef.databinding.FragmentProfileBinding
@@ -15,5 +16,9 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentProfileBinding.bind(view)
+
+        binding.backButton.setOnClickListener{
+            findNavController().popBackStack()
+        }
     }
 }

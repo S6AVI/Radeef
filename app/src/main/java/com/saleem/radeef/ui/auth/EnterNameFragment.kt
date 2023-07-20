@@ -16,7 +16,7 @@ import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class EnterNameFragment(): Fragment(R.layout.fragment_enter_name) {
+class EnterNameFragment() : Fragment(R.layout.fragment_enter_name) {
     private lateinit var binding: FragmentEnterNameBinding
     val viewModel: RegisterViewModel by viewModels()
 
@@ -32,19 +32,21 @@ class EnterNameFragment(): Fragment(R.layout.fragment_enter_name) {
             }
         }
 
-        viewModel.name.observe(viewLifecycleOwner) {state ->
-            when(state) {
+        viewModel.name.observe(viewLifecycleOwner) { state ->
+            when (state) {
                 UiState.Loading -> {
                     binding.continueBt.setText("")
                     binding.progressBar.show()
                 }
+
                 is UiState.Success -> {
                     binding.progressBar.hide()
                     toast(state.data)
                     val action = EnterNameFragmentDirections.actionEnterNameFragmentToHomeFragment()
-                        //EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
+                    //EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
                     findNavController().navigate(action)
                 }
+
                 is UiState.Failure -> {
                     binding.progressBar.hide()
                     binding.continueBt.setText("CONTINUE")
@@ -56,5 +58,13 @@ class EnterNameFragment(): Fragment(R.layout.fragment_enter_name) {
 
         }
 
+    }
+
+    override fun onStart() {
+        if (viewModel.hasName()) {
+            val action = EnterNameFragmentDirections.actionEnterNameFragmentToHomeFragment()
+            findNavController().navigate(action)
+        }
+        super.onStart()
     }
 }

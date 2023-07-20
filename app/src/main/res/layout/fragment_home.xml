@@ -26,8 +26,8 @@
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -39,43 +39,45 @@
         android:id="@+id/pickup_il"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="64dp"
         android:layout_marginEnd="32dp"
-        android:hint="Pickup"
-        app:layout_constraintBottom_toTopOf="@id/destination_il"
+        android:hint="Where to go?"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/map">
+        app:layout_constraintTop_toTopOf="parent">
+
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/pickup_text_field"
+            android:id="@+id/pickup_et"
+            android:background="@color/md_theme_light_surfaceVariant"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text" />
+            android:inputType="none" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Destination Text Field -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/destination_il"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:backgroundTintMode="screen"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="16dp"
-        android:hint="Destination"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/pickup_il"
-        app:layout_constraintStart_toStartOf="@id/pickup_il"
-        app:layout_constraintTop_toBottomOf="@id/pickup_il">
+<!--    &lt;!&ndash; Destination Text Field &ndash;&gt;-->
+<!--    <com.google.android.material.textfield.TextInputLayout-->
+<!--        android:id="@+id/destination_il"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:backgroundTintMode="screen"-->
+<!--        android:layout_marginTop="4dp"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:hint="Destination"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="@id/pickup_il"-->
+<!--        app:layout_constraintStart_toStartOf="@id/pickup_il"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/pickup_il">-->
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/destination_et"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text" />
+<!--        <com.google.android.material.textfield.TextInputEditText-->
+<!--            android:id="@+id/destination_et"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:inputType="text" />-->
 
-    </com.google.android.material.textfield.TextInputLayout>
+<!--    </com.google.android.material.textfield.TextInputLayout>-->
 
     <!-- Menu Button for Navigation Drawer -->
     <ImageButton
@@ -89,6 +91,8 @@
         android:src="@drawable/menu"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+
 
 
 

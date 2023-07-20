@@ -1,6 +1,7 @@
 package com.saleem.radeef.ui.auth
 
 import android.app.Activity
+import android.util.Log
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -29,6 +30,10 @@ class RegisterViewModel @ViewModelInject constructor(
     private val _name = MutableLiveData<UiState<String>>()
     val name: LiveData<UiState<String>>
         get() = _name
+
+    private val _logout = MutableLiveData<UiState<String>>()
+    val logout: LiveData<UiState<String>>
+        get() = _logout
 
     fun register(
         passenger: Passenger,
@@ -70,4 +75,13 @@ class RegisterViewModel @ViewModelInject constructor(
 
         }
     }
+
+    fun signOut() {
+        Log.d("savii", "inside viewModel")
+        repository.logout {
+            _logout.value = it
+        }
+    }
+
+    fun hasName() = repository.hasName()
 }
