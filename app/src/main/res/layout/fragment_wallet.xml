@@ -6,13 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".ui.drawer.wallet.WalletFragment">
 
-    <!-- Back Up Button -->
+
     <ImageButton
-        android:id="@+id/back_button"
+        android:id="@+id/back_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-
         android:layout_marginTop="16dp"
         android:background="@null"
         android:src="@drawable/arrow_back"
@@ -26,7 +25,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
-        android:text="Wallet history"
+        android:text="@string/wallet_history"
         android:gravity="center"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
         app:layout_constraintBottom_toTopOf="@id/recycler_view"
@@ -47,7 +46,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/wallet_history_label"
-        tools:listitem="@layout/item_payment" />
+        tools:listitem="@layout/item_payment"
+        tools:itemCount="5"/>
 
     <!-- Wallet History Section -->
     <com.google.android.material.card.MaterialCardView
@@ -61,7 +61,7 @@
         app:cardElevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/back_button">
+        app:layout_constraintTop_toBottomOf="@+id/back_btn">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -72,11 +72,11 @@
                 android:id="@+id/recharge_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Recharge"
+                android:text="@string/recharge"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <TextView
                 android:id="@+id/charge_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -85,11 +85,11 @@
                 app:layout_constraintTop_toBottomOf="@+id/charge_label"
                 tools:text="10.0 SAR" />
 
-            <com.google.android.material.textview.MaterialTextView
+            <TextView
                 android:id="@+id/charge_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Current Charge"
+                android:text="@string/current_charge"
                 android:textSize="14sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

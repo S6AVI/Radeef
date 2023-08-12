@@ -8,7 +8,9 @@ import javax.inject.Singleton
 import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.saleem.radeef.data.relations.RadeefDatabase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+//import com.saleem.radeef.data.relations.RadeefDatabase
 import dagger.hilt.android.components.ApplicationComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -31,18 +33,24 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(
-        app: Application
-    ) = Room.databaseBuilder(
-        app,
-        RadeefDatabase::class.java,
-        "radeef_database"
-    )
-        .fallbackToDestructiveMigration()
-        .build()
+    fun provideFirebaseStorage(): StorageReference {
+        return FirebaseStorage.getInstance().getReference()
+    }
 
-    @Provides
-    fun provideRadeefDao(db: RadeefDatabase) = db.radeefDao()
+//    @Provides
+//    @Singleton
+//    fun provideDatabase(
+//        app: Application
+//    ) = Room.databaseBuilder(
+//        app,
+//        RadeefDatabase::class.java,
+//        "radeef_database"
+//    )
+//        .fallbackToDestructiveMigration()
+//        .build()
+//
+//    @Provides
+//    fun provideRadeefDao(db: RadeefDatabase) = db.radeefDao()
 
 
     //@ApplicationScope
@@ -50,7 +58,3 @@ object AppModule {
     @Singleton
     fun provideApplicationScope() = CoroutineScope(SupervisorJob())
 }
-
-//@Retention(AnnotationRetention.RUNTIME)
-//@Qualifier
-//annotation class ApplicationScope

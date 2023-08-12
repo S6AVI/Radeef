@@ -18,7 +18,7 @@ class PaymentFragment: Fragment(R.layout.fragment_payment) {
 
         binding = FragmentPaymentBinding.bind(view)
 
-        binding.backButton.setOnClickListener{
+        binding.backBtn.setOnClickListener{
             findNavController().popBackStack()
         }
 

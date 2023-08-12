@@ -11,7 +11,7 @@
         android:id="@+id/enter_phone_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enter your phone number"
+        android:text="@string/enter_your_phone_number"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
@@ -52,7 +52,7 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/phone_et"
-            android:text="536735321"
+            android:text="@string/my_number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/enter_number"
@@ -76,7 +76,7 @@
             android:id="@+id/register_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Continue" />
+            android:text="@string/continue_label" />
 
         <ProgressBar
             android:id="@+id/progress_bar"

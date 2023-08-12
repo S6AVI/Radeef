@@ -2,7 +2,7 @@ package com.saleem.radeef.data.relations.one_to_many
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.saleem.radeef.data.relations.Driver
+import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.relations.Ride
 
 data class DriverWithRides(

@@ -140,7 +140,7 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-places:17.0.0'
 
-    implementation 'com.google.maps:google-maps-services:0.10.1'
+    implementation 'com.google.maps:google-maps-services:0.10.0'
 
     // credit card
     implementation 'com.braintreepayments:card-form:5.4.0'
@@ -149,6 +149,11 @@ dependencies {
 
    implementation 'com.google.android.libraries.places:places:3.1.0'
 
+    implementation 'org.slf4j:slf4j-api:2.0.0-alpha1'
+    implementation 'org.slf4j:slf4j-simple:2.0.0-alpha1'
+
+    // Cloud storage
+    implementation 'com.google.firebase:firebase-storage-ktx:20.2.1'
 
 }
 

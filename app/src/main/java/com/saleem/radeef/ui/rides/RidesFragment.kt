@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentRidesBinding
 import com.saleem.radeef.util.UiState
@@ -18,15 +19,20 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class RidesFragment : Fragment(R.layout.fragment_rides) {
     lateinit var binding: FragmentRidesBinding
-    val viewModel: RideViewModel by viewModels()
-    val adapter by lazy {
-        RideAdapter()
+    private val viewModel: RideViewModel by viewModels()
+    private val adapter by lazy {
+        RideAdapter(requireContext())
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentRidesBinding.bind(view)
+
+        binding.backBtn.setOnClickListener {
+            findNavController().popBackStack()
+        }
 
         binding.recyclerView.adapter = adapter
 
@@ -56,8 +62,8 @@ class RidesFragment : Fragment(R.layout.fragment_rides) {
                 }
 
             }.exhaustive
-
-
         }
+
+
     }
 }

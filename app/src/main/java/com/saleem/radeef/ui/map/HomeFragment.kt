@@ -20,6 +20,7 @@ import com.google.android.gms.maps.GoogleMap.MAP_TYPE_HYBRID
 import com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
@@ -28,12 +29,15 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.DirectionsApi
 import com.google.maps.DirectionsApiRequest
 import com.google.maps.GeoApiContext
+import com.google.maps.android.PolyUtil
+import com.google.maps.errors.ApiException
 import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentHomeBinding
 import com.saleem.radeef.util.Permissions.hasLocationPermission
 import com.saleem.radeef.util.Permissions.requestLocationPermission
+import com.saleem.radeef.util.toast
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
 import java.lang.Exception
@@ -129,12 +133,25 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallback,
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
+
         val riyadh = LatLng(24.7136, 46.6753)
 
         val saudiArabiaBounds = LatLngBounds(
             LatLng(16.0, 34.0), // Southwest corner
             LatLng(33.0, 56.0)  // Northeast corner
         )
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                // Animate the camera to the user's current location
+                currentLocation = LatLng(location.latitude, location.longitude)
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15f))
+            } else {
+                // If the user's location is not available, animate the camera to Riyadh
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(riyadh, 15f))
+            }
+        }
 
         map.addMarker(MarkerOptions().position(riyadh).title("Riyadh"))
         map.animateCamera(CameraUpdateFactory.newLatLng(riyadh))
@@ -171,10 +188,7 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallback,
 //        val lng = fusedLocationProviderClient.lastLocation.getResult().latitude
 //        map.addMarker(MarkerOptions().position(LatLng(lat, lng)))
 
-        fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(requireActivity())
 
-        setCurrent()
 
         Log.d(TAG, viewModel.pickup.toString())
         if (viewModel.pickup != null && viewModel.destination != null) {
@@ -201,18 +215,88 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallback,
         Log.d(TAG, pickupLatLng.toString())
         Log.d(TAG, destinationLatLng.toString())
         try {
-            val directions = DirectionsApiRequest(context)
+            Log.d(TAG, "before directions init")
+            val directions = DirectionsApi.newRequest(context)
             Log.d(TAG, directions.toString())
-            directions.origin(com.google.maps.model.LatLng(pickupLatLng.latitude, pickupLatLng.longitude))
+            directions.origin(
+                com.google.maps.model.LatLng(
+                    pickupLatLng.latitude,
+                    pickupLatLng.longitude
+                )
+            )
+            Log.d(TAG, "line: 213: ${directions.toString()}")
+            directions
                 .destination(
                     com.google.maps.model.LatLng(
                         destinationLatLng.latitude,
                         destinationLatLng.longitude
                     )
                 )
+            Log.d(TAG, "line: 221: ${directions.toString()}")
+            directions
                 .mode(TravelMode.DRIVING)
                 .units(Unit.METRIC)
-                .await()
+
+
+            val result = directions.await()
+            val dist = result.routes[0].legs.sumOf { it.distance.inMeters } / 1000.0
+            toast(dist.toString())
+
+            val route = result.routes[0]
+//            val points = mutableListOf<LatLng>()
+//            for (step in result.routes[0].legs[0].steps) {
+//                step.polyline.decodePath()?.forEach {
+//                    points.add(LatLng(it.lat, it.lng))
+//                }
+//            }
+//            val polylineOptions = PolylineOptions()
+//                .color(R.color.md_theme_light_primary)
+//                .width(15f)
+//                .geodesic(true)
+//                .addAll(points)
+//
+//            val polyline = map.addPolyline(polylineOptions)
+
+            // Get the polyline data from the route
+            val encodedPolyline = route.overviewPolyline.encodedPath
+
+// Decode the polyline data into a list of LatLng objects
+            val decodedPolyline = PolyUtil.decode(encodedPolyline)
+
+            val polylineOptions = PolylineOptions()
+                .addAll(decodedPolyline)
+                .color(R.color.md_theme_light_primary)
+                .width(10f)
+
+// Add the polyline to the map
+            val polyline = map.addPolyline(polylineOptions)
+
+// Move the camera to the bounding box of the polyline
+            val boundsBuilder = LatLngBounds.Builder()
+            for (point in decodedPolyline) {
+                boundsBuilder.include(point)
+            }
+            val bounds = boundsBuilder.build()
+            val cameraPosition = CameraPosition.Builder()
+                .zoom(15.0f) // your desired zoom level as a float value
+                .bearing(45.0f) // your desired bearing angle as a float value
+                .tilt(30.0f) // your desired tilt angle as a float value
+                .build()
+
+
+            //map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+
+            val cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 100).let {
+                CameraUpdateFactory.newCameraPosition(cameraPosition)
+            }
+            map.animateCamera(cameraUpdate)
+
+
+
+
+
+            Log.d(TAG, "line: 226: ${directions.toString()}")
+
         } catch (e: Exception) {
             Log.d(TAG, "here")
             Log.d(TAG, e.toString())
@@ -224,83 +308,67 @@ class HomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallback,
         }
 
 
-
-//    val points = mutableListOf<LatLng>()
-//    for (step in directions.routes[0].legs[0].steps)
-//    {
-//        step.polyline.decodePath()?.forEach {
-//            points.add(LatLng(it.lat, it.lng))
-//        }
-//    }
-//
-//    val polylineOptions = PolylineOptions()
-//        .color(R.color.md_theme_light_primary)
-//        .width(10f)
-//        .geodesic(true)
-//        .addAll(points)
-//
-//    val polyline = map.addPolyline(polylineOptions)
-}
-
-private fun getLatLngFromAddress(address: String): LatLng {
-    val geocoder = Geocoder(requireContext())
-    val results = geocoder.getFromLocationName(address, 1)
-    val location = results?.get(0)!!
-    return LatLng(location.latitude, location.longitude)
-
-
-}
-
-@SuppressLint("MissingPermission")
-fun setMarker() {
-
-    fusedLocationProviderClient.lastLocation.addOnCompleteListener {
-        val lastLocation = LatLng(
-            it.result.latitude,
-            it.result.longitude
-        )
-
-        map.addMarker(MarkerOptions().position(lastLocation))
-    }
-}
-
-
-@SuppressLint("MissingPermission")
-private fun setCurrent() {
-    fusedLocationProviderClient.lastLocation.addOnCompleteListener {
-        val lastLocation = LatLng(
-            it.result.latitude,
-            it.result.longitude
-        )
-        currentLocation = lastLocation
-    }
-}
-
-override fun onMyLocationButtonClick(): Boolean {
-    setMarker()
-    return false
-}
-
-override fun onRequestPermissionsResult(
-    requestCode: Int,
-    permissions: Array<out String>,
-    grantResults: IntArray
-) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
-}
-
-override fun onPermissionsDenied(requestCode: Int, perms: List<String>) {
-    if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-        SettingsDialog.Builder(requireActivity()).build().show()
-    } else {
-        requestLocationPermission(this)
     }
 
-}
+    private fun getLatLngFromAddress(address: String): LatLng {
+        val geocoder = Geocoder(requireContext())
+        val results = geocoder.getFromLocationName(address, 1)
+        val location = results?.get(0)!!
+        return LatLng(location.latitude, location.longitude)
 
-override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
-    val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
-    mapFragment?.getMapAsync(this)
-}
+
+    }
+
+    @SuppressLint("MissingPermission")
+    fun setMarker() {
+
+        fusedLocationProviderClient.lastLocation.addOnCompleteListener {
+            val lastLocation = LatLng(
+                it.result.latitude,
+                it.result.longitude
+            )
+
+            map.addMarker(MarkerOptions().position(lastLocation))
+        }
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private fun setCurrent() {
+        fusedLocationProviderClient.lastLocation.addOnCompleteListener {
+            val lastLocation = LatLng(
+                it.result.latitude,
+                it.result.longitude
+            )
+            currentLocation = lastLocation
+        }
+    }
+
+    override fun onMyLocationButtonClick(): Boolean {
+        setMarker()
+        return false
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: List<String>) {
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
+            SettingsDialog.Builder(requireActivity()).build().show()
+        } else {
+            requestLocationPermission(this)
+        }
+
+    }
+
+    override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        mapFragment?.getMapAsync(this)
+    }
 }

@@ -1,13 +1,14 @@
 package com.saleem.radeef.ui.auth
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
-import com.saleem.radeef.ui.auth.EnterNameFragmentDirections
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
+import com.saleem.radeef.ui.map.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
@@ -60,11 +61,19 @@ class EnterNameFragment() : Fragment(R.layout.fragment_enter_name) {
 
     }
 
+
     override fun onStart() {
-        if (viewModel.hasName()) {
-            val action = EnterNameFragmentDirections.actionEnterNameFragmentToHomeFragment()
-            findNavController().navigate(action)
+        val result = viewModel.alreadyHasName { result ->
+            Log.d(TAG, "hasName() -> $result")
+            if (result) {
+                Log.d(TAG, "hasName() -> true: skip fragment")
+                val action = EnterNameFragmentDirections.actionEnterNameFragmentToHomeFragment()
+                findNavController().navigate(action)
+            }
+
         }
         super.onStart()
     }
+
+
 }

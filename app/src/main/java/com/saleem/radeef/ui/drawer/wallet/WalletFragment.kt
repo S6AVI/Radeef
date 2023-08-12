@@ -21,7 +21,7 @@ class WalletFragment: Fragment(R.layout.fragment_wallet) {
 
         binding = FragmentWalletBinding.bind(view)
 
-        binding.backButton.setOnClickListener{
+        binding.backBtn.setOnClickListener{
             findNavController().popBackStack()
         }
     }

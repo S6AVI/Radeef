@@ -83,5 +83,19 @@ class RegisterViewModel @ViewModelInject constructor(
         }
     }
 
-    fun hasName() = repository.hasName()
+    fun hasName(callback: (Boolean) -> Unit) = repository.hasName(callback)
+
+
+    private var hasName: Boolean? = null
+
+    fun alreadyHasName(callback: (Boolean) -> Unit) {
+        if (hasName != null) {
+            callback.invoke(hasName!!)
+        } else {
+            repository.hasName { result ->
+                hasName = result
+                callback.invoke(result)
+            }
+        }
+    }
 }

@@ -1,12 +1,20 @@
 package com.saleem.radeef.ui.rides
 
+import android.content.Context
+import android.location.Geocoder
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.databinding.ItemRideBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import java.util.Locale
 
-class RideAdapter: RecyclerView.Adapter<RideAdapter.RideViewHolder>() {
+class RideAdapter(val context: Context) : RecyclerView.Adapter<RideAdapter.RideViewHolder>() {
 
     private var list: MutableList<Ride> = arrayListOf()
 
@@ -28,11 +36,42 @@ class RideAdapter: RecyclerView.Adapter<RideAdapter.RideViewHolder>() {
     override fun getItemCount() = list.size
 
 
-    inner class RideViewHolder(val binding: ItemRideBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: Ride){
-            binding.pickupTv.setText(item.pickupLocation.toString())
-            binding.destinationTv.setText(item.destination.toString())
+    inner class RideViewHolder(val binding: ItemRideBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: Ride) {
+            val geocoder = Geocoder(context, Locale.getDefault())
+//            val pickup = geocoder.getFromLocation(
+//                item.pickupLocation.latitude,
+//                item.pickupLocation.longitude,
+//                1
+//            )?.firstOrNull()?.getAddressLine(0) ?: ""
+//
+//            val destination = geocoder.getFromLocation(
+//                item.destination.latitude,
+//                item.destination.longitude,
+//                1
+//            )?.firstOrNull()?.getAddressLine(0) ?: ""
 
+            val coroutineScope = CoroutineScope(Dispatchers.Main)
+            var pickup = ""
+            var destination = ""
+            coroutineScope.launch {
+                pickup =
+                    getPickupAddress(item.pickupLocation.latitude, item.pickupLocation.longitude)
+                destination =
+                    getPickupAddress(item.destination.latitude, item.destination.longitude)
+                binding.pickupTv.text = pickup
+                binding.destinationTv.text = destination
+            }
+
+
+
+        }
+
+        private suspend fun getPickupAddress(latitude: Double, longitude: Double): String {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+            return addresses?.firstOrNull()?.featureName ?: ""
         }
     }
 }

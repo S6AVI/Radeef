@@ -3,6 +3,7 @@ package com.saleem.radeef.ui.drawer.help
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentHelpBinding
 import com.saleem.radeef.databinding.FragmentPaymentBinding
@@ -18,5 +19,9 @@ class HelpFragment: Fragment(R.layout.fragment_help) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentHelpBinding.bind(view)
+
+        binding.backBtn.setOnClickListener{
+            findNavController().popBackStack()
+        }
     }
 }

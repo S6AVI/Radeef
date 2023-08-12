@@ -6,10 +6,10 @@
     android:layout_height="match_parent"
     tools:context=".ui.drawer.settings.SettingsFragment">
 
-    <!-- Fragment Title -->
+
 
     <Button
-        android:id="@+id/sign_out_button"
+        android:id="@+id/sign_out_btn"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -17,14 +17,14 @@
         android:layout_marginBottom="8dp"
         android:backgroundTint="@color/error"
         android:padding="16dp"
-        android:text="Sign Out"
+        android:text="@string/sign_out"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Item 1 -->
+
     <ImageButton
-        android:id="@+id/back_button"
+        android:id="@+id/back_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -35,48 +35,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/item2"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/item1">
 
-        <ImageView
-            android:id="@+id/item2_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/account" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/item2_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Item 2 Label"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/item2_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Item 2 Description"
-                android:textSize="14sp" />
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Item 2 -->
     <LinearLayout
         android:id="@+id/item1"
         android:layout_width="0dp"
@@ -119,7 +80,6 @@
 
     </LinearLayout>
 
-    <!-- Sign Out Button -->
     <TextView
         android:id="@+id/fragment_title"
         android:layout_width="wrap_content"
@@ -127,7 +87,7 @@
         android:layout_marginTop="8dp"
         android:gravity="center"
 
-        android:text="Settings"
+        android:text="@string/settings"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"

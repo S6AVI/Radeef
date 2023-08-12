@@ -11,7 +11,7 @@
         android:id="@+id/name_label_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enter Your Name"
+        android:text="@string/enter_your_name"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:inputType="text"
             android:maxLength="40"
-            android:hint="Name"
+            android:hint="@string/name"
             android:textSize="18sp"/>
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -58,7 +58,7 @@
             android:id="@+id/continue_bt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="CONTINUE"
+            android:text="@string/continue_label"
             android:textSize="18sp" />
 
         <ProgressBar

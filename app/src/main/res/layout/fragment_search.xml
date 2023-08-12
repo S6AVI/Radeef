@@ -6,63 +6,63 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".ui.map.SearchFragment">
 
-    <!-- Pickup TextInputLayout -->
+
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/pickup_input_layout"
+        android:id="@+id/pickup_il"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
-        android:hint="Pickup Location"
+        android:hint="@string/pickup_location"
         app:endIconMode="clear_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/pickup_input"
-            android:text="Current Location"
+            android:id="@+id/pickup_et"
+            android:text="@string/current_location"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Destination TextInputLayout -->
+
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/destination_input_layout"
+        android:id="@+id/destination_il"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:hint="Destination Location"
+        android:hint="@string/destination_location"
         app:endIconMode="clear_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pickup_input_layout">
+        app:layout_constraintTop_toBottomOf="@+id/pickup_il">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/destination_input"
+            android:id="@+id/destination_et"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Search button -->
+
     <Button
-        android:id="@+id/search_button"
+        android:id="@+id/search_btn"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
-        android:text="DONE"
+        android:text="@string/done"
         android:enabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/destination_input_layout" />
+        app:layout_constraintTop_toBottomOf="@+id/destination_il" />
 
     <LinearLayout
         android:id="@+id/my_location"
@@ -70,7 +70,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/results_recycler_view"
-        app:layout_constraintTop_toBottomOf="@id/search_button"
+        app:layout_constraintTop_toBottomOf="@id/search_btn"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="8dp"
@@ -79,9 +79,9 @@
 
         <TextView
             android:id="@+id/current_tv"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Current Location"
+            android:text="@string/current_location"
             android:maxLength="30"
             android:maxLines="1"
             android:ellipsize="end"

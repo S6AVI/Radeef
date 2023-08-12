@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/driver_nav_graph"
+    app:startDestination="@id/authNavigation">
+    <navigation android:id="@+id/authNavigation"
+        app:startDestination="@id/driverEnterNumberFragment">
+        <fragment
+            android:id="@+id/driverOtpFragment"
+            android:name="com.saleem.radeef.driver.ui.auth.DriverOtpFragment"
+            android:label="DriverOtpFragment" />
+        <fragment
+            android:id="@+id/driverEnterNumberFragment"
+            android:name="com.saleem.radeef.driver.ui.auth.DriverEnterNumberFragment"
+            android:label="DriverEnterNumberFragment">
+            <action
+                android:id="@+id/action_driverEnterNumberFragment_to_driverOtpFragment"
+                app:destination="@id/driverOtpFragment" />
+        </fragment>
+        <action
+            android:id="@+id/action_global_infoNavigation"
+            app:destination="@id/infoNavigation"
+            app:popUpTo="@id/authNavigation"
+            app:popUpToInclusive="true" />
+    </navigation>
+    <navigation android:id="@+id/infoNavigation"
+        app:startDestination="@id/driverInfoFragment">
+        <fragment
+            android:id="@+id/driverInfoFragment"
+            android:name="com.saleem.radeef.driver.ui.info.DriverInfoFragment"
+            android:label="DriverInfoFragment" />
+    </navigation>
+</navigation>

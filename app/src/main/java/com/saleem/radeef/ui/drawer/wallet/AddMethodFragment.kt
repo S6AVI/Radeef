@@ -34,7 +34,7 @@ class AddMethodFragment: Fragment(R.layout.fragment_add_method) {
             .actionLabel("Purchase")
             .setup(requireActivity())
 
-        binding.backButton.setOnClickListener{
+        binding.backBtn.setOnClickListener{
             findNavController().popBackStack()
         }
     }

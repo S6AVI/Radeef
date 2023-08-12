@@ -76,17 +76,17 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         handler = Handler(Looper.getMainLooper())
         runnable = Runnable {
 
-            val query = if (binding.pickupInput.hasFocus()) {
-                binding.pickupInput.text.toString()
+            val query = if (binding.pickupEt.hasFocus()) {
+                binding.pickupEt.text.toString()
             } else {
-                binding.destinationInput.text.toString()
+                binding.destinationEt.text.toString()
             }
             findPredictions(query)
         }
         Log.d(TAG, handler.toString())
 
 
-        binding.pickupInput.addTextChangedListener(object : TextWatcher {
+        binding.pickupEt.addTextChangedListener(object : TextWatcher {
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
 
@@ -102,7 +102,7 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
 
             }
         })
-        binding.destinationInput.addTextChangedListener(object : TextWatcher {
+        binding.destinationEt.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
 
@@ -120,19 +120,19 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
 
 
         binding.myLocation.setOnClickListener {
-            binding.pickupInput.setText("Current Location")
+            binding.pickupEt.setText("Current Location")
         }
 
-        binding.searchButton.setOnClickListener {
+        binding.searchBtn.setOnClickListener {
             val action = SearchFragmentDirections.actionSearchFragmentToHomeFragment()
             findNavController().navigate(action)
         }
     }
 
     private fun updateButton() {
-        binding.searchButton.isEnabled =
-            binding.pickupInput.text?.isNotEmpty()!! &&
-                    binding.destinationInput.text?.isNotEmpty()!!
+        binding.searchBtn.isEnabled =
+            binding.pickupEt.text?.isNotEmpty()!! &&
+                    binding.destinationEt.text?.isNotEmpty()!!
     }
 
     private fun findPredictions(query: String) {
@@ -194,12 +194,12 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
 
     override fun onItemClick(item: AutocompletePrediction) {
         val address = item.getFullText(null)
-        if (binding.pickupInput.hasFocus()) {
-            binding.pickupInput.setText(address)
-            viewModel.pickup = binding.pickupInput.text.toString()
+        if (binding.pickupEt.hasFocus()) {
+            binding.pickupEt.setText(address)
+            viewModel.pickup = binding.pickupEt.text.toString()
             Log.d(TAG, "in viewmodel ${viewModel.pickup.toString()}")
-        } else if (binding.destinationInput.hasFocus()) {
-            binding.destinationInput.setText(item.getFullText(null))
+        } else if (binding.destinationEt.hasFocus()) {
+            binding.destinationEt.setText(item.getFullText(null))
             viewModel.destination = address.toString()
         }
     }
