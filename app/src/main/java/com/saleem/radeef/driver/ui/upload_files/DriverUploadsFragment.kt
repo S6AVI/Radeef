@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.UploadFilesFragmentBinding
-import com.saleem.radeef.driver.ui.info.DriverInfoViewModel
+import com.saleem.radeef.driver.ui.register.info.DriverInfoViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

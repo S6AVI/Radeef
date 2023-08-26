@@ -7,6 +7,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.AuthNavigationDirections
 import com.saleem.radeef.R
+import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.databinding.FragmentOtpBinding
 import com.saleem.radeef.ui.auth.OtpFragmentDirections
 import com.saleem.radeef.util.UiState
@@ -14,6 +15,7 @@ import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
+import com.saleem.radeef.util.updateRegistrationStatus
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -53,6 +55,7 @@ class DriverOtpFragment : Fragment(R.layout.fragment_otp) {
                 is UiState.Success -> {
                     binding.progressBar.hide()
                     toast(state.data)
+                    updateRegistrationStatus(RegistrationStatus.INFO, requireActivity())
                     val action = AuthNavigationDirections.actionGlobalInfoNavigation()
                     findNavController().navigate(action)
                 }

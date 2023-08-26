@@ -5,6 +5,7 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.saleem.radeef.AuthNavigationDirections
 import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.Passenger
 import com.saleem.radeef.data.firestore.driver.Driver
@@ -26,6 +27,10 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (viewModel.isRegistered()) {
+            navigateToInfoGraph()
+        }
 
         binding = FragementEnterNumberBinding.bind(view)
 
@@ -75,6 +80,11 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
             }.exhaustive
 
         }
+    }
+
+    private fun navigateToInfoGraph() {
+        val action = AuthNavigationDirections.actionGlobalInfoNavigation()
+        findNavController().navigate(action)
     }
 
     private fun createDriver(): Driver {

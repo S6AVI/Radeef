@@ -27,7 +27,26 @@
         app:startDestination="@id/driverInfoFragment">
         <fragment
             android:id="@+id/driverInfoFragment"
-            android:name="com.saleem.radeef.driver.ui.info.DriverInfoFragment"
-            android:label="DriverInfoFragment" />
+            android:name="com.saleem.radeef.driver.ui.register.info.DriverInfoFragment"
+            android:label="DriverInfoFragment" >
+            <action
+                android:id="@+id/action_driverInfoFragment_to_driverLicenseFragment"
+                app:destination="@id/driverLicenseFragment"
+                app:launchSingleTop="true" />
+        </fragment>
+
+        <fragment
+            android:id="@+id/driverLicenseFragment"
+            android:name="com.saleem.radeef.driver.ui.register.license.DriverLicenseFragment"
+            android:label="DriverLicenseFragment" >
+            <action
+                android:id="@+id/action_driverLicenseFragment_to_driverVehicleFragment"
+                app:destination="@id/driverVehicleFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/driverVehicleFragment"
+            android:name="com.saleem.radeef.driver.ui.register.vehicle.DriverVehicleFragment"
+            android:label="DriverVehicleFragment" />
     </navigation>
+
 </navigation>

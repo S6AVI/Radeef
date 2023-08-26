@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.saleem.radeef.util.FirebaseStorageConstants
 //import com.saleem.radeef.data.relations.RadeefDatabase
 import dagger.hilt.android.components.ApplicationComponent
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +35,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseStorage(): StorageReference {
-        return FirebaseStorage.getInstance().getReference()
+        return FirebaseStorage.getInstance().getReference(FirebaseStorageConstants.ROOT_DIRECTORY)
     }
 
 //    @Provides

@@ -16,11 +16,13 @@ import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.License
 import com.saleem.radeef.data.firestore.driver.Vehicle
 import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.util.FirebaseStorageConstants.DRIVER_DIRECTORY
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
@@ -254,6 +256,19 @@ class DriverRepositoryImpl(
     }
 
 
+    override fun updateDriver(driver: Driver, result: (UiState<String>) -> Unit) {
+        val driverWithId = driver.copy(driverID = auth.currentUser!!.uid, phoneNumber = auth.currentUser!!.phoneNumber!!)
+        val driverDocument = database.collection(FirestoreTables.DRIVERS).document(driverWithId.driverID)
+            .set(driverWithId)
+            .addOnSuccessListener {
+                result.invoke(UiState.Success("Driver updated successfully"))
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(UiState.Failure(exception.message))
+            }
+    }
+
+
     override fun getVehicle(vehicle: Vehicle, result: (UiState<Vehicle>) -> Unit) {
         TODO("Not yet implemented")
     }
@@ -288,5 +303,50 @@ class DriverRepositoryImpl(
         } catch (e: Exception) {
             onResult.invoke(UiState.Failure(e.message))
         }
+    }
+
+    override suspend fun uploadImage(fileUrl: Uri, name: String, onResult: (UiState<Uri>) -> Unit) {
+        try {
+            Log.d(TAG, "before upload")
+
+            if (alreadyUploaded(fileUrl)) {
+                onResult.invoke(UiState.Success(fileUrl))
+                return
+            }
+            val currentUserUid = auth.currentUser!!.uid
+//            storageReference
+//                .child("$DRIVER_DIRECTORY/$currentUserUid")
+//                .putFile(fileUrl)
+//                .await()
+//            Log.d(TAG, "put file")
+
+            val renamedImage = renameImageFile(fileUrl)
+            val uri: Uri = withContext(Dispatchers.IO) {
+                storageReference
+                    .child("$DRIVER_DIRECTORY/$currentUserUid/$name")
+                    .putFile(renamedImage)
+                    .await()
+                    .storage
+                    .downloadUrl
+                    .await()
+            }
+            Log.d(TAG, "after upload")
+            onResult.invoke(UiState.Success(uri))
+
+        } catch (e: FirebaseException) {
+            Log.d(TAG, e.message.toString())
+            onResult.invoke(UiState.Failure(e.message))
+        } catch (e: Exception) {
+            Log.d(TAG, e.message.toString())
+            onResult.invoke(UiState.Failure(e.message))
+        }
+    }
+
+    private fun renameImageFile(fileUrl: Uri): Uri {
+        val originalFile = File(fileUrl.path!!)
+        val renamedFile = File.createTempFile("image_", ".jpg")
+
+        originalFile.copyTo(renamedFile, true)
+        return Uri.fromFile(renamedFile)
     }
 }

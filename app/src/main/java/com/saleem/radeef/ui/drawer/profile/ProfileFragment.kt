@@ -15,6 +15,7 @@ import com.saleem.radeef.ui.map.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.genders
 import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.isValidEmail
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,7 +37,7 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
 
 
         binding.emailIl.isErrorEnabled = binding.emailEt.text.toString().isNotEmpty() &&
-                binding.emailEt.text.toString().isvalidEmail()
+                binding.emailEt.text.toString().isValidEmail()
 
         //binding.saveBtn.isEnabled = isDataValid()
 
@@ -155,8 +156,5 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
     }
 }
 
-private fun String.isvalidEmail(): Boolean {
-    val emailRegex = Regex("^\\w+([.-]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,3})+\$")
-    return emailRegex.matches(this)
-}
+
 

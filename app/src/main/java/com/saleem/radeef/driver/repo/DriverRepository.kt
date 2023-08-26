@@ -39,6 +39,12 @@ interface DriverRepository {
 
     suspend fun uploadLicenseFile(fileUrl: Uri, onResult: (UiState<Uri>) -> Unit)
 
+    suspend fun uploadImage(fileUrl: Uri, name: String, onResult: (UiState<Uri>) -> Unit)
+
+    fun updateDriver(driver: Driver, result: (UiState<String>) -> Unit)
+    fun alreadyUploaded(uri: Uri): Boolean {
+        return uri.toString().contains("radeef-bc315.appspot.com")
+    }
 
 
 }

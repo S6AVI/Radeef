@@ -66,9 +66,10 @@
     <string name="male">Male</string>
     <string name="nationality">Nationality</string>
     <string name="sex">Sex</string>
-    <string name="saudi_arabia">Saudi Arabic</string>
+    <string name="saudi_arabia">SA</string>
     <string name="start">Let\'s Go!</string>
     <string name="driver_label">DRIVER</string>
     <string name="passenger_label">PASSENGER\t</string>
     <string name="choose_type">I\'m A</string>
+    <string name="id_number">ID number</string>
 </resources>
