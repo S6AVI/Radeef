@@ -21,6 +21,7 @@ import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.databinding.DriverInfoFragmentBinding
 import com.saleem.radeef.util.Constants.CROP_IMAGE_REQUEST
+import com.saleem.radeef.util.ImageFileNames.PERSONAL
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.enable
@@ -73,7 +74,7 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
             //Log.d(TAG, isValidDate().toString())
             if (isValidDate()) {
                 binding.continueBt.disable()
-                viewModel.onContinueClicked(selectedImageUri!!, "personal")
+                viewModel.onContinueClicked(selectedImageUri!!, PERSONAL)
                 //toast("correct data")
             } else {
                 toast("Missing required data")
@@ -131,7 +132,7 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
                 }
                 is UiState.Success -> {
                     binding.progressBar.hide()
-                    logD(state.data.toString())
+                    logD(state.data)
                     updateRegistrationStatus(RegistrationStatus.LICENSE, requireActivity())
                     val action = DriverInfoFragmentDirections.actionDriverInfoFragmentToDriverLicenseFragment()
                     findNavController().navigate(action)
@@ -170,20 +171,22 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
     }
 
     private fun isValidDate(): Boolean {
+        return  (selectedImageUri != null) &&
+                (binding.emailEt.toString().isNotEmpty())
+                && (binding.nameEt.text.toString().length > 5)
+                && (binding.idEt.text.toString().length == 10)
+                && (binding.genderAutoComplete.text.toString().isNotEmpty())
+                && (binding.nationalityAutoComplete.text.toString().isNotEmpty())
+
         // TO CHANGE THE FIRST CONDITION LATER //
-        logD(
-            binding.emailEt.text.toString() + "\n " +
-                    binding.nameEt.text.toString() + "\n " +
-                    binding.idEt.text.toString() + "\n " +
-            binding.genderAutoComplete.text.toString() + "\n " +
-            binding.nationalityAutoComplete.text.toString()
-        )
-            return  (selectedImageUri != null) &&
-            (binding.emailEt.toString().isNotEmpty())
-                    && (binding.nameEt.text.toString().length > 5)
-                    && (binding.idEt.text.toString().length == 10)
-                    && (binding.genderAutoComplete.text.toString().isNotEmpty())
-                    && (binding.nationalityAutoComplete.text.toString().isNotEmpty())
+//        logD(
+//            binding.emailEt.text.toString() + "\n " +
+//                    binding.nameEt.text.toString() + "\n " +
+//                    binding.idEt.text.toString() + "\n " +
+//            binding.genderAutoComplete.text.toString() + "\n " +
+//            binding.nationalityAutoComplete.text.toString()
+//        )
+
 
     }
 
@@ -247,10 +250,7 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == Activity.RESULT_OK) {
-            //Image Uri will not be null for RESULT_OK
             val uri: Uri = data?.data!!
-
-            // Use Uri object instead of File to avoid storage permissions
             selectedImageUri = uri
             binding.photoImageView.setImageURI(uri)
         } else if (resultCode == ImagePicker.RESULT_ERROR) {

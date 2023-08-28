@@ -34,8 +34,8 @@ interface DriverRepository {
     fun updateVehicle(vehicle: Vehicle, result: (UiState<Vehicle>) -> Unit)
 
 
-    fun getLicense(license: License, result: (UiState<License>) -> Unit)
-    fun updateLicense(license: License, result: (UiState<License>) -> Unit)
+    fun getLicense(result: (UiState<License>) -> Unit)
+    fun updateLicense(license: License, result: (UiState<String>) -> Unit)
 
     suspend fun uploadLicenseFile(fileUrl: Uri, onResult: (UiState<Uri>) -> Unit)
 
@@ -45,6 +45,8 @@ interface DriverRepository {
     fun alreadyUploaded(uri: Uri): Boolean {
         return uri.toString().contains("radeef-bc315.appspot.com")
     }
+
+    fun createEmptyLicense(result: (UiState<License>) -> Unit)
 
 
 }

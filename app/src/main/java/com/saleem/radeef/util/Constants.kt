@@ -1,5 +1,9 @@
 package com.saleem.radeef.util
 
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 
 object FirestoreTables {
     val RIDES = "rides"
@@ -25,4 +29,15 @@ object FirebaseStorageConstants {
     val ROOT_DIRECTORY = "app"
     val DRIVER_DIRECTORY = "driver"
     val Passenger_DIRECTORY = "passenger"
+}
+
+object DefaultDate {
+    val DEFAULT_DATE: Date
+        get() = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse("01-01-1900")!!
+}
+
+object ImageFileNames {
+    const val PERSONAL = "personal"
+    const val LICENSE = "license"
+    const val VEHICLE = "vehicle"
 }

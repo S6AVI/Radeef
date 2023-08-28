@@ -277,12 +277,61 @@ class DriverRepositoryImpl(
         TODO("Not yet implemented")
     }
 
-    override fun getLicense(license: License, result: (UiState<License>) -> Unit) {
-        TODO("Not yet implemented")
+    override fun getLicense(result: (UiState<License>) -> Unit) {
+        database.collection(FirestoreTables.LICENSE)
+            .whereEqualTo("driverID", auth.currentUser?.uid)
+            .limit(1)
+            .get()
+            .addOnSuccessListener {
+                if (!it.isEmpty) {
+                    val documentSnapshot = it.documents[0]
+                    val license = documentSnapshot.toObject(License::class.java)!!
+
+                    result.invoke(
+                        UiState.Success(license.copy(licenseID = documentSnapshot.id))
+                    )
+                } else {
+                    createEmptyLicense(result)
+                }
+
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(
+                    UiState.Failure(
+                        exception.message.toString()
+                    )
+                )
+            }
     }
 
-    override fun updateLicense(license: License, result: (UiState<License>) -> Unit) {
-        TODO("Not yet implemented")
+    override fun createEmptyLicense(result: (UiState<License>) -> Unit) {
+        val newLicense = License(driverID = auth.currentUser?.uid!!)
+
+        database.collection(FirestoreTables.LICENSE)
+            .add(newLicense)
+            .addOnSuccessListener { documentReference ->
+                val licenseWithId = newLicense.copy(licenseID = documentReference.id)
+                result.invoke(UiState.Success(licenseWithId))
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(UiState.Failure(exception.message.toString()))
+            }
+    }
+
+    override fun updateLicense(license: License, result: (UiState<String>) -> Unit) {
+
+        //val driverWithId = driver.copy(driverID = auth.currentUser!!.uid, phoneNumber = auth.currentUser!!.phoneNumber!!)
+        Log.d(TAG, "inside updateLicense in repo")
+        database.collection(FirestoreTables.LICENSE).document(license.licenseID)
+            .set(license)
+            .addOnSuccessListener {
+                Log.d(TAG, "inside updateLicense in repo: Success")
+                result.invoke(UiState.Success("Driver updated successfully"))
+            }
+            .addOnFailureListener { exception ->
+                Log.d(TAG, "inside updateLicense in repo: Failure")
+                result.invoke(UiState.Failure(exception.message))
+            }
     }
 
 
@@ -310,6 +359,7 @@ class DriverRepositoryImpl(
             Log.d(TAG, "before upload")
 
             if (alreadyUploaded(fileUrl)) {
+                Log.d(TAG, "alreadyUploaded(fileUrl) in repo: ${alreadyUploaded(fileUrl)}")
                 onResult.invoke(UiState.Success(fileUrl))
                 return
             }

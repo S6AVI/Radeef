@@ -6,11 +6,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saleem.radeef.data.firestore.Passenger
-import com.saleem.radeef.data.firestore.driver.Driver
-import com.saleem.radeef.data.repository.AuthRepository
+import com.saleem.radeef.data.firestore.driver.License
 import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.logD
 import kotlinx.coroutines.launch
 
 class DriverLicenseViewModel @ViewModelInject constructor(
@@ -18,44 +17,57 @@ class DriverLicenseViewModel @ViewModelInject constructor(
 ) : ViewModel() {
 
 
-    private val _driver = MutableLiveData<UiState<Driver>>()
-    val driver: LiveData<UiState<Driver>>
-        get() = _driver
+    private val _license = MutableLiveData<UiState<License>>()
+    val license: LiveData<UiState<License>>
+        get() = _license
 
     private val _uploadImage = MutableLiveData<UiState<Uri>>()
     val uploadImage: LiveData<UiState<Uri>>
         get() = _uploadImage
 
-    private val _updateDriver = MutableLiveData<UiState<String>>()
-    val updateDriver: LiveData<UiState<String>>
-        get() = _updateDriver
+    private val _updateLicense = MutableLiveData<UiState<String>>()
+    val updateLicense: LiveData<UiState<String>>
+        get() = _updateLicense
+
+    var licenseData: License? = null
 
     init {
-        //getLicense()
+        getLicense()
     }
 
     private fun getLicense() {
-        _driver.value = UiState.Loading
-        repository.getDriver {
-            _driver.value = it
+        _license.value = UiState.Loading
+        repository.getLicense {state ->
+            _license.value = state
+            logD("ViewModel: in getLicense")
+            if (state is UiState.Success) {
+                logD("ViewModel: in getLicense: success: ${state.data}")
+                licenseData = state.data
+            } else {
+                logD("some problem in getLicense")
+            }
         }
+
     }
 
     fun onContinueClicked(imageUri: Uri, name: String) {
         _uploadImage.value = UiState.Loading
         viewModelScope.launch {
             repository.uploadImage(imageUri, name) {
+                logD("after uploadImage in ViewModel: $imageUri\n$name")
                 _uploadImage.value = it
             }
         }
     }
 
-    fun updateDriverInfo(driver: Driver) {
-        _updateDriver.value = UiState.Loading
-        repository.updateDriverInfo(driver) {
-            _updateDriver.value = it
+    fun updateLicenseInfo(license: License) {
+        _updateLicense.value = UiState.Loading
+        repository.updateLicense(license) {
+            logD("after updateLicense in ViewModel: $license")
+            _updateLicense.value = it
         }
     }
+
 
 
 }

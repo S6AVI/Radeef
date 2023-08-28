@@ -24,7 +24,7 @@
         android:id="@+id/name_label_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/license_info"
+        android:text="@string/vehicle_info"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
@@ -123,8 +123,6 @@
             android:layout_height="wrap_content"
             android:hint="@string/expire_date"
             android:inputType="none"
-            android:clickable="false"
-            android:focusable="false"
             tools:text="1-1-2025" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -148,7 +146,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="none"
-            android:paddingStart="8dp"
             android:hint="@string/blood_type"
             tools:text="A+" />
 

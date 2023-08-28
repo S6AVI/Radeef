@@ -15,6 +15,7 @@ import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.databinding.DriverInfoFragmentBinding
 import com.saleem.radeef.databinding.DriverLicenseFragmentBinding
+import com.saleem.radeef.databinding.DriverVehicleFragmentBinding
 import com.saleem.radeef.util.Constants.CROP_IMAGE_REQUEST
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.genders
@@ -28,9 +29,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 
 @AndroidEntryPoint
-class DriverVehicleFragment() : Fragment(R.layout.driver_license_fragment) {
-    private lateinit var binding: DriverLicenseFragmentBinding
-    val viewModel: DriverVehicleViewModel by viewModels()
+class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
+    private lateinit var binding: DriverVehicleFragmentBinding
+    //val viewModel: DriverVehicleViewModel by viewModels()
     private var selectedImageUri: Uri? = null
 
 
@@ -38,9 +39,11 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_license_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding = DriverLicenseFragmentBinding.bind(view)
+        binding = DriverVehicleFragmentBinding.bind(view)
 
-
+        binding.continueBt.setOnClickListener {
+            toast("in vehicle!")
+        }
     }
 
 
