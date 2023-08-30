@@ -77,4 +77,11 @@
     <string name="expire_date">Expire date</string>
     <string name="blood_type">Blood type</string>
     <string name="vehicle_info">Vehicle Info</string>
+    <string name="plate_number">Plate number</string>
+    <string name="make">Make</string>
+    <string name="car_make">Car make</string>
+    <string name="car_color">Color</string>
+    <string name="car_year">Manufacture year</string>
+    <string name="car_capacity">Capacity</string>
+    <string name="upload_you_vehicle_registration_card">Upload you vehicle registration card</string>
 </resources>

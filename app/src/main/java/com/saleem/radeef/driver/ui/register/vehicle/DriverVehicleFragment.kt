@@ -31,7 +31,7 @@ import java.io.File
 @AndroidEntryPoint
 class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
     private lateinit var binding: DriverVehicleFragmentBinding
-    //val viewModel: DriverVehicleViewModel by viewModels()
+    val viewModel: DriverVehicleViewModel by viewModels()
     private var selectedImageUri: Uri? = null
 
 
@@ -43,6 +43,12 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
 
         binding.continueBt.setOnClickListener {
             toast("in vehicle!")
+        }
+
+        viewModel.carsData.observe(viewLifecycleOwner) {
+            val cars = it.map { it -> it.make }
+            logD("done!")
+            logD(cars.toString())
         }
     }
 

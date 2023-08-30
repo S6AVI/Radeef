@@ -6,17 +6,35 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.data.CarData
 import com.saleem.radeef.data.firestore.driver.Driver
-import com.saleem.radeef.data.repository.AuthRepository
+import com.saleem.radeef.driver.repo.CarsRepository
 import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.logD
 import kotlinx.coroutines.launch
 
 class DriverVehicleViewModel @ViewModelInject constructor(
-    val repository: DriverRepository
+    val driverRepository: DriverRepository,
+    val carsRepository: CarsRepository
 ) : ViewModel() {
 
+
+    private val _carsData = MutableLiveData<List<CarData>>()
+    val carsData: LiveData<List<CarData>>
+        get() = _carsData
+
+    fun fetchCars(model: String, make: String) {
+        viewModelScope.launch {
+            try {
+                val cars = carsRepository.getCars(make = make, model = model)
+                _carsData.value = cars
+                logD("successful fetch")
+            } catch (e: Exception) {
+                logD(e.message.toString())
+            }
+        }
+    }
 
     private val _driver = MutableLiveData<UiState<Driver>>()
     val driver: LiveData<UiState<Driver>>
@@ -31,6 +49,7 @@ class DriverVehicleViewModel @ViewModelInject constructor(
         get() = _updateDriver
 
     init {
+        fetchCars("", "A")
         //getLicense()
     }
 
