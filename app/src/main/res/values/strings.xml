@@ -84,4 +84,5 @@
     <string name="car_year">Manufacture year</string>
     <string name="car_capacity">Capacity</string>
     <string name="upload_you_vehicle_registration_card">Upload you vehicle registration card</string>
+    <string name="car_model">Car model</string>
 </resources>

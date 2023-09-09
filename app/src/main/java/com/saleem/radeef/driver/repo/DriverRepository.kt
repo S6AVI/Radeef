@@ -30,8 +30,8 @@ interface DriverRepository {
     fun getDriver(result: (UiState<Driver>) -> Unit)
 
 
-    fun getVehicle(vehicle: Vehicle, result: (UiState<Vehicle>) -> Unit)
-    fun updateVehicle(vehicle: Vehicle, result: (UiState<Vehicle>) -> Unit)
+    fun getVehicle(result: (UiState<Vehicle>) -> Unit)
+    fun updateVehicle(vehicle: Vehicle, result: (UiState<String>) -> Unit)
 
 
     fun getLicense(result: (UiState<License>) -> Unit)

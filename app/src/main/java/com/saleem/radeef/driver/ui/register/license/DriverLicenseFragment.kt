@@ -123,6 +123,7 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
                     logD("${state.data}")
                     loadImage(state.data.photoUrl)
                     binding.baseLayout.show()
+                    binding.waitProgressBar.hide()
                     fillFields(state.data)
                 }
 

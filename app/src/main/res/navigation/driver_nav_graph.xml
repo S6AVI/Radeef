@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/driver_nav_graph"
     app:startDestination="@id/authNavigation">
     <navigation android:id="@+id/authNavigation"
@@ -47,6 +48,28 @@
             android:id="@+id/driverVehicleFragment"
             android:name="com.saleem.radeef.driver.ui.register.vehicle.DriverVehicleFragment"
             android:label="DriverVehicleFragment" />
+        <action
+            android:id="@+id/action_global_homeNavigation"
+            app:destination="@id/homeNavigation"
+            app:popUpTo="@id/infoNavigation"
+            app:popUpToInclusive="true" />
+    </navigation>
+    <navigation android:id="@+id/homeNavigation"
+        app:startDestination="@id/driverRequestPermissionFragment">
+        <fragment
+            android:id="@+id/driverHomeFragment"
+            android:name="com.saleem.radeef.driver.ui.home.DriverHomeFragment"
+            android:label="driver_fragment_home"
+            tools:layout="@layout/driver_fragment_home" />
+        <fragment
+            android:id="@+id/driverRequestPermissionFragment"
+            android:name="com.saleem.radeef.driver.ui.home.DriverRequestPermissionFragment"
+            android:label="driver_request_fragment"
+            tools:layout="@layout/driver_request_fragment">
+            <action
+                android:id="@+id/action_driverRequestPermissionFragment_to_driverHomeFragment"
+                app:destination="@id/driverHomeFragment" />
+        </fragment>
     </navigation>
 
 </navigation>

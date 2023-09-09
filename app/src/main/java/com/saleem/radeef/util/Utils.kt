@@ -7,6 +7,7 @@ import android.util.Log
 import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.ui.map.TAG
 import com.saleem.radeef.util.Constants.CURRENT_SCREEN
+import java.util.Calendar
 import java.util.Locale
 import kotlin.math.log
 
@@ -27,6 +28,33 @@ val bloodTypes = listOf<String>(
     "O-",
 )
 
+val carColors = listOf(
+    "Black",
+    "White",
+    "Silver",
+    "Gray",
+    "Red",
+    "Blue",
+    "Green",
+    "Yellow",
+    "Orange",
+    "Brown",
+    "Beige",
+    "Gold",
+    "Purple",
+    "Pink",
+    "Turquoise",
+    "Bronze",
+    "Copper",
+    "Magenta",
+    "Lavender"
+)
+
+val carCapacities = (2..8).toList()
+
+
+
+
 fun getCountries(): List<String> {
     val locale = Locale.getDefault()
 
@@ -34,6 +62,20 @@ fun getCountries(): List<String> {
         .map { Locale("", it).getDisplayCountry(locale) }
 
 }
+
+fun getYears(): List<Int> {
+
+    val years = mutableListOf<Int>()
+    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+
+    for (year in 2010..currentYear) {
+        years.add(year)
+    }
+
+    return years.reversed()
+}
+
+
 
 enum class UserType() {
     PASSENGER,

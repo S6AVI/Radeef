@@ -6,8 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saleem.radeef.data.CarData
 import com.saleem.radeef.data.firestore.driver.Driver
+import com.saleem.radeef.data.firestore.driver.Vehicle
 import com.saleem.radeef.driver.repo.CarsRepository
 import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.UiState
@@ -16,62 +16,88 @@ import kotlinx.coroutines.launch
 
 class DriverVehicleViewModel @ViewModelInject constructor(
     val driverRepository: DriverRepository,
-    val carsRepository: CarsRepository
+    private val carsRepository: CarsRepository
 ) : ViewModel() {
 
 
-    private val _carsData = MutableLiveData<List<CarData>>()
-    val carsData: LiveData<List<CarData>>
-        get() = _carsData
+    private val _makesData = MutableLiveData<List<String>>()
+    val makesData: LiveData<List<String>>
+        get() = _makesData
 
-    fun fetchCars(model: String, make: String) {
+    private val _modelsData = MutableLiveData<UiState<List<String>>>()
+    val modelsData: LiveData<UiState<List<String>>>
+        get() = _modelsData
+
+    private fun fetchMakes() {
         viewModelScope.launch {
             try {
-                val cars = carsRepository.getCars(make = make, model = model)
-                _carsData.value = cars
-                logD("successful fetch")
+                val makes = carsRepository.getAllMakes()
+                _makesData.value = makes
+                logD("Successful fetch of makes.")
             } catch (e: Exception) {
                 logD(e.message.toString())
             }
         }
     }
 
-    private val _driver = MutableLiveData<UiState<Driver>>()
-    val driver: LiveData<UiState<Driver>>
-        get() = _driver
+    fun fetchModels(make: String) {
+        _modelsData.value = UiState.Loading
+        viewModelScope.launch {
+            _modelsData.value = carsRepository.getModelsForMake(make)
+        }
+    }
+
+
+    private val _vehicle = MutableLiveData<UiState<Vehicle>>()
+    val vehicle: LiveData<UiState<Vehicle>>
+        get() = _vehicle
 
     private val _uploadImage = MutableLiveData<UiState<Uri>>()
     val uploadImage: LiveData<UiState<Uri>>
         get() = _uploadImage
 
-    private val _updateDriver = MutableLiveData<UiState<String>>()
-    val updateDriver: LiveData<UiState<String>>
-        get() = _updateDriver
+    private val _updateVehicle = MutableLiveData<UiState<String>>()
+    val updateVehicle: LiveData<UiState<String>>
+        get() = _updateVehicle
+
+
+    var vehicleData: Vehicle? = null
 
     init {
-        fetchCars("", "A")
-        //getLicense()
+        getVehicle()
     }
 
-    private fun getLicense() {
-
+    private fun getVehicle() {
+        _vehicle.value = UiState.Loading
+        driverRepository.getVehicle {state ->
+            _vehicle.value = state
+            logD("ViewModel: in getLicense")
+            if (state is UiState.Success) {
+                fetchMakes()
+                logD("ViewModel: in getLicense: success: ${state.data}")
+                vehicleData = state.data
+            } else {
+                logD("some problem in getLicense")
+            }
+        }
     }
 
     fun onContinueClicked(imageUri: Uri, name: String) {
-//        _uploadImage.value = UiState.Loading
-//        viewModelScope.launch {
-//            repository.uploadImage(imageUri, name) {
-//                _uploadImage.value = it
-//            }
-//        }
+        _uploadImage.value = UiState.Loading
+        viewModelScope.launch {
+            driverRepository.uploadImage(imageUri, name) {
+                _uploadImage.value = it
+            }
+        }
     }
 
-    fun updateDriverInfo(driver: Driver) {
-//        _updateDriver.value = UiState.Loading
-//        repository.updateDriverInfo(driver) {
-//            _updateDriver.value = it
-//        }
+    fun updateVehicleInfo(vehicle: Vehicle) {
+        _updateVehicle.value = UiState.Loading
+        driverRepository.updateVehicle(vehicle) {
+            _updateVehicle.value = it
+        }
     }
+
 
 
 }

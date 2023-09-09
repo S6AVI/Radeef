@@ -29,3 +29,8 @@ fun Fragment.toast(msg: String?){
 fun Any.logD(message: String) {
     Log.d(TAG, message)
 }
+
+fun String.isValidPlateNumber(): Boolean {
+    val pattern = Regex("[A-Z]{3}[0-9]{4}")
+    return pattern.matches(this)
+}

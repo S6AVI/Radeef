@@ -269,13 +269,36 @@ class DriverRepositoryImpl(
     }
 
 
-    override fun getVehicle(vehicle: Vehicle, result: (UiState<Vehicle>) -> Unit) {
-        TODO("Not yet implemented")
+    override fun getVehicle(result: (UiState<Vehicle>) -> Unit) {
+        database.collection(FirestoreTables.VEHICLES)
+            .whereEqualTo("driverID", auth.currentUser?.uid)
+            .limit(1)
+            .get()
+            .addOnSuccessListener {
+                if (!it.isEmpty) {
+                    val documentSnapshot = it.documents[0]
+                    val vehicle = documentSnapshot.toObject(Vehicle::class.java)!!
+
+                    result.invoke(
+                        UiState.Success(vehicle.copy(vehicleID = documentSnapshot.id))
+                    )
+                } else {
+                    createEmptyVehicle(result)
+                }
+
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(
+                    UiState.Failure(
+                        exception.message.toString()
+                    )
+                )
+            }
     }
 
-    override fun updateVehicle(vehicle: Vehicle, result: (UiState<Vehicle>) -> Unit) {
-        TODO("Not yet implemented")
-    }
+
+
+
 
     override fun getLicense(result: (UiState<License>) -> Unit) {
         database.collection(FirestoreTables.LICENSE)
@@ -318,6 +341,20 @@ class DriverRepositoryImpl(
             }
     }
 
+    private fun createEmptyVehicle(result: (UiState<Vehicle>) -> Unit) {
+        val newVehicle = Vehicle(driverID = auth.currentUser?.uid!!)
+
+        database.collection(FirestoreTables.VEHICLES)
+            .add(newVehicle)
+            .addOnSuccessListener { documentReference ->
+                val vehicleWithId = newVehicle.copy(vehicleID = documentReference.id)
+                result.invoke(UiState.Success(vehicleWithId))
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(UiState.Failure(exception.message.toString()))
+            }
+    }
+
     override fun updateLicense(license: License, result: (UiState<String>) -> Unit) {
 
         //val driverWithId = driver.copy(driverID = auth.currentUser!!.uid, phoneNumber = auth.currentUser!!.phoneNumber!!)
@@ -326,10 +363,24 @@ class DriverRepositoryImpl(
             .set(license)
             .addOnSuccessListener {
                 Log.d(TAG, "inside updateLicense in repo: Success")
-                result.invoke(UiState.Success("Driver updated successfully"))
+                result.invoke(UiState.Success("License updated successfully"))
             }
             .addOnFailureListener { exception ->
                 Log.d(TAG, "inside updateLicense in repo: Failure")
+                result.invoke(UiState.Failure(exception.message))
+            }
+    }
+
+    override fun updateVehicle(vehicle: Vehicle, result: (UiState<String>) -> Unit) {
+        Log.d(TAG, "inside updateVehicle in repo")
+        database.collection(FirestoreTables.VEHICLES).document(vehicle.vehicleID)
+            .set(vehicle)
+            .addOnSuccessListener {
+                Log.d(TAG, "inside updateVehicle in repo: Success")
+                result.invoke(UiState.Success("Vehicle updated successfully"))
+            }
+            .addOnFailureListener { exception ->
+                Log.d(TAG, "inside updateVehicle in repo: Failure")
                 result.invoke(UiState.Failure(exception.message))
             }
     }

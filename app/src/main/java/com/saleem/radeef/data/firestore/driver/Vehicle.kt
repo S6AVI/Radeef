@@ -16,11 +16,13 @@ data class Vehicle(
     val make: String = "",
     val model: String = "",
     val plateNumber: String = "",
-    val weight: Int = 0,
+    val weight: Int = 2,
     val serialNumber: String = "",
 
     val photoUrl: String = "",
 
-    val vehicleID: Int = 0
+    val vehicleID: String = "",
+
+    val driverID: String = ""
 
 ): Parcelable
