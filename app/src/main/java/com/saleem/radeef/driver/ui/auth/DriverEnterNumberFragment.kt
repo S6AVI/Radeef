@@ -1,5 +1,6 @@
 package com.saleem.radeef.driver.ui.auth
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -28,13 +29,7 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (viewModel.isRegistered()) {
-            navigateToInfoGraph()
-        }
-
         binding = FragementEnterNumberBinding.bind(view)
-
-
 
         observer()
 
@@ -67,7 +62,8 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
                     binding.registerButton.setText("Continue")
                     //binding.registerButton.setText("Continue")
                     toast(state.data)
-                    val action = DriverEnterNumberFragmentDirections.actionDriverEnterNumberFragmentToDriverOtpFragment()
+                    val action =
+                        DriverEnterNumberFragmentDirections.actionDriverEnterNumberFragmentToDriverOtpFragment()
                     findNavController().navigate(action)
 
                 }
@@ -91,6 +87,13 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
         return Driver(
             phoneNumber = phoneNumber
         )
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (viewModel.isRegistered()) {
+            navigateToInfoGraph()
+        }
     }
 
 

@@ -68,7 +68,9 @@
             tools:layout="@layout/driver_request_fragment">
             <action
                 android:id="@+id/action_driverRequestPermissionFragment_to_driverHomeFragment"
-                app:destination="@id/driverHomeFragment" />
+                app:destination="@id/driverHomeFragment"
+                app:popUpTo="@id/homeNavigation"
+                app:popUpToInclusive="true" />
         </fragment>
     </navigation>
 

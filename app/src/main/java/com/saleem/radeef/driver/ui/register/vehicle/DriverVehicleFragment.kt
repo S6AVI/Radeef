@@ -3,6 +3,7 @@ package com.saleem.radeef.driver.ui.register.vehicle
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -30,6 +31,7 @@ import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.getYears
 import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.isPassed
 import com.saleem.radeef.util.isValidPlateNumber
 import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
@@ -41,6 +43,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
     private lateinit var binding: DriverVehicleFragmentBinding
     val viewModel: DriverVehicleViewModel by viewModels()
+    private lateinit var preferences: SharedPreferences
     private var selectedImageUri: Uri? = null
 
 
@@ -290,13 +293,12 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-//        preferences = requireActivity().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
-//        if (isPassed(preferences, RegistrationStatus.vehicle.value)) {
-//            val action =
-//                DrivervehicleFragmentDirections.actionDrivervehicleFragmentToDriverVehicleFragment()
-//            findNavController().navigate(action)
-//        }
-//        logD("leaving onAttach")
+        preferences = requireActivity().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
+        if (isPassed(preferences, RegistrationStatus.VEHICLE.value)) {
+            val action = InfoNavigationDirections.actionGlobalHomeNavigation()
+            findNavController().navigate(action)
+        }
+        logD("leaving onAttach in Vehicle")
     }
 
 }

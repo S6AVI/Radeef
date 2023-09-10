@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.core.net.toUri
@@ -15,11 +16,14 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.github.dhaval2404.imagepicker.ImagePicker
+import com.saleem.radeef.InfoNavigationDirections
 //import com.github.drjacky.imagepicker.ImagePicker
 import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.databinding.DriverInfoFragmentBinding
+import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.util.Constants
 import com.saleem.radeef.util.Constants.CROP_IMAGE_REQUEST
 import com.saleem.radeef.util.ImageFileNames.PERSONAL
 import com.saleem.radeef.util.UiState
@@ -263,10 +267,18 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         preferences = requireActivity().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
-        if (isPassed(preferences, RegistrationStatus.INFO.value)) {
+        if (isRegistrationCompleted()) {
+            val action = InfoNavigationDirections.actionGlobalHomeNavigation()
+            findNavController().navigate(action)
+        }
+        else if (isPassed(preferences, RegistrationStatus.INFO.value)) {
             val action = DriverInfoFragmentDirections.actionDriverInfoFragmentToDriverLicenseFragment()
             findNavController().navigate(action)
         }
+    }
+
+    private fun isRegistrationCompleted(): Boolean {
+        return preferences.getString(Constants.CURRENT_SCREEN, null) == RegistrationStatus.COMPLETED.value
     }
 
 }

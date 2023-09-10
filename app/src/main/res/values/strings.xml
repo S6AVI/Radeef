@@ -85,4 +85,6 @@
     <string name="car_capacity">Capacity</string>
     <string name="upload_you_vehicle_registration_card">Upload you vehicle registration card</string>
     <string name="car_model">Car model</string>
+    <string name="permission_required">Permission required</string>
+    <string name="permission_description">Location is needed to use Radeef</string>
 </resources>
