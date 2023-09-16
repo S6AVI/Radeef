@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
-import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.data.firestore.Driver
 
 import com.saleem.radeef.databinding.FragmentProfileBinding
 import com.saleem.radeef.ui.map.TAG
@@ -49,7 +49,7 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
 
                 Log.d(TAG,"name:$name\nemail:$email\ngender:$gender")
 
-                val passenger = Passenger(name = name, email = email, gender = gender)
+                val passenger = Driver(name = name, email = email, gender = gender)
                 viewModel.updatePassengerInfo(
                     passenger
                 )
@@ -140,7 +140,7 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
 
     }
 
-    private fun fillFields(passenger: Passenger) {
+    private fun fillFields(passenger: Driver) {
         binding.apply {
             nameEt.setText(passenger.name)
             phoneEt.setText(passenger.phoneNumber)

@@ -6,8 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.saleem.radeef.data.firestore.Passenger
-import com.saleem.radeef.data.firestore.Ride
+import com.saleem.radeef.data.firestore.Driver
 import com.saleem.radeef.data.repository.AuthRepository
 import com.saleem.radeef.data.repository.CloudRepository
 import com.saleem.radeef.util.UiState
@@ -32,8 +31,8 @@ class ProfileViewModel @ViewModelInject constructor(
         get() = _name
 
 
-    private val _passenger = MutableLiveData<UiState<Passenger>>()
-    val passenger: LiveData<UiState<Passenger>>
+    private val _passenger = MutableLiveData<UiState<Driver>>()
+    val passenger: LiveData<UiState<Driver>>
         get() = _passenger
 
     private val _update = MutableLiveData<UiState<String>>()
@@ -58,7 +57,7 @@ class ProfileViewModel @ViewModelInject constructor(
         }
     }
 
-    fun updatePassengerInfo(passenger: Passenger) {
+    fun updatePassengerInfo(passenger: Driver) {
         _update.value = UiState.Loading
         cloudRepo.updatePassengerInfo(passenger) {
             _update.value = it

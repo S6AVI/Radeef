@@ -8,7 +8,7 @@
     android:gravity="bottom"
     android:padding="16dp">
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/profile_image"
         android:layout_width="120dp"
         android:layout_height="120dp"
@@ -25,8 +25,8 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:text=""
-        android:gravity="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.SearchResult.Subtitle"
+        android:gravity="start"
+        android:textAppearance="@style/TextAppearance.AppCompat.Light.SearchResult.Title"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/profile_image"
         app:layout_constraintStart_toStartOf="@+id/profile_image"

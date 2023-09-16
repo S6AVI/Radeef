@@ -296,10 +296,6 @@ class DriverRepositoryImpl(
             }
     }
 
-
-
-
-
     override fun getLicense(result: (UiState<License>) -> Unit) {
         database.collection(FirestoreTables.LICENSE)
             .whereEqualTo("driverID", auth.currentUser?.uid)

@@ -5,7 +5,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class Passenger(
+data class Driver(
 
     val phoneNumber: String = "",
     val name: String = "",

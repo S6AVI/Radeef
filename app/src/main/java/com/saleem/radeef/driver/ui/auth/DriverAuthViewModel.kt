@@ -6,12 +6,7 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.PhoneAuthCredential
-import com.saleem.radeef.data.firestore.Passenger
-import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.data.firestore.driver.Driver
-
-import com.saleem.radeef.data.repository.AuthRepository
 import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.UiState
 

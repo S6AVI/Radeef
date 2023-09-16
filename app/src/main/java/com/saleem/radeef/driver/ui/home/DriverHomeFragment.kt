@@ -35,11 +35,21 @@ import com.saleem.radeef.util.toast
 import com.vmadalin.easypermissions.EasyPermissions
 import configureMapSettings
 import RIYADH
+import android.widget.TextView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.enable
+import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.show
 import configureLocationButton
+import dagger.hilt.android.AndroidEntryPoint
 import saudiArabiaBounds
 import setCameraBoundsAndZoom
 import java.lang.Exception
 
+@AndroidEntryPoint
 class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCallback,
     EasyPermissions.PermissionCallbacks, GoogleMap.OnMyLocationButtonClickListener {
     private lateinit var map: GoogleMap
@@ -48,6 +58,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     private lateinit var currentLocation: LatLng
     val viewModel: DriverMapViewModel by activityViewModels()
     private lateinit var polyline: Polyline
+
+    lateinit var header: View
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -66,12 +78,12 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
 
 
-        binding.navigationView.getHeaderView(0)
+        header = binding.navigationView.getHeaderView(0)
 
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_item_profile -> {
-                    val action = HomeFragmentDirections.actionHomeFragmentToProfileFragment2()
+                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverProfileFragment()
                     findNavController().navigate(action)
                 }
 
@@ -91,7 +103,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
 
                 R.id.nav_item_help -> {
-                    val action = HomeFragmentDirections.actionHomeFragmentToHelpFragment2()
+                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverHelpFragment()
                     findNavController().navigate(action)
                 }
 
@@ -115,6 +127,31 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             }
         }
 
+
+        viewModel.driver.observe(viewLifecycleOwner) {state ->
+            when (state) {
+                UiState.Loading -> {
+//                    binding.progressBar.show()
+//                    binding.continueBt.setText("")
+                }
+                is UiState.Success -> {
+                    // binding.progressBar.hide()
+                    loadImage(state.data.personalPhotoUrl)
+                    val nameTf = header.findViewById<TextView>(R.id.name_label)
+                    nameTf.text = state.data.name
+
+                    logD(state.data.toString())
+
+                }
+                is UiState.Failure -> {
+//                    binding.progressBar.hide()
+//                    binding.continueBt.enable()
+//                    binding.continueBt.setText(getString(R.string.continue_label))
+                    toast(state.error.toString())
+                }
+
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -280,6 +317,15 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         setMarker()
         return false
     }
+
+    private fun loadImage(uri: String) {
+        Glide.with(requireContext())
+            .load(uri)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+            .into(header.findViewById(R.id.profile_image))
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,

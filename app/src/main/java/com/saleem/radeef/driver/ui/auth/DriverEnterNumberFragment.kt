@@ -8,7 +8,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.AuthNavigationDirections
 import com.saleem.radeef.R
-import com.saleem.radeef.data.firestore.Passenger
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.databinding.FragementEnterNumberBinding
 

@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
-import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.data.firestore.Driver
 import com.saleem.radeef.databinding.FragementEnterNumberBinding
 
 import com.saleem.radeef.util.UiState
@@ -74,8 +74,8 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
         }
     }
 
-    private fun createPassenger(): Passenger {
-        return Passenger(
+    private fun createPassenger(): Driver {
+        return Driver(
             phoneNumber = phoneNumber
         )
     }

@@ -60,7 +60,14 @@
             android:id="@+id/driverHomeFragment"
             android:name="com.saleem.radeef.driver.ui.home.DriverHomeFragment"
             android:label="driver_fragment_home"
-            tools:layout="@layout/driver_fragment_home" />
+            tools:layout="@layout/driver_fragment_home" >
+            <action
+                android:id="@+id/action_driverHomeFragment_to_driverProfileFragment"
+                app:destination="@id/driverProfileFragment" />
+            <action
+                android:id="@+id/action_driverHomeFragment_to_driverHelpFragment"
+                app:destination="@id/driverHelpFragment" />
+        </fragment>
         <fragment
             android:id="@+id/driverRequestPermissionFragment"
             android:name="com.saleem.radeef.driver.ui.home.DriverRequestPermissionFragment"
@@ -72,6 +79,16 @@
                 app:popUpTo="@id/homeNavigation"
                 app:popUpToInclusive="true" />
         </fragment>
+        <fragment
+            android:id="@+id/driverProfileFragment"
+            android:name="com.saleem.radeef.ui.drawer.profile.DriverProfileFragment"
+            android:label="driver_fragment_profile"
+            tools:layout="@layout/driver_fragment_profile" />
+        <fragment
+            android:id="@+id/driverHelpFragment"
+            android:name="com.saleem.radeef.ui.drawer.help.DriverHelpFragment"
+            android:label="driver_fragment_help"
+            tools:layout="@layout/driver_fragment_help" />
     </navigation>
 
 </navigation>
