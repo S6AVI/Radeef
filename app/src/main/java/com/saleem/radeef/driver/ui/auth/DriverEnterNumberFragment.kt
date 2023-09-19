@@ -14,6 +14,7 @@ import com.saleem.radeef.databinding.FragementEnterNumberBinding
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
@@ -70,6 +71,7 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
                 is UiState.Failure -> {
                     binding.progressBar.hide()
                     binding.registerButton.setText("Continue")
+                    logD(state.error.toString())
                     toast(state.error)
                 }
             }.exhaustive
