@@ -7,11 +7,16 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.google.firebase.appcheck.ktx.appCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.initialize
 import com.saleem.radeef.databinding.ActivityMainBinding
 import com.saleem.radeef.driver.DriverMainActivity
 import com.saleem.radeef.ui.map.TAG
 import com.saleem.radeef.util.Constants.USER_TYPE
 import com.saleem.radeef.util.UserType
+import com.saleem.radeef.util.logD
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -30,6 +35,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val rootView = binding.root
         setContentView(rootView)
+
+        logD("before init app check")
+        Firebase.initialize(context = this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance(),
+        )
+        logD("after init app check")
 
         // handle the two possible types
         if (isTypeSpecified()) {

@@ -12,6 +12,7 @@ import com.saleem.radeef.data.firestore.Driver
 import com.saleem.radeef.ui.map.TAG
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.logD
 import java.util.concurrent.TimeUnit
 
 class AuthRepositoryImpl(
@@ -59,6 +60,7 @@ class AuthRepositoryImpl(
                                     }
                                 }
                             } else {
+                                logD("Authentication failed, ${task.exception?.message ?: "unknown error"}")
                                 result.invoke(
                                     UiState.Failure(
                                         "Authentication failed, ${task.exception?.message ?: "unknown error"}"
@@ -76,6 +78,7 @@ class AuthRepositoryImpl(
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {
+                    logD("Verification failed, ${e.message ?: "unknown error"}")
                     result.invoke(UiState.Failure("Verification failed, ${e.message ?: "unknown error"}"))
                 }
 

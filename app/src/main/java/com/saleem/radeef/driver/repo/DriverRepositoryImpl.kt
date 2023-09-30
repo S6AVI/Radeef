@@ -19,6 +19,7 @@ import com.saleem.radeef.ui.map.TAG
 import com.saleem.radeef.util.FirebaseStorageConstants.DRIVER_DIRECTORY
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.logD
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -72,6 +73,7 @@ class DriverRepositoryImpl(
                                     }
                                 }
                             } else {
+                                logD("Authentication failed, ${task.exception?.message ?: "unknown error"}")
                                 result.invoke(
                                     UiState.Failure(
                                         "Authentication failed, ${task.exception?.message ?: "unknown error"}"
@@ -89,6 +91,7 @@ class DriverRepositoryImpl(
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {
+                    logD("Verification failed, ${e.message ?: "unknown error"}")
                     result.invoke(UiState.Failure("Verification failed, ${e.message ?: "unknown error"}"))
                 }
 

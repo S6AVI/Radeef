@@ -30,7 +30,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth {
-        return FirebaseAuth.getInstance()
+        val auth = FirebaseAuth.getInstance()
+        //auth.firebaseAuthSettings.setAppVerificationDisabledForTesting(true)
+        return auth
     }
 
     @Provides
