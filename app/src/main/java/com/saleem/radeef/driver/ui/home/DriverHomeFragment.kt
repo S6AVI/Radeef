@@ -38,6 +38,7 @@ import RIYADH
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.saleem.radeef.ui.drawer.payment.DriverPaymentFragmentDirections
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.hide
@@ -88,17 +89,18 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
 
                 R.id.nav_item_wallet -> {
-                    val action = HomeFragmentDirections.actionHomeFragmentToWalletFragment2()
+                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverWalletFragment()
                     findNavController().navigate(action)
                 }
 
                 R.id.nav_item_payment -> {
-                    val action = HomeFragmentDirections.actionHomeFragmentToPaymentFragment2()
+                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPaymentFragment()
                     findNavController().navigate(action)
+
                 }
 
                 R.id.nav_item_rides -> {
-                    val action = HomeFragmentDirections.actionHomeFragmentToRidesFragment()
+                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverRidesFragment()
                     findNavController().navigate(action)
                 }
 
@@ -109,7 +111,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
                 R.id.nav_item_Settings -> {
                     //val action = HomeFragmentDirections.actionHomeFragmentToSettingsFragment2()
-                    val action = HomeFragmentDirections.actionHomeFragmentToSetFragment()
+                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSettingsFragment()
                     findNavController().navigate(action)
                 }
             }

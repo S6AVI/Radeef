@@ -19,9 +19,9 @@ class DriverAddMethodFragment: Fragment(R.layout.fragment_add_method) {
 
         binding = FragmentAddMethodBinding.bind(view)
 
-//        binding.backButton.setOnClickListener{
-//            findNavController().popBackStack()
-//        }
+        binding.backBtn.setOnClickListener{
+            findNavController().popBackStack()
+        }
 
         val cardForm = binding.cardForm
 

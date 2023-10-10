@@ -1,8 +1,9 @@
-package com.saleem.radeef.ui.drawer.settings
+package com.saleem.radeef.driver.ui.drawer.settings
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentPaymentBinding
 
@@ -18,5 +19,9 @@ class DriverSettingsFragment: Fragment(R.layout.fragment_settings) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentSettingsBinding.bind(view)
+
+        binding.backBtn.setOnClickListener{
+            findNavController().popBackStack()
+        }
     }
 }

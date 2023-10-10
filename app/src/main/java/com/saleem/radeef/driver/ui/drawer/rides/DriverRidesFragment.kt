@@ -1,4 +1,4 @@
-package com.saleem.radeef.ui.rides
+package com.saleem.radeef.driver.ui.drawer.rides
 
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +8,8 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentRidesBinding
+import com.saleem.radeef.ui.rides.DriverRideAdapter
+import com.saleem.radeef.ui.rides.DriverRideViewModel
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
@@ -16,7 +18,7 @@ import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class RidesFragment : Fragment(R.layout.fragment_rides) {
+class DriverRidesFragment : Fragment(R.layout.fragment_rides) {
     lateinit var binding: FragmentRidesBinding
     private val viewModel: DriverRideViewModel by viewModels()
     private val adapter by lazy {

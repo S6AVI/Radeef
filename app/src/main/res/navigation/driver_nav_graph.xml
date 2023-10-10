@@ -67,6 +67,18 @@
             <action
                 android:id="@+id/action_driverHomeFragment_to_driverHelpFragment"
                 app:destination="@id/driverHelpFragment" />
+            <action
+                android:id="@+id/action_driverHomeFragment_to_driverWalletFragment"
+                app:destination="@id/driverWalletFragment" />
+            <action
+                android:id="@+id/action_driverHomeFragment_to_driverPaymentFragment"
+                app:destination="@id/driverPaymentFragment" />
+            <action
+                android:id="@+id/action_driverHomeFragment_to_driverRidesFragment"
+                app:destination="@id/driverRidesFragment" />
+            <action
+                android:id="@+id/action_driverHomeFragment_to_driverSettingsFragment"
+                app:destination="@id/driverSettingsFragment" />
         </fragment>
         <fragment
             android:id="@+id/driverRequestPermissionFragment"
@@ -89,6 +101,31 @@
             android:name="com.saleem.radeef.ui.drawer.help.DriverHelpFragment"
             android:label="driver_fragment_help"
             tools:layout="@layout/driver_fragment_help" />
+        <fragment
+            android:id="@+id/driverWalletFragment"
+            android:name="com.saleem.radeef.ui.drawer.wallet.DriverWalletFragment"
+            android:label="DriverWalletFragment" />
+        <fragment
+            android:id="@+id/driverPaymentFragment"
+            android:name="com.saleem.radeef.ui.drawer.payment.DriverPaymentFragment"
+            android:label="DriverPaymentFragment" >
+            <action
+                android:id="@+id/action_driverPaymentFragment_to_driverAddMethodFragment"
+                app:destination="@id/driverAddMethodFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/driverAddMethodFragment"
+            android:name="com.saleem.radeef.ui.drawer.wallet.DriverAddMethodFragment"
+            android:label="DriverAddMethodFragment" />
+        <fragment
+            android:id="@+id/driverSettingsFragment"
+            android:name="com.saleem.radeef.driver.ui.drawer.settings.DriverSettingsFragment"
+            android:label="DriverSettingsFragment" />
+        <fragment
+            android:id="@+id/driverRidesFragment"
+            android:name="com.saleem.radeef.driver.ui.drawer.rides.DriverRidesFragment"
+            android:label="driver_fragment_rides"
+            tools:layout="@layout/driver_fragment_rides" />
     </navigation>
 
 </navigation>

@@ -12,16 +12,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-class RideAdapter(val context: Context) : RecyclerView.Adapter<RideAdapter.DriverRideViewHolder>() {
+class DriverRideAdapter(val context: Context) : RecyclerView.Adapter<DriverRideAdapter.RideViewHolder>() {
 
     private var list: MutableList<Ride> = arrayListOf()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DriverRideViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RideViewHolder {
         val itemView = ItemRideBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return DriverRideViewHolder(itemView)
+        return RideViewHolder(itemView)
     }
 
-    override fun onBindViewHolder(holder: DriverRideViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: RideViewHolder, position: Int) {
         val item = list[position]
         holder.bind(item)
     }
@@ -34,7 +34,7 @@ class RideAdapter(val context: Context) : RecyclerView.Adapter<RideAdapter.Drive
     override fun getItemCount() = list.size
 
 
-    inner class DriverRideViewHolder(val binding: ItemRideBinding) :
+    inner class RideViewHolder(val binding: ItemRideBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Ride) {
             val geocoder = Geocoder(context, Locale.getDefault())

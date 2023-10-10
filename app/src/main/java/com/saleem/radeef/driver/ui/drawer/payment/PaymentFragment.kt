@@ -23,7 +23,7 @@ class DriverPaymentFragment: Fragment(R.layout.fragment_payment) {
         }
 
         binding.addButton.setOnClickListener {
-            val action = PaymentFragmentDirections.actionPaymentFragment2ToAddMethodFragment()
+            val action = DriverPaymentFragmentDirections.actionDriverPaymentFragmentToDriverAddMethodFragment()
             findNavController().navigate(action)
         }
     }
