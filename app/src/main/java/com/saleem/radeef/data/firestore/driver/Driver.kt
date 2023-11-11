@@ -1,6 +1,9 @@
 package com.saleem.radeef.data.firestore.driver
 
 import android.os.Parcelable
+import com.google.android.gms.maps.model.LatLng
+import com.saleem.radeef.data.RadeefLocation
+import com.saleem.radeef.data.RadeefLocationWrapper
 import kotlinx.parcelize.Parcelize
 import java.util.Locale
 
@@ -21,7 +24,13 @@ data class Driver(
     val identityNumber: String = "",
     val status: String = UserStatus.INACTIVE.value,
 
-    val registrationStatus: String = RegistrationStatus.INFO.value
+    val registrationStatus: String = RegistrationStatus.INFO.value,
+
+    // # note: just split them into four fields; also, can get approach from training project
+//
+//    val pickup: RadeefLocationWrapper = RadeefLocationWrapper.NullLocation,
+//    val destination: RadeefLocationWrapper = RadeefLocationWrapper.NullLocation
+
     // foreign keys
 //    val licenseID: String = "",
 

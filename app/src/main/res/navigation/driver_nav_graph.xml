@@ -79,6 +79,9 @@
             <action
                 android:id="@+id/action_driverHomeFragment_to_driverSettingsFragment"
                 app:destination="@id/driverSettingsFragment" />
+            <action
+                android:id="@+id/action_driverHomeFragment_to_driverSearchFragment"
+                app:destination="@id/driverSearchFragment" />
         </fragment>
         <fragment
             android:id="@+id/driverRequestPermissionFragment"
@@ -126,6 +129,19 @@
             android:name="com.saleem.radeef.driver.ui.drawer.rides.DriverRidesFragment"
             android:label="driver_fragment_rides"
             tools:layout="@layout/driver_fragment_rides" />
+        <fragment
+            android:id="@+id/driverSearchFragment"
+            android:name="com.saleem.radeef.driver.ui.home.DriverSearchFragment"
+            android:label="DriverSearchFragment">
+
+            <argument
+                android:name="current"
+                app:argType="com.google.android.gms.maps.model.LatLng" />
+            <action
+                android:id="@+id/action_driverSearchFragment_to_driverHomeFragment"
+                app:destination="@id/driverHomeFragment" />
+
+        </fragment>
     </navigation>
 
 </navigation>

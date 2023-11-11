@@ -11,9 +11,11 @@ import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.storage.StorageReference
+import com.saleem.radeef.data.RadeefLocation
 
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.License
+import com.saleem.radeef.data.firestore.driver.UserStatus
 import com.saleem.radeef.data.firestore.driver.Vehicle
 import com.saleem.radeef.ui.map.TAG
 import com.saleem.radeef.util.FirebaseStorageConstants.DRIVER_DIRECTORY
@@ -448,5 +450,28 @@ class DriverRepositoryImpl(
 
         originalFile.copyTo(renamedFile, true)
         return Uri.fromFile(renamedFile)
+    }
+
+    override fun updateDriverLocations(
+        pickup: RadeefLocation,
+        destination: RadeefLocation,
+        result: (UiState<Boolean>) -> Unit
+    ) {
+        val data = mapOf(
+            "pickup" to pickup.toGeoPoint(),
+            "pickup_title" to pickup.title,
+            "destination" to destination.toGeoPoint(),
+            "destination_title" to destination.title,
+            "status" to UserStatus.SEARCHING.value
+        )
+        logD(data.toString())
+
+        database.collection(FirestoreTables.DRIVERS).document(auth.currentUser!!.uid)
+            .update(data)
+            .addOnSuccessListener {
+                result(UiState.Success(true))
+            }.addOnFailureListener {
+                result(UiState.Failure(it.message))
+            }
     }
 }

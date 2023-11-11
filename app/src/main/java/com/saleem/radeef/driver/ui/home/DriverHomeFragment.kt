@@ -35,9 +35,13 @@ import com.saleem.radeef.util.toast
 import com.vmadalin.easypermissions.EasyPermissions
 import configureMapSettings
 import RIYADH
+import android.content.Context
+import android.content.SharedPreferences
 import android.widget.TextView
+import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.ui.drawer.payment.DriverPaymentFragmentDirections
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.enable
@@ -49,6 +53,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import saudiArabiaBounds
 import setCameraBoundsAndZoom
 import java.lang.Exception
+import java.util.Locale
 
 @AndroidEntryPoint
 class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCallback,
@@ -62,6 +67,10 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
     lateinit var header: View
 
+    private val preferences: SharedPreferences by lazy {
+        requireContext().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
+    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -72,6 +81,14 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         mapFragment?.getMapAsync(this)
 
 
+        val isReady = preferences.getBoolean("isReady", false)
+        if (isReady) {
+//            if (viewModel.pickup != null && viewModel.destination != null) {
+//                drawLineOnMap(viewModel.pickup.latLng, viewModel.destination.latLng)
+//            } else {
+//                drawLineOnMap(viewModel.driverData)
+//            }
+        }
         binding.menuButton.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.START)
 //            val action = HomeFragmentDirections.actionHomeFragmentToNavigationDrawerFragment()
@@ -122,10 +139,11 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
         binding.pickupEt.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) {
-                TODO("create a fragment to set pickup and destination")
-//                val action =
-//                    HomeFragmentDirections.actionHomeFragmentToSearchFragment(currentLocation)
-//                findNavController().navigate(action)
+                logD("in home fragment: line 127 - pickup: ${viewModel.pickup?.latLng}")
+                logD("in home fragment: line 128 - current: $currentLocation")
+                val action =
+                    DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSearchFragment(currentLocation)
+                findNavController().navigate(action)
             }
         }
 
@@ -167,6 +185,9 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             if (location != null) {
                 // Animate the camera to the user's current location
                 currentLocation = LatLng(location.latitude, location.longitude)
+                val title = getAddressFromLatLng(currentLocation)
+                viewModel.pickup = RadeefLocation(currentLocation, title)
+
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15f))
             } else {
                 // If the user's location is not available, animate the camera to Riyadh
@@ -190,9 +211,10 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
         Log.d(TAG, viewModel.pickup.toString())
         if (viewModel.pickup != null && viewModel.destination != null) {
-            val pickupLatLng = getLatLngFromAddress(viewModel.pickup!!)
-            val destinationLatLng = getLatLngFromAddress(viewModel.destination!!)
-            drawLineOnMap(pickupLatLng, destinationLatLng)
+            //val pickupLatLng = getLatLngFromAddress(viewModel.pickup.latLng!!)
+            val pickupLatLng = viewModel.pickup?.latLng
+            val destinationLatLng = viewModel.destination?.latLng
+            drawLineOnMap(pickupLatLng!!, destinationLatLng!!)
         }
 
     }
@@ -326,6 +348,12 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .skipMemoryCache(true)
             .into(header.findViewById(R.id.profile_image))
+    }
+
+    private fun getAddressFromLatLng(latlng: LatLng): String {
+        val geocoder = Geocoder(requireContext(), Locale.getDefault())
+        val addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
+        return addresses?.firstOrNull()?.featureName ?: ""
     }
 
     override fun onRequestPermissionsResult(
