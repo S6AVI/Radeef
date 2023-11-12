@@ -82,6 +82,9 @@
             <action
                 android:id="@+id/action_driverHomeFragment_to_driverSearchFragment"
                 app:destination="@id/driverSearchFragment" />
+            <action
+                android:id="@+id/action_driverHomeFragment_to_driverPathDetailsFragment"
+                app:destination="@id/driverPathDetailsFragment" />
         </fragment>
         <fragment
             android:id="@+id/driverRequestPermissionFragment"
@@ -142,6 +145,16 @@
                 app:destination="@id/driverHomeFragment" />
 
         </fragment>
+        <dialog
+            android:id="@+id/driverPathDetailsFragment"
+            android:name="com.saleem.radeef.driver.ui.home.DriverPathDetailsFragment"
+            android:label="driver_path_details_fragment"
+            tools:layout="@layout/driver_path_details_fragment" >
+            <argument
+                android:name="distance"
+                app:argType="float"
+                android:defaultValue="0.0" />
+        </dialog>
     </navigation>
 
 </navigation>

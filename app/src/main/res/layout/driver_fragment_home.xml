@@ -9,6 +9,10 @@
     tools:context=".driver.ui.home.DriverHomeFragment">
 
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -65,6 +69,8 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+
+    </FrameLayout>
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigation_view"
         android:layout_width="match_parent"
@@ -72,5 +78,6 @@
         android:layout_gravity="start"
         app:headerLayout="@layout/navigation_drawer_header"
         app:menu="@menu/navigation_drawer_menu" />
+
 
 </androidx.drawerlayout.widget.DrawerLayout>

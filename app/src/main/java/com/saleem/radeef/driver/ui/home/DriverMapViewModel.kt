@@ -10,6 +10,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.saleem.radeef.R
 import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.data.firestore.driver.Driver
+import com.saleem.radeef.data.firestore.driver.UserStatus
 import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.UiState
@@ -37,13 +38,18 @@ class DriverMapViewModel @ViewModelInject constructor(
 //    val updateResult: LiveData<UiState<Boolean>>
 //        get() = _updateResult
 
-    private val updateResultChannel = Channel<UiState<Boolean>>()
-    val updateResult = updateResultChannel.receiveAsFlow()
+//    private val updateResultChannel = Channel<HomeEvent>()
+//    val updateResult = updateResultChannel.receiveAsFlow()
+
+//    private val startSearchingChannel = Channel<HomeEvent>()
+//    val startSearching = startSearchingChannel.receiveAsFlow()
+
+    private val homeEventChannel = Channel<HomeEvent>()
+    val homeEvent = homeEventChannel.receiveAsFlow()
 
     private fun getDriver() {
         _driver.value = UiState.Loading
-        repository.getDriver {state ->
-            _driver.value = state
+        repository.getDriver { state ->
 
             if (state is UiState.Success) {
                 logD("MapViewModel: in getDriver: success: ${state.data}")
@@ -51,6 +57,9 @@ class DriverMapViewModel @ViewModelInject constructor(
             } else {
                 logD("some problem in getDriver")
             }
+            _driver.value = state
+
+
         }
     }
 
@@ -84,16 +93,36 @@ class DriverMapViewModel @ViewModelInject constructor(
     }
 
 
+//    fun updateDriverLocations() {
+//        viewModelScope.launch {
+//            //updateResultChannel.send(UiState.Loading)
+//            updateResultChannel.send(HomeEvent.UpdateResult(UiState.Loading))
+//            logD("pickup: ${pickup?.title}\ndestination: ${destination?.title}")
+//            if (pickup != null && destination != null) {
+//
+//                repository.updateDriverLocations(pickup!!, destination!!) { result ->
+//                    logD("viewModel: update locations - 78: $result")
+//                    viewModelScope.launch {
+//                        updateResultChannel.send(result)
+//                    }
+//                }
+//            } else {
+//                logD("something is null")
+//            }
+//        }
+//    }
+
     fun updateDriverLocations() {
         viewModelScope.launch {
-            updateResultChannel.send(UiState.Loading)
+            //updateResultChannel.send(UiState.Loading)
+            homeEventChannel.send(HomeEvent.UpdateResult(UiState.Loading))
             logD("pickup: ${pickup?.title}\ndestination: ${destination?.title}")
             if (pickup != null && destination != null) {
 
                 repository.updateDriverLocations(pickup!!, destination!!) { result ->
                     logD("viewModel: update locations - 78: $result")
                     viewModelScope.launch {
-                    updateResultChannel.send(result)
+                        homeEventChannel.send(HomeEvent.UpdateResult(result))
                     }
                 }
             } else {
@@ -102,8 +131,30 @@ class DriverMapViewModel @ViewModelInject constructor(
         }
     }
 
-    fun getDriverLocations() {
+    fun onSearchButtonClicked() {
+        logD("onSearchButtonClicked start")
+        viewModelScope.launch {
+            logD("onSearchButtonClicked - before sending")
+            homeEventChannel.send(HomeEvent.StartSearching(UiState.Loading))
+            logD("onSearchButtonClicked - after sending")
+            driverData =  driverData!!.copy(status = UserStatus.SEARCHING.value)
+            logD("status: ${driverData!!.status}")
+            repository.updateDriver(
+                driverData!!.copy()
 
+            ) { result ->
+                logD("result: $result")
+                viewModelScope.launch {
+                    homeEventChannel.send(HomeEvent.StartSearching(result))
+                }
+
+            }
+        }
+    }
+
+    sealed class HomeEvent {
+        data class UpdateResult(val state: UiState<Boolean>) : HomeEvent()
+        data class StartSearching(val status: UiState<String>) : HomeEvent()
     }
 
 

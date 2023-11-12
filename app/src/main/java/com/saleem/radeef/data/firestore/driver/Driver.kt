@@ -1,16 +1,19 @@
 package com.saleem.radeef.data.firestore.driver
 
+import android.os.Parcel
 import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.ServerTimestamp
 import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.data.RadeefLocationWrapper
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 import java.util.Locale
 
 @Parcelize
 data class Driver(
-
-    //val vehicleID: String = "",
 
     val email: String = "",
     val phoneNumber: String = "",
@@ -26,17 +29,24 @@ data class Driver(
 
     val registrationStatus: String = RegistrationStatus.INFO.value,
 
-    // # note: just split them into four fields; also, can get approach from training project
-//
-//    val pickup: RadeefLocationWrapper = RadeefLocationWrapper.NullLocation,
-//    val destination: RadeefLocationWrapper = RadeefLocationWrapper.NullLocation
-
-    // foreign keys
-//    val licenseID: String = "",
+    // # note: just split them into four fields;
 
 
+    val pickup: @RawValue GeoPoint =  GeoPoint(0.0, 0.0),
+    val destination: @RawValue GeoPoint = GeoPoint(0.0, 0.0),
+
+    val pickup_title: String = "",
+    val destination_title: String = ""
 
 ) : Parcelable
+{
+
+    val pickupLatLng: LatLng
+        get()  = LatLng(pickup.latitude, pickup.longitude)
+
+    val destinationLatLng: LatLng
+        get()  = LatLng(destination.latitude, destination.longitude)
+}
 
 
 enum class Sex(val value: String) {

@@ -462,7 +462,7 @@ class DriverRepositoryImpl(
             "pickup_title" to pickup.title,
             "destination" to destination.toGeoPoint(),
             "destination_title" to destination.title,
-            "status" to UserStatus.SEARCHING.value
+           // "status" to UserStatus.SEARCHING.value
         )
         logD(data.toString())
 

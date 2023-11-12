@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
@@ -32,9 +31,7 @@ import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
 import com.saleem.radeef.ui.map.SearchResultAdapter
 import com.saleem.radeef.util.UiState
-import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.logD
-import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -147,25 +144,31 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
 
 
-            viewModel.updateResult.collect { state ->
-                when (state) {
-                    UiState.Loading -> {
-                        logD("loading for results in DriverSearchFragment - 139")
-                        // Handle loading state if needed
-                    }
-                    is UiState.Success -> {
-                        if (state.data) {
-                            logD("DriverSearchFragment - 142: success: ${state.data}")
-                            changeStatetoReady()
-                            val action = DriverSearchFragmentDirections.actionDriverSearchFragmentToDriverHomeFragment()
-                            findNavController().navigate(action)
+            viewModel.homeEvent.collect { event ->
+                when (event) {
+                    is DriverMapViewModel.HomeEvent.UpdateResult -> {
+                        when (event.state) {
+                            UiState.Loading -> {
+                                logD("loading for results in DriverSearchFragment - 139")
+                                // Handle loading state if needed
+                            }
+                            is UiState.Success -> {
+                                if (event.state.data) {
+                                    logD("DriverSearchFragment - 142: success: ${event.state.data}")
+                                    changeStateToReady()
+                                    val action = DriverSearchFragmentDirections.actionDriverSearchFragmentToDriverHomeFragment()
+                                    findNavController().navigate(action)
+                                }
+                            }
+                            is UiState.Failure -> {
+                                logD("DriverSearchFragment - 148: failure: ${event.state.error}")
+                                //toast(state.error.toString())
+                            }
                         }
                     }
-                    is UiState.Failure -> {
-                        logD("DriverSearchFragment - 148: failure: ${state.error}")
-                        toast(state.error.toString())
-                    }
+                    else -> {}
                 }
+
             }
         }
 
@@ -290,7 +293,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
         return place.latLng
     }
 
-    private fun changeStatetoReady() {
+    private fun changeStateToReady() {
         val editor = preferences.edit()
         editor.putBoolean("isReady", true)
         editor.apply()

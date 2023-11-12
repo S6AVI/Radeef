@@ -39,6 +39,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.widget.TextView
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.saleem.radeef.data.RadeefLocation
@@ -50,6 +51,9 @@ import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
 import configureLocationButton
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import saudiArabiaBounds
 import setCameraBoundsAndZoom
 import java.lang.Exception
@@ -67,6 +71,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
     lateinit var header: View
 
+    var dist = 0.0
+
     private val preferences: SharedPreferences by lazy {
         requireContext().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
     }
@@ -81,14 +87,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         mapFragment?.getMapAsync(this)
 
 
-        val isReady = preferences.getBoolean("isReady", false)
-        if (isReady) {
-//            if (viewModel.pickup != null && viewModel.destination != null) {
-//                drawLineOnMap(viewModel.pickup.latLng, viewModel.destination.latLng)
-//            } else {
-//                drawLineOnMap(viewModel.driverData)
-//            }
-        }
+
+
         binding.menuButton.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.START)
 //            val action = HomeFragmentDirections.actionHomeFragmentToNavigationDrawerFragment()
@@ -137,7 +137,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
 
 
-        binding.pickupEt.setOnFocusChangeListener { v, hasFocus ->
+        binding.pickupEt.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 logD("in home fragment: line 127 - pickup: ${viewModel.pickup?.latLng}")
                 logD("in home fragment: line 128 - current: $currentLocation")
@@ -156,6 +156,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
                 is UiState.Success -> {
                     // binding.progressBar.hide()
+                    setIfReady()
                     loadImage(state.data.personalPhotoUrl)
                     val nameTf = header.findViewById<TextView>(R.id.name_label)
                     nameTf.text = state.data.name
@@ -215,11 +216,19 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             val pickupLatLng = viewModel.pickup?.latLng
             val destinationLatLng = viewModel.destination?.latLng
             drawLineOnMap(pickupLatLng!!, destinationLatLng!!)
+
         }
 
     }
 
-    private fun drawLineOnMap(pickupLatLng: LatLng, destinationLatLng: LatLng) {
+    private fun showPathDetailsBottomSheet() {
+        logD("in showPathDetailsBottomSheet")
+        val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPathDetailsFragment(dist.toFloat())
+        findNavController().navigate(action)
+    }
+
+    private fun drawLineOnMap(pickupLatLng: LatLng?, destinationLatLng: LatLng?) {
+
         val context = GeoApiContext.Builder()
             .apiKey(getString(R.string.google_maps_key))
             .build()
@@ -227,76 +236,111 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         Log.d(TAG, context.toString())
         Log.d(TAG, pickupLatLng.toString())
         Log.d(TAG, destinationLatLng.toString())
-        try {
-            Log.d(TAG, "before directions init")
-            val directions = DirectionsApi.newRequest(context)
-            Log.d(TAG, directions.toString())
-            directions.origin(
-                com.google.maps.model.LatLng(
-                    pickupLatLng.latitude,
-                    pickupLatLng.longitude
-                )
-            )
-            Log.d(TAG, "line: 213: ${directions.toString()}")
-            directions
-                .destination(
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                Log.d(TAG, "before directions init")
+                val directions = DirectionsApi.newRequest(context)
+                Log.d(TAG, directions.toString())
+                directions.origin(
                     com.google.maps.model.LatLng(
-                        destinationLatLng.latitude,
-                        destinationLatLng.longitude
+                        pickupLatLng!!.latitude,
+                        pickupLatLng.longitude
                     )
                 )
-            Log.d(TAG, "line: 221: ${directions.toString()}")
-            directions
-                .mode(TravelMode.DRIVING)
-                .units(Unit.METRIC)
+                Log.d(TAG, "line: 213: ${directions.toString()}")
+                directions
+                    .destination(
+                        com.google.maps.model.LatLng(
+                            destinationLatLng!!.latitude,
+                            destinationLatLng.longitude
+                        )
+                    )
+                Log.d(TAG, "line: 221: ${directions.toString()}")
+                directions
+                    .mode(TravelMode.DRIVING)
+                    .units(Unit.METRIC)
 
+                Log.d(TAG, "line: 249: before result")
 
-            val result = directions.await()
-            val dist = result.routes[0].legs.sumOf { it.distance.inMeters } / 1000.0
-            toast(dist.toString())
+                val result = withContext(Dispatchers.IO) {
+                    directions.await() // Perform the network request asynchronously on IO dispatcher
+                }
+                Log.d(TAG, "line: 251: $result")
+                dist = result.routes[0].legs.sumOf { it.distance.inMeters } / 1000.0
+                logD("distance: $dist")
+                toast(dist.toString())
 
-            val route = result.routes[0]
+                val route = result.routes[0]
 
-            // Get the polyline data from the route
-            val encodedPolyline = route.overviewPolyline.encodedPath
+                // Get the polyline data from the route
+                val encodedPolyline = route.overviewPolyline.encodedPath
 
 // Decode the polyline data into a list of LatLng objects
-            val decodedPolyline = PolyUtil.decode(encodedPolyline)
+                val decodedPolyline = PolyUtil.decode(encodedPolyline)
 
-            val polylineOptions = PolylineOptions()
-                .addAll(decodedPolyline)
-                .color(R.color.md_theme_light_primary)
-                .width(10f)
+                Log.d(TAG, "decodedPolyline size: ${decodedPolyline.size}")
 
-// Add the polyline to the map
-            val polyline = map.addPolyline(polylineOptions)
+
+
+
 
 // Move the camera to the bounding box of the polyline
-            val boundsBuilder = LatLngBounds.Builder()
-            for (point in decodedPolyline) {
-                boundsBuilder.include(point)
-            }
-            val bounds = boundsBuilder.build()
-            val cameraPosition = CameraPosition.Builder()
-                .zoom(15.0f) //  desired zoom level as a float value
-                .bearing(45.0f) //  desired bearing angle as a float value
-                .tilt(30.0f) //  desired tilt angle as a float value
-                .build()
+                val boundsBuilder = LatLngBounds.Builder()
+                for (point in decodedPolyline) {
+                    boundsBuilder.include(point)
+                }
+                val bounds = boundsBuilder.build()
 
-            val cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 100).let {
-                CameraUpdateFactory.newCameraPosition(cameraPosition)
-            }
-            map.animateCamera(cameraUpdate)
+                val polylineOptions = PolylineOptions()
+                    .addAll(decodedPolyline)
+                    .color(R.color.md_theme_light_primary)
+                    .width(10f)
 
-            Log.d(TAG, "line: 226: ${directions.toString()}")
+                // Add the polyline to the map
+                val polyline = map.addPolyline(polylineOptions)
 
-        } catch (e: Exception) {
-            Log.d(TAG, "here")
-            Log.d(TAG, e.toString())
-            e.printStackTrace()
-            val cause = e.cause
-            if (cause != null) {
+
+                logD("bounds: ${bounds.center}")
+
+                val startMarkerOptions = MarkerOptions()
+                    .position(decodedPolyline.first())
+                    .title("Start")
+
+                map.addMarker(startMarkerOptions)
+
+                val endMarkerOptions = MarkerOptions()
+                    .position(decodedPolyline.last())
+                    .title("End")
+                map.addMarker(endMarkerOptions)
+
+
+
+                val cameraPosition = CameraPosition.Builder()
+                    .zoom(12.0f) //  desired zoom level as a float value
+                    .bearing(0.0f) //  desired bearing angle as a float value
+                    .tilt(90.0f) //  desired tilt angle as a float value
+                    .target(decodedPolyline[decodedPolyline.size/2])
+                    .build()
+
+                logD("before camera update: ${cameraPosition.target}")
+                val cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 100).let {
+                    CameraUpdateFactory.newCameraPosition(cameraPosition)
+                }
+
+                map.animateCamera(cameraUpdate)
+
+
+
+                Log.d(TAG, "line: 226: ${directions.toString()}")
+                showPathDetailsBottomSheet()
+            } catch (e: Exception) {
                 Log.d(TAG, "here")
+                Log.d(TAG, e.toString())
+                e.printStackTrace()
+                val cause = e.cause
+                if (cause != null) {
+                    Log.d(TAG, "here")
+                }
             }
         }
 
@@ -354,6 +398,23 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         val geocoder = Geocoder(requireContext(), Locale.getDefault())
         val addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
         return addresses?.firstOrNull()?.featureName ?: ""
+    }
+
+    private fun setIfReady() {
+        val isReady = preferences.getBoolean("isReady", false)
+        logD("isReady: $isReady")
+
+        if (isReady) {
+            if (viewModel.pickup != null && viewModel.destination != null) {
+                logD("in first branch: ${viewModel.pickup?.latLng}")
+                drawLineOnMap(viewModel.pickup!!.latLng, viewModel.destination!!.latLng)
+                //showPathDetailsBottomSheet()
+            } else {
+                logD("in second branch: ${viewModel.driverData}")
+                drawLineOnMap(viewModel.driverData?.pickupLatLng, viewModel.driverData?.destinationLatLng)
+                //showPathDetailsBottomSheet()
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(

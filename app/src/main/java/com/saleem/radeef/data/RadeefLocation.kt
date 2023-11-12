@@ -4,8 +4,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 
 data class RadeefLocation(
-    val latLng: LatLng?,
-    val title: String?
+    val latLng: LatLng? = null,
+    val title: String? = null
 ) {
     fun toGeoPoint(): GeoPoint {
         return GeoPoint(latLng!!.latitude, latLng.longitude)
