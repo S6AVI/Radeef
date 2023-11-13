@@ -48,7 +48,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
     private lateinit var handler: Handler
     private lateinit var runnable: Runnable
     private val DELAY = 1000L
-    val viewModel: DriverMapViewModel by activityViewModels()
+    val viewModel: DriverHomeViewModel by activityViewModels()
 
     private val preferences: SharedPreferences by lazy {
         requireContext().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
@@ -146,7 +146,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
 
             viewModel.homeEvent.collect { event ->
                 when (event) {
-                    is DriverMapViewModel.HomeEvent.UpdateResult -> {
+                    is DriverHomeViewModel.HomeEvent.UpdateResult -> {
                         when (event.state) {
                             UiState.Loading -> {
                                 logD("loading for results in DriverSearchFragment - 139")

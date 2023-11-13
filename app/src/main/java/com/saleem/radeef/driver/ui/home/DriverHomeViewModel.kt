@@ -7,10 +7,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.firebase.firestore.auth.User
 import com.saleem.radeef.R
 import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.UserStatus
+import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.UiState
@@ -21,7 +23,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-class DriverMapViewModel @ViewModelInject constructor(
+class DriverHomeViewModel @ViewModelInject constructor(
     val repository: DriverRepository
 ) : ViewModel() {
 
@@ -33,6 +35,15 @@ class DriverMapViewModel @ViewModelInject constructor(
         get() = _driver
 
     var driverData: Driver? = null
+
+    private val _currentHomeState = MutableLiveData<DriverHomeUiState>()
+    val currentHomeState: LiveData<DriverHomeUiState>
+        get() = _currentHomeState
+
+    // Method to update the current state
+    private fun updateDriverState(newState: DriverHomeUiState) {
+        _currentHomeState.value = newState
+    }
 
 //    private val _updateResult = MutableLiveData<UiState<Boolean>>()
 //    val updateResult: LiveData<UiState<Boolean>>
@@ -47,6 +58,43 @@ class DriverMapViewModel @ViewModelInject constructor(
     private val homeEventChannel = Channel<HomeEvent>()
     val homeEvent = homeEventChannel.receiveAsFlow()
 
+
+//    private fun mapToUiState(driverUiState: DriverHomeUiState): UiState<DriverHomeUiState> {
+//        return when (driverUiState) {
+//            is DriverHomeUiState.SettingPlaces -> UiState.Success(driverUiState)
+//            // Map other driver states to UiState similarly
+//            else -> {
+//                UiState.Loading
+//            }
+//        }
+//    }
+
+    private fun setHomeUiState(status: String) {
+        logD("in home ui state setter - first line")
+
+        val data = driverData!!
+        when (status) {
+            UserStatus.INACTIVE.value -> {
+                if (data.pickup.latitude == 0.0) {
+                    _currentHomeState.value = DriverHomeUiState.SettingPlaces
+                } else {
+                    _currentHomeState.value = DriverHomeUiState.DisplayDriverPlaces(
+                        driverLatLng = data.pickupLatLng,
+                        driverAddress = data.pickup_title,
+                        driverDestinationLatLng = data.destinationLatLng,
+                        driverDestinationAddress = data.destination_title,
+                    )
+                }
+            }
+
+            UserStatus.SEARCHING.value -> {
+                _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+            }
+
+        }
+        //_currentHomeState.value = DriverHomeUiState.SettingPlaces
+    }
+
     private fun getDriver() {
         _driver.value = UiState.Loading
         repository.getDriver { state ->
@@ -54,6 +102,9 @@ class DriverMapViewModel @ViewModelInject constructor(
             if (state is UiState.Success) {
                 logD("MapViewModel: in getDriver: success: ${state.data}")
                 driverData = state.data
+                setHomeUiState(driverData!!.status)
+                //_driver.value = UiState.Success(state.data)
+
             } else {
                 logD("some problem in getDriver")
             }
@@ -137,7 +188,7 @@ class DriverMapViewModel @ViewModelInject constructor(
             logD("onSearchButtonClicked - before sending")
             homeEventChannel.send(HomeEvent.StartSearching(UiState.Loading))
             logD("onSearchButtonClicked - after sending")
-            driverData =  driverData!!.copy(status = UserStatus.SEARCHING.value)
+            driverData = driverData!!.copy(status = UserStatus.SEARCHING.value)
             logD("status: ${driverData!!.status}")
             repository.updateDriver(
                 driverData!!.copy()
@@ -150,6 +201,16 @@ class DriverMapViewModel @ViewModelInject constructor(
 
             }
         }
+    }
+
+    fun onDisplayPlaces() {
+        val data = driverData!!
+        _currentHomeState.value = DriverHomeUiState.DisplayDriverPlaces(
+            driverLatLng = data.pickupLatLng,
+            driverDestinationLatLng = data.destinationLatLng,
+            driverAddress = data.pickup_title,
+            driverDestinationAddress = data.destination_title
+        )
     }
 
     sealed class HomeEvent {

@@ -5,7 +5,6 @@ import android.location.Geocoder
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.RelativeLayout
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -29,7 +28,6 @@ import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.DriverFragmentHomeBinding
-import com.saleem.radeef.ui.map.HomeFragmentDirections
 import com.saleem.radeef.ui.map.TAG
 import com.saleem.radeef.util.toast
 import com.vmadalin.easypermissions.EasyPermissions
@@ -38,17 +36,14 @@ import RIYADH
 import android.content.Context
 import android.content.SharedPreferences
 import android.widget.TextView
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.saleem.radeef.data.RadeefLocation
-import com.saleem.radeef.ui.drawer.payment.DriverPaymentFragmentDirections
+import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.util.UiState
-import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.logD
-import com.saleem.radeef.util.show
 import configureLocationButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -66,7 +61,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     lateinit var binding: DriverFragmentHomeBinding
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var currentLocation: LatLng
-    val viewModel: DriverMapViewModel by activityViewModels()
+    val viewModel: DriverHomeViewModel by activityViewModels()
     private lateinit var polyline: Polyline
 
     lateinit var header: View
@@ -156,7 +151,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
                 is UiState.Success -> {
                     // binding.progressBar.hide()
-                    setIfReady()
+                    //setIfReady()
                     loadImage(state.data.personalPhotoUrl)
                     val nameTf = header.findViewById<TextView>(R.id.name_label)
                     nameTf.text = state.data.name
@@ -173,7 +168,52 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
             }
         }
+
+        viewModel.currentHomeState.observe(viewLifecycleOwner) {state ->
+            logD("in currentHomeState observer")
+            when(state) {
+                DriverHomeUiState.SettingPlaces -> {
+                    logD("setting places: initial state")
+                }
+                is DriverHomeUiState.DisplayDriverPlaces -> {
+                    //drawLineOnMap(viewModel.driverData?.pickupLatLng, viewModel.driverData?.destinationLatLng)
+                    logD("setting places: display driver places")
+                    binding.pickupIl.hide()
+                    drawLineOnMap(state.driverLatLng, state.driverDestinationLatLng)
+                    showPathDetailsBottomSheet()
+                }
+
+                DriverHomeUiState.SearchingForPassengers -> {
+                    logD("searching state!")
+                }
+                is DriverHomeUiState.WaitPassengerResponse -> TODO()
+                is DriverHomeUiState.Arrived -> TODO()
+                is DriverHomeUiState.ContinueRide -> TODO()
+
+                is DriverHomeUiState.EnRoute -> TODO()
+                DriverHomeUiState.Error -> TODO()
+                DriverHomeUiState.Loading -> TODO()
+                is DriverHomeUiState.PassengerPickUp -> TODO()
+            }
+        }
     }
+
+//    private fun setIfReady() {
+//        val isReady = preferences.getBoolean("isReady", false)
+//        logD("isReady: $isReady")
+//
+//        if (isReady) {
+//            if (viewModel.pickup != null && viewModel.destination != null) {
+//                logD("in first branch: ${viewModel.pickup?.latLng}")
+//                drawLineOnMap(viewModel.pickup!!.latLng, viewModel.destination!!.latLng)
+//                //showPathDetailsBottomSheet()
+//            } else {
+//                logD("in second branch: ${viewModel.driverData}")
+//                drawLineOnMap(viewModel.driverData?.pickupLatLng, viewModel.driverData?.destinationLatLng)
+//                //showPathDetailsBottomSheet()
+//            }
+//        }
+//    }
 
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
@@ -327,12 +367,19 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                     CameraUpdateFactory.newCameraPosition(cameraPosition)
                 }
 
-                map.animateCamera(cameraUpdate)
+                map.animateCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        pickupLatLng,
+                        13f
+                    )
+                )
+
+                //map.animateCamera(cameraUpdate)
 
 
 
                 Log.d(TAG, "line: 226: ${directions.toString()}")
-                showPathDetailsBottomSheet()
+
             } catch (e: Exception) {
                 Log.d(TAG, "here")
                 Log.d(TAG, e.toString())
@@ -400,22 +447,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         return addresses?.firstOrNull()?.featureName ?: ""
     }
 
-    private fun setIfReady() {
-        val isReady = preferences.getBoolean("isReady", false)
-        logD("isReady: $isReady")
 
-        if (isReady) {
-            if (viewModel.pickup != null && viewModel.destination != null) {
-                logD("in first branch: ${viewModel.pickup?.latLng}")
-                drawLineOnMap(viewModel.pickup!!.latLng, viewModel.destination!!.latLng)
-                //showPathDetailsBottomSheet()
-            } else {
-                logD("in second branch: ${viewModel.driverData}")
-                drawLineOnMap(viewModel.driverData?.pickupLatLng, viewModel.driverData?.destinationLatLng)
-                //showPathDetailsBottomSheet()
-            }
-        }
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
