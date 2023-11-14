@@ -50,7 +50,6 @@ sealed interface DriverHomeUiState {
         val driverDestinationAddress: String,
     ): DriverHomeUiState
 
-    //Signals something unexpected has happened
     object Error: DriverHomeUiState
     object Loading: DriverHomeUiState
 }

@@ -44,8 +44,10 @@ import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.show
 import configureLocationButton
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -65,6 +67,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     private lateinit var polyline: Polyline
 
     lateinit var header: View
+
 
     var dist = 0.0
 
@@ -96,34 +99,40 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_item_profile -> {
-                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverProfileFragment()
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverProfileFragment()
                     findNavController().navigate(action)
                 }
 
                 R.id.nav_item_wallet -> {
-                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverWalletFragment()
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverWalletFragment()
                     findNavController().navigate(action)
                 }
 
                 R.id.nav_item_payment -> {
-                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPaymentFragment()
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPaymentFragment()
                     findNavController().navigate(action)
 
                 }
 
                 R.id.nav_item_rides -> {
-                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverRidesFragment()
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverRidesFragment()
                     findNavController().navigate(action)
                 }
 
                 R.id.nav_item_help -> {
-                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverHelpFragment()
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverHelpFragment()
                     findNavController().navigate(action)
                 }
 
                 R.id.nav_item_Settings -> {
                     //val action = HomeFragmentDirections.actionHomeFragmentToSettingsFragment2()
-                    val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSettingsFragment()
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSettingsFragment()
                     findNavController().navigate(action)
                 }
             }
@@ -137,18 +146,21 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 logD("in home fragment: line 127 - pickup: ${viewModel.pickup?.latLng}")
                 logD("in home fragment: line 128 - current: $currentLocation")
                 val action =
-                    DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSearchFragment(currentLocation)
+                    DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSearchFragment(
+                        currentLocation
+                    )
                 findNavController().navigate(action)
             }
         }
 
 
-        viewModel.driver.observe(viewLifecycleOwner) {state ->
+        viewModel.driver.observe(viewLifecycleOwner) { state ->
             when (state) {
                 UiState.Loading -> {
 //                    binding.progressBar.show()
 //                    binding.continueBt.setText("")
                 }
+
                 is UiState.Success -> {
                     // binding.progressBar.hide()
                     //setIfReady()
@@ -159,6 +171,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                     logD(state.data.toString())
 
                 }
+
                 is UiState.Failure -> {
 //                    binding.progressBar.hide()
 //                    binding.continueBt.enable()
@@ -169,33 +182,98 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             }
         }
 
-        viewModel.currentHomeState.observe(viewLifecycleOwner) {state ->
+        viewModel.currentHomeState.observe(viewLifecycleOwner) { state ->
             logD("in currentHomeState observer")
-            when(state) {
+            when (state) {
                 DriverHomeUiState.SettingPlaces -> {
                     logD("setting places: initial state")
                 }
+
                 is DriverHomeUiState.DisplayDriverPlaces -> {
                     //drawLineOnMap(viewModel.driverData?.pickupLatLng, viewModel.driverData?.destinationLatLng)
                     logD("setting places: display driver places")
                     binding.pickupIl.hide()
                     drawLineOnMap(state.driverLatLng, state.driverDestinationLatLng)
-                    showPathDetailsBottomSheet()
+                    displayDriverPlaces(state)
                 }
 
                 DriverHomeUiState.SearchingForPassengers -> {
                     logD("searching state!")
-                }
-                is DriverHomeUiState.WaitPassengerResponse -> TODO()
-                is DriverHomeUiState.Arrived -> TODO()
-                is DriverHomeUiState.ContinueRide -> TODO()
+                    searchingForPassengers()
 
-                is DriverHomeUiState.EnRoute -> TODO()
+                }
+
+                is DriverHomeUiState.WaitPassengerResponse -> {
+                    logD("waiting response state!")
+                    waitingPassengerResponse()
+                }
+
+                is DriverHomeUiState.Arrived -> {
+                    logD("waiting response state!")
+                    arrived()
+                }
+
+                is DriverHomeUiState.ContinueRide -> {
+                    logD("waiting response state!")
+                    continueRide()
+                }
+
+                is DriverHomeUiState.EnRoute -> {
+                    enRoute()
+                }
+
+                is DriverHomeUiState.PassengerPickUp -> {
+                    passengerPickup()
+                }
+
                 DriverHomeUiState.Error -> TODO()
                 DriverHomeUiState.Loading -> TODO()
-                is DriverHomeUiState.PassengerPickUp -> TODO()
             }
         }
+    }
+
+    private fun displayDriverPlaces(state: DriverHomeUiState.DisplayDriverPlaces) {
+        binding.pathDetailsView.pathDetailsLayout.show()
+        binding.pathDetailsView.apply {
+            pickupTitleTextView.text = viewModel.driverData?.pickup_title
+            destinationTitleTextView.text = viewModel.driverData?.destination_title
+            try {
+                distanceTextView.text =
+                    calculateDistance(state.driverLatLng, state.driverDestinationLatLng).toString()
+            } catch (e: Exception) {
+                logD(e.message.toString())
+            }
+
+        }
+
+        binding.pathDetailsView.searchButton.setOnClickListener {
+            logD("search button clicked!")
+            //viewModel.onSearchButtonClicked()
+        }
+    }
+
+    private fun passengerPickup() {
+        TODO("Not yet implemented")
+    }
+
+    private fun enRoute() {
+        TODO("Not yet implemented")
+    }
+
+    private fun continueRide() {
+        TODO("Not yet implemented")
+    }
+
+    private fun arrived() {
+        TODO("Not yet implemented")
+    }
+
+    private fun waitingPassengerResponse() {
+        TODO("Not yet implemented")
+    }
+
+    private fun searchingForPassengers() {
+        TODO("Not yet implemented")
     }
 
 //    private fun setIfReady() {
@@ -261,11 +339,11 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
     }
 
-    private fun showPathDetailsBottomSheet() {
-        logD("in showPathDetailsBottomSheet")
-        val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPathDetailsFragment(dist.toFloat())
-        findNavController().navigate(action)
-    }
+//    private fun showPathDetailsBottomSheet() {
+//        logD("in showPathDetailsBottomSheet")
+//        val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPathDetailsFragment(dist.toFloat())
+//        findNavController().navigate(action)
+//    }
 
     private fun drawLineOnMap(pickupLatLng: LatLng?, destinationLatLng: LatLng?) {
 
@@ -321,9 +399,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 Log.d(TAG, "decodedPolyline size: ${decodedPolyline.size}")
 
 
-
-
-
 // Move the camera to the bounding box of the polyline
                 val boundsBuilder = LatLngBounds.Builder()
                 for (point in decodedPolyline) {
@@ -354,12 +429,11 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 map.addMarker(endMarkerOptions)
 
 
-
                 val cameraPosition = CameraPosition.Builder()
                     .zoom(12.0f) //  desired zoom level as a float value
                     .bearing(0.0f) //  desired bearing angle as a float value
                     .tilt(90.0f) //  desired tilt angle as a float value
-                    .target(decodedPolyline[decodedPolyline.size/2])
+                    .target(decodedPolyline[decodedPolyline.size / 2])
                     .build()
 
                 logD("before camera update: ${cameraPosition.target}")
@@ -375,7 +449,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 )
 
                 //map.animateCamera(cameraUpdate)
-
 
 
                 Log.d(TAG, "line: 226: ${directions.toString()}")
@@ -447,6 +520,50 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         return addresses?.firstOrNull()?.featureName ?: ""
     }
 
+    private fun calculateDistance(start: LatLng, end: LatLng): Double {
+
+        val directionsContext = GeoApiContext.Builder()
+            .apiKey(getString(R.string.google_maps_key))
+            .build()
+
+        var distance = 0.0
+        logD("inside calc")
+        logD("start Lat: ${start.latitude}, Lng: ${start.longitude}")
+        logD("end Lat: ${end.latitude}, Lng: ${end.longitude}")
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val directions = DirectionsApi.newRequest(directionsContext)
+                directions.origin(
+                    com.google.maps.model.LatLng(
+                        start.latitude,
+                        start.longitude
+                    )
+                )
+                directions
+                    .destination(
+                        com.google.maps.model.LatLng(
+                            end.latitude,
+                            end.longitude
+                        )
+                    )
+                val result =
+                    directions
+                        .mode(TravelMode.DRIVING)
+                        .units(Unit.METRIC)
+                        .await()
+
+                distance = result.routes[0].legs.sumOf { it.distance.inMeters } / 1000.0
+                logD("distance inside coroutine: $distance")
+                binding.pathDetailsView.distanceTextView.text = distance.toString()
+            } catch (e: Exception) {
+                Log.d(TAG, e.toString())
+                e.printStackTrace()
+            }
+        }
+        logD("distance in helper: $distance")
+
+        return distance
+    }
 
 
     override fun onRequestPermissionsResult(
