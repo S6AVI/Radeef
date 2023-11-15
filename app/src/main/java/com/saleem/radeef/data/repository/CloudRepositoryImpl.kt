@@ -3,8 +3,8 @@ package com.saleem.radeef.data.repository
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.saleem.radeef.data.firestore.Driver
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.UiState
 
 class CloudRepositoryImpl(
@@ -12,7 +12,7 @@ class CloudRepositoryImpl(
     val auth: FirebaseAuth
 ) : CloudRepository {
 
-    override fun updatePassengerInfo(passenger: Driver, result: (UiState<String>) -> Unit) {
+    override fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit) {
         val passengersCollection = database.collection("passengers")
         //Log.d(TAG, passengersCollection.id.toString())
         Log.d(TAG, "name:${passenger.name}\nemail:${passenger.email}\ngender:${passenger.gender}")

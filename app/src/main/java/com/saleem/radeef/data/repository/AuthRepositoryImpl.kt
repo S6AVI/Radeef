@@ -8,8 +8,8 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
-import com.saleem.radeef.data.firestore.Driver
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
@@ -20,7 +20,7 @@ class AuthRepositoryImpl(
     private val auth: FirebaseAuth
 ) : AuthRepository {
     private lateinit var verificationId: String
-    private lateinit var passenger: Driver
+    private lateinit var passenger: Passenger
     private lateinit var token: PhoneAuthProvider.ForceResendingToken
 //    override val currentUser: FirebaseUser?
 //        get() =
@@ -28,7 +28,7 @@ class AuthRepositoryImpl(
     fun getUserId() = auth.currentUser?.uid
 
     override fun registerPassenger(
-        passenger: Driver,
+        passenger: Passenger,
         phone: String,
         activity: Activity,
         result: (UiState<String>) -> Unit
@@ -97,7 +97,7 @@ class AuthRepositoryImpl(
         PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
-    override fun updatePassengerInfo(passenger: Driver, result: (UiState<String>) -> Unit) {
+    override fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit) {
 
 //        val document = if (passenger.passengerID.isNotEmpty()) {
 //            database.collection(FirestoreTables.PASSENGERS).document(passenger.passengerID)
@@ -288,7 +288,7 @@ class AuthRepositoryImpl(
             }
     }
 
-    override fun getPassenger(result: (UiState<Driver>) -> Unit) {
+    override fun getPassenger(result: (UiState<Passenger>) -> Unit) {
         database.collection(FirestoreTables.PASSENGERS)
             .whereEqualTo("passengerID", auth.currentUser?.uid)
             .limit(1)
@@ -296,7 +296,7 @@ class AuthRepositoryImpl(
             .addOnSuccessListener {
                 if (!it.isEmpty) {
                     val documentSnapshot = it.documents[0]
-                    val passenger = documentSnapshot.toObject(Driver::class.java)!!
+                    val passenger = documentSnapshot.toObject(Passenger::class.java)!!
                     result.invoke(
                         UiState.Success(passenger)
                     )

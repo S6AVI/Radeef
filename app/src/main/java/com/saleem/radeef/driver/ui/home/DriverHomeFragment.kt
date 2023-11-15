@@ -28,7 +28,7 @@ import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.DriverFragmentHomeBinding
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.toast
 import com.vmadalin.easypermissions.EasyPermissions
 import configureMapSettings
