@@ -30,6 +30,8 @@ data class Ride(
     var rideID: String = "",
 
     val passengerID: String = "",
+
+    val passengerName: String = ""
     //val driverID: Int
 ) {
 

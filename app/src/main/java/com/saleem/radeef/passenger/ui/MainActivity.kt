@@ -13,7 +13,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
 import com.saleem.radeef.databinding.ActivityMainBinding
 import com.saleem.radeef.driver.DriverMainActivity
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.Constants.USER_TYPE
 import com.saleem.radeef.util.UserType
 import com.saleem.radeef.util.logD

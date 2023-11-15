@@ -29,7 +29,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.saleem.radeef.R
 import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
-import com.saleem.radeef.ui.map.SearchResultAdapter
+import com.saleem.radeef.passenger.ui.map.SearchResultAdapter
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
 import dagger.hilt.android.AndroidEntryPoint

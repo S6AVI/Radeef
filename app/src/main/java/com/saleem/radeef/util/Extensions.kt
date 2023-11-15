@@ -4,7 +4,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.passenger.ui.map.TAG
 
 fun View.hide(){
     visibility = View.GONE

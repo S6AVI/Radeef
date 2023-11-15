@@ -14,7 +14,7 @@ import com.google.maps.android.PolyUtil
 import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.R
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.passenger.ui.map.TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

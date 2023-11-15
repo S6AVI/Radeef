@@ -17,7 +17,7 @@ import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.License
 import com.saleem.radeef.data.firestore.driver.UserStatus
 import com.saleem.radeef.data.firestore.driver.Vehicle
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.FirebaseStorageConstants.DRIVER_DIRECTORY
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState

@@ -12,6 +12,8 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.UserStatus
+import com.saleem.radeef.data.repository.AuthRepository
+import com.saleem.radeef.data.repository.CloudRepository
 import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.Permissions
@@ -24,7 +26,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class DriverHomeViewModel @ViewModelInject constructor(
-    val repository: DriverRepository
+    val repository: DriverRepository,
+    val passengerRepo: CloudRepository
 ) : ViewModel() {
 
     var pickup: RadeefLocation? = null
@@ -183,35 +186,51 @@ class DriverHomeViewModel @ViewModelInject constructor(
     }
 
     fun onSearchButtonClicked() {
-        logD("onSearchButtonClicked start")
-        viewModelScope.launch {
-            logD("onSearchButtonClicked - before sending")
-            homeEventChannel.send(HomeEvent.StartSearching(UiState.Loading))
-            logD("onSearchButtonClicked - after sending")
-            driverData = driverData!!.copy(status = UserStatus.SEARCHING.value)
-            logD("status: ${driverData!!.status}")
-            repository.updateDriver(
-                driverData!!.copy()
 
+        logD("onSearchButtonClicked start")
+        _currentHomeState.value = DriverHomeUiState.Loading
+        viewModelScope.launch {
+            //homeEventChannel.send(HomeEvent.StartSearching(UiState.Loading))
+
+            //driverData = driverData!!.copy(status = UserStatus.SEARCHING.value)
+            repository.updateDriver(
+                driverData!!.copy(status = UserStatus.SEARCHING.value)
             ) { result ->
-                logD("result: $result")
-                viewModelScope.launch {
-                    homeEventChannel.send(HomeEvent.StartSearching(result))
+                if (result is UiState.Success) {
+                    driverData = driverData!!.copy(status = UserStatus.SEARCHING.value)
+                    _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                } else {
+                    logD("error")
+                    //_currentHomeState.value = DriverHomeUiState.Error
                 }
+                logD("result: $result")
+//                viewModelScope.launch {
+//                    homeEventChannel.send(HomeEvent.StartSearching(result))
+//                }
 
             }
         }
     }
 
-    fun onDisplayPlaces() {
-        val data = driverData!!
-        _currentHomeState.value = DriverHomeUiState.DisplayDriverPlaces(
-            driverLatLng = data.pickupLatLng,
-            driverDestinationLatLng = data.destinationLatLng,
-            driverAddress = data.pickup_title,
-            driverDestinationAddress = data.destination_title
-        )
-    }
+//    fun getPassengerName(id: String): String {
+//        viewModelScope.launch {
+//            passengerRepo.getPassengerName(id) {result ->
+//                if (result is UiState.Success) {
+//
+//                }
+//            }
+//        }
+//    }
+
+//    fun onDisplayPlaces() {
+//        val data = driverData!!
+//        _currentHomeState.value = DriverHomeUiState.DisplayDriverPlaces(
+//            driverLatLng = data.pickupLatLng,
+//            driverDestinationLatLng = data.destinationLatLng,
+//            driverAddress = data.pickup_title,
+//            driverDestinationAddress = data.destination_title
+//        )
+//    }
 
     sealed class HomeEvent {
         data class UpdateResult(val state: UiState<Boolean>) : HomeEvent()

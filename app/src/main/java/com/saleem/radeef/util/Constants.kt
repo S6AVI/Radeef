@@ -5,6 +5,9 @@ import java.util.Date
 import java.util.Locale
 
 
+const val FEE_RATE = 3
+const val FEE_BASE = 0
+
 object FirestoreTables {
     val RIDES = "rides"
     val PASSENGERS = "passengers"

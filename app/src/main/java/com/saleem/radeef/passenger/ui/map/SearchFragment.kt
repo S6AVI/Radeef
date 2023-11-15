@@ -22,6 +22,7 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentSearchBinding
+import com.saleem.radeef.ui.map.SearchFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import java.lang.Math.cos
 

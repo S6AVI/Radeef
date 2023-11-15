@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.drawer.profile.ProfileFragment">
+    tools:context=".passenger.ui.drawer.profile.ProfileFragment">
 
 
 <androidx.constraintlayout.widget.ConstraintLayout
@@ -41,7 +41,7 @@
             android:id="@+id/save_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/continue_label" />
+            android:text="@string/save_changes" />
 
         <ProgressBar
             android:id="@+id/progress_bar"

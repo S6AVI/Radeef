@@ -22,7 +22,7 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.databinding.DriverInfoFragmentBinding
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.Constants
 import com.saleem.radeef.util.Constants.CROP_IMAGE_REQUEST
 import com.saleem.radeef.util.ImageFileNames.PERSONAL

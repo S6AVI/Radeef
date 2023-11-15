@@ -11,6 +11,6 @@ data class Passenger(
     val name: String = "",
     var passengerID: String = "",
     val email: String = "",
-    val gender: String = ""
+    val gender: String = "",
 
 ) : Parcelable

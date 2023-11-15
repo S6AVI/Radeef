@@ -47,7 +47,6 @@ import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
 import configureLocationButton
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,6 +66,10 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     private lateinit var polyline: Polyline
 
     lateinit var header: View
+
+    private val adapter by lazy {
+        PassengerRequestsAdapter(requireContext())
+    }
 
 
     var dist = 0.0
@@ -226,8 +229,12 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                     passengerPickup()
                 }
 
-                DriverHomeUiState.Error -> TODO()
-                DriverHomeUiState.Loading -> TODO()
+                DriverHomeUiState.Error -> {
+                    logD("Home state is: Error")
+                }
+                DriverHomeUiState.Loading -> {
+                    logD("Home state is: Loading")
+                }
             }
         }
     }
@@ -248,8 +255,23 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
         binding.pathDetailsView.searchButton.setOnClickListener {
             logD("search button clicked!")
-            //viewModel.onSearchButtonClicked()
+            viewModel.onSearchButtonClicked()
         }
+    }
+
+    private fun searchingForPassengers() {
+        adapter.getDistance = { pickup, destination -> calculateDistance(pickup, destination) }
+        adapter.getCost = { pickup, destination -> calculateCost(pickup, destination) }
+        binding.ridesRequestView.requestsRecyclerView.adapter = adapter
+        binding.pathDetailsView.pathDetailsLayout.hide()
+        binding.ridesRequestView.ridesRequestLayout.show()
+        binding.ridesRequestView.noRequestsTextView.show()
+        logD("we are searching!")
+
+    }
+
+    private fun calculateCost(PassengerPickup: LatLng, PassengerDestination: LatLng): Double {
+        TODO("Not yet implemented")
     }
 
     private fun passengerPickup() {
@@ -272,9 +294,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         TODO("Not yet implemented")
     }
 
-    private fun searchingForPassengers() {
-        TODO("Not yet implemented")
-    }
+
 
 //    private fun setIfReady() {
 //        val isReady = preferences.getBoolean("isReady", false)

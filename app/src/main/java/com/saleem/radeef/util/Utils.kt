@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import com.saleem.radeef.data.firestore.driver.RegistrationStatus
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.Constants.CURRENT_SCREEN
 import java.util.Calendar
 import java.util.Locale
@@ -101,4 +101,6 @@ fun isPassed(preferences: SharedPreferences, current: String): Boolean {
     Log.d(TAG, "pref , current: $current \n${preferences.getString(CURRENT_SCREEN, null)}")
     return preferences.getString(CURRENT_SCREEN, null) != current
 }
+
+fun calculateFee(distance: Double) = FEE_BASE + (distance * FEE_RATE)
 

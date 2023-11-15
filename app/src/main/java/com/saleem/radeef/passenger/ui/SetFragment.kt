@@ -6,7 +6,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.saleem.radeef.R
-import com.saleem.radeef.ui.auth.RegisterViewModel
+import com.saleem.radeef.passenger.ui.auth.RegisterViewModel
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 

@@ -13,7 +13,7 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.databinding.DriverFragmentProfileBinding
 
-import com.saleem.radeef.ui.map.TAG
+import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.genders
 import com.saleem.radeef.util.hide
