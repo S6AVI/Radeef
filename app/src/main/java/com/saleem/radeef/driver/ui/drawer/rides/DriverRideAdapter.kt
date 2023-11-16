@@ -1,4 +1,4 @@
-package com.saleem.radeef.ui.rides
+package com.saleem.radeef.driver.ui.drawer.rides
 
 import android.content.Context
 import android.location.Geocoder
@@ -55,9 +55,9 @@ class DriverRideAdapter(val context: Context) : RecyclerView.Adapter<DriverRideA
             var destination = ""
             coroutineScope.launch {
                 pickup =
-                    getPickupAddress(item.pickupLocation.latitude, item.pickupLocation.longitude)
+                    getPickupAddress(item.passengerPickupLocation.latitude, item.passengerPickupLocation.longitude)
                 destination =
-                    getPickupAddress(item.destination.latitude, item.destination.longitude)
+                    getPickupAddress(item.passengerDestination.latitude, item.passengerDestination.longitude)
                 binding.pickupTv.text = pickup
                 binding.destinationTv.text = destination
             }

@@ -55,9 +55,9 @@ class RideAdapter(val context: Context) : RecyclerView.Adapter<RideAdapter.Drive
             var destination = ""
             coroutineScope.launch {
                 pickup =
-                    getPickupAddress(item.pickupLocation.latitude, item.pickupLocation.longitude)
+                    getPickupAddress(item.passengerPickupLocation.latitude, item.passengerPickupLocation.longitude)
                 destination =
-                    getPickupAddress(item.destination.latitude, item.destination.longitude)
+                    getPickupAddress(item.passengerDestination.latitude, item.passengerDestination.longitude)
                 binding.pickupTv.text = pickup
                 binding.destinationTv.text = destination
             }

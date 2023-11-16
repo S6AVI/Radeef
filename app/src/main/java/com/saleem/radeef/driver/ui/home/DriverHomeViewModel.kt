@@ -7,27 +7,36 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.firebase.firestore.auth.User
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.DirectionsApi
+import com.google.maps.GeoApiContext
+import com.google.maps.model.TravelMode
+import com.google.maps.model.Unit
 import com.saleem.radeef.R
 import com.saleem.radeef.data.RadeefLocation
+import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.UserStatus
-import com.saleem.radeef.data.repository.AuthRepository
-import com.saleem.radeef.data.repository.CloudRepository
+import com.saleem.radeef.data.repository.RideRepository
 import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.driver.repo.DriverRepository
+import com.saleem.radeef.util.MAX_DISTANCE_METERS_THRESHOLD
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.lang.Exception
 
 class DriverHomeViewModel @ViewModelInject constructor(
     val repository: DriverRepository,
-    val passengerRepo: CloudRepository
+    private val ridesRepo: RideRepository,
+    val geoContext: GeoApiContext
 ) : ViewModel() {
 
     var pickup: RadeefLocation? = null
@@ -42,6 +51,11 @@ class DriverHomeViewModel @ViewModelInject constructor(
     private val _currentHomeState = MutableLiveData<DriverHomeUiState>()
     val currentHomeState: LiveData<DriverHomeUiState>
         get() = _currentHomeState
+
+
+    private val _rideRequests = MutableLiveData<UiState<List<RideWithDistance>>>()
+    val rideRequests: LiveData<UiState<List<RideWithDistance>>>
+        get() = _rideRequests
 
     // Method to update the current state
     private fun updateDriverState(newState: DriverHomeUiState) {
@@ -151,7 +165,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
 //        viewModelScope.launch {
 //            //updateResultChannel.send(UiState.Loading)
 //            updateResultChannel.send(HomeEvent.UpdateResult(UiState.Loading))
-//            logD("pickup: ${pickup?.title}\ndestination: ${destination?.title}")
+//            logD("pickup: ${pickup?.title}\n destination: ${destination?.title}")
 //            if (pickup != null && destination != null) {
 //
 //                repository.updateDriverLocations(pickup!!, destination!!) { result ->
@@ -212,15 +226,83 @@ class DriverHomeViewModel @ViewModelInject constructor(
         }
     }
 
-//    fun getPassengerName(id: String): String {
-//        viewModelScope.launch {
-//            passengerRepo.getPassengerName(id) {result ->
-//                if (result is UiState.Success) {
-//
-//                }
-//            }
-//        }
-//    }
+
+    fun fetchRideRequests() {
+        _rideRequests.value = UiState.Loading
+        viewModelScope.launch {
+            ridesRepo.getAllRidesRequests { result ->
+                if (result is UiState.Success) {
+                    logD("all rides length: ${result.data.size}")
+                    viewModelScope.launch {
+                        val filteredRides = withContext(Dispatchers.IO) {
+                            filterRidesByProximity(result.data)
+                        }
+                        _rideRequests.value = UiState.Success(filteredRides)
+                    }
+                } else if (result is UiState.Failure) {
+                    _rideRequests.value = result
+                }
+            }
+        }
+    }
+
+
+    private suspend fun filterRidesByProximity(rides: List<Ride>): List<RideWithDistance> {
+        val filteredRides = mutableListOf<RideWithDistance>()
+
+        for (ride in rides) {
+            logD("passenger pickup LatLng: ${ride.passengerPickupLatLng}")
+
+            val pickupDistance = withContext(Dispatchers.IO) {
+
+                getDrivingDistance(driverData!!.pickupLatLng, ride.passengerPickupLatLng)
+            }
+            val destinationDistance = withContext(Dispatchers.IO) {
+                getDrivingDistance(driverData!!.destinationLatLng, ride.passengerDestLatLng)
+            }
+
+
+            if (pickupDistance != null && destinationDistance != null &&
+                pickupDistance <= MAX_DISTANCE_METERS_THRESHOLD && destinationDistance <= MAX_DISTANCE_METERS_THRESHOLD
+            ) {
+                val totalDistance = pickupDistance + destinationDistance
+                filteredRides.add(RideWithDistance(ride, totalDistance.toDouble()))
+            }
+        }
+        return filteredRides
+    }
+
+    private suspend fun getDrivingDistance(
+        origin: LatLng,
+        destination: LatLng,
+    ): Int? {
+        logD("origin: $origin")
+        logD("dest: $destination")
+        return withContext(Dispatchers.IO) {
+            val request = DirectionsApi.newRequest(geoContext)
+                .mode(TravelMode.DRIVING)
+                .origin(
+                    com.google.maps.model.LatLng(origin.latitude, origin.longitude)
+                )
+                .destination(
+                    com.google.maps.model.LatLng(destination.latitude, destination.longitude)
+                )
+                .units(Unit.METRIC)
+            try {
+                val result = request.await()
+                val route = result.routes[0]
+                val leg = route.legs[0]
+                logD("distance: ${leg.distance.inMeters.toInt()}")
+                leg.distance.inMeters.toInt()
+            } catch (e: Exception) {
+                // Handle API exception
+                e.printStackTrace()
+                logD("error in calc distance: ${e.message}")
+                null
+            }
+        }
+    }
+
 
 //    fun onDisplayPlaces() {
 //        val data = driverData!!
@@ -239,3 +321,4 @@ class DriverHomeViewModel @ViewModelInject constructor(
 
 
 }
+

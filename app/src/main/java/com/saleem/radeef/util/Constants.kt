@@ -8,6 +8,8 @@ import java.util.Locale
 const val FEE_RATE = 3
 const val FEE_BASE = 0
 
+const val MAX_DISTANCE_METERS_THRESHOLD = 5000
+
 object FirestoreTables {
     val RIDES = "rides"
     val PASSENGERS = "passengers"
@@ -38,6 +40,8 @@ object DefaultDate {
     val DEFAULT_DATE: Date
         get() = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).parse("01-01-1900")!!
 }
+
+const val GOOGLE_MAPS_KEY = "AIzaSyC2RlRiGhgV_sKcjfNky9qwfS4B0AOUrDE"
 
 object ImageFileNames {
     const val PERSONAL = "personal"

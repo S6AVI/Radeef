@@ -5,6 +5,10 @@ import com.saleem.radeef.util.UiState
 
 interface RideRepository {
 
-    fun getRides(result: (UiState<List<Ride>>) -> Unit)
+    fun getPassengerRides(result: (UiState<List<Ride>>) -> Unit)
     fun addRide(ride: Ride, result: (UiState<String>) -> Unit)
+
+    //fun getDriverRides(result: (UiState<List<Ride>>) -> Unit)
+
+    fun getAllRidesRequests(result: (UiState<List<Ride>>) -> Unit)
 }

@@ -21,7 +21,7 @@ class DriverRideViewModel @ViewModelInject constructor(
 
     fun getRides() {
         _rides.value = UiState.Loading
-        repository.getRides {
+        repository.getPassengerRides {
             _rides.value = it
         }
 

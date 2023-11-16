@@ -8,8 +8,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.google.maps.GeoApiContext
+import com.saleem.radeef.R
 import com.saleem.radeef.driver.repo.CarsApi
 import com.saleem.radeef.util.FirebaseStorageConstants
+import com.saleem.radeef.util.GOOGLE_MAPS_KEY
 //import com.saleem.radeef.data.relations.RadeefDatabase
 import dagger.hilt.android.components.ApplicationComponent
 import kotlinx.coroutines.CoroutineScope
@@ -54,6 +57,14 @@ object AppModule {
     @Singleton
     fun provideCarsApi(retrofit: Retrofit): CarsApi =
         retrofit.create(CarsApi::class.java)
+
+    @Provides
+    fun provideGeoApiContext(): GeoApiContext {
+        val apiKey = GOOGLE_MAPS_KEY
+        return GeoApiContext.Builder()
+                .apiKey(apiKey)
+                .build()
+    }
 
 
 //    @Provides

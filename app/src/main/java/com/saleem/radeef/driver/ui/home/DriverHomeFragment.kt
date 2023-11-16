@@ -42,6 +42,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.calculateFee
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
@@ -260,14 +261,47 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun searchingForPassengers() {
-        adapter.getDistance = { pickup, destination -> calculateDistance(pickup, destination) }
-        adapter.getCost = { pickup, destination -> calculateCost(pickup, destination) }
-        binding.ridesRequestView.requestsRecyclerView.adapter = adapter
+        val anotherAdapter = PassengerRequestsAdapter(requireContext())
+//        adapter.getDistance = { pickup, destination ->
+//            viewModel.calculateDistance(pickup, destination)
+//        }
+        adapter.getCost = { distance ->
+            calculateFee(distance)
+        }
+        binding.ridesRequestView.requestsRecyclerView.adapter = anotherAdapter
         binding.pathDetailsView.pathDetailsLayout.hide()
         binding.ridesRequestView.ridesRequestLayout.show()
         binding.ridesRequestView.noRequestsTextView.show()
         logD("we are searching!")
 
+        viewModel.fetchRideRequests()
+        viewModel.rideRequests.observe(viewLifecycleOwner) { uiState ->
+            when (uiState) {
+                is UiState.Loading -> {
+                    binding.ridesRequestView.progressBar.show()
+                }
+                is UiState.Success -> {
+                    binding.ridesRequestView.progressBar.hide()
+                    binding.ridesRequestView.requestsRecyclerView.show()
+                    val filteredRides = uiState.data
+                    logD("length of filtered rides: ${filteredRides.size}")
+                    logD("available ride requests: $filteredRides")
+                    if (filteredRides.isEmpty()) {
+                        binding.ridesRequestView.noRequestsTextView.show()
+                    } else {
+                        binding.ridesRequestView.noRequestsTextView.hide()
+                    }
+                    anotherAdapter.updateList(filteredRides.toMutableList())
+                    //anotherAdapter.submitList(filteredRides)
+                }
+                is UiState.Failure -> {
+                    binding.ridesRequestView.progressBar.hide()
+                    val errorMessage = uiState.error.toString()
+                    logD("error: $errorMessage")
+                    // Handle error state
+                }
+            }
+        }
     }
 
     private fun calculateCost(PassengerPickup: LatLng, PassengerDestination: LatLng): Double {

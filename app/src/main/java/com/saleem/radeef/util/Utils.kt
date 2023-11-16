@@ -102,5 +102,7 @@ fun isPassed(preferences: SharedPreferences, current: String): Boolean {
     return preferences.getString(CURRENT_SCREEN, null) != current
 }
 
-fun calculateFee(distance: Double) = FEE_BASE + (distance * FEE_RATE)
-
+fun calculateFee(distance: Double): Double {
+    Log.d(TAG, "calculateFee: $distance")
+ return FEE_BASE + (distance * FEE_RATE)
+}
