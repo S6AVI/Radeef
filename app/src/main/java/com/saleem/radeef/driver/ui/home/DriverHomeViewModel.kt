@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Polyline
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
 import com.google.maps.model.TravelMode
@@ -15,6 +16,7 @@ import com.google.maps.model.Unit
 import com.saleem.radeef.R
 import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.data.firestore.Ride
+import com.saleem.radeef.data.firestore.RideStatus
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.UserStatus
 import com.saleem.radeef.data.repository.RideRepository
@@ -23,6 +25,7 @@ import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.MAX_DISTANCE_METERS_THRESHOLD
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.logD
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
@@ -61,6 +64,8 @@ class DriverHomeViewModel @ViewModelInject constructor(
     private fun updateDriverState(newState: DriverHomeUiState) {
         _currentHomeState.value = newState
     }
+
+    private val drawnPolylines: MutableList<Polyline> = mutableListOf()
 
 //    private val _updateResult = MutableLiveData<UiState<Boolean>>()
 //    val updateResult: LiveData<UiState<Boolean>>
@@ -105,7 +110,37 @@ class DriverHomeViewModel @ViewModelInject constructor(
             }
 
             UserStatus.SEARCHING.value -> {
-                _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                ridesRepo.getCurrentRide() { result ->
+                    if (result is UiState.Success) {
+                        logD("inside viewmodel - searching state of driver - ride: ${result.data}")
+                        if (result.data != null) {
+                            val ride = result.data
+
+                            when (ride.status) {
+                                RideStatus.WAITING_FOR_CONFIRMATION.value -> {
+                                    _currentHomeState.value =
+                                        DriverHomeUiState.WaitPassengerResponse(
+                                            passengerName = ride.passengerName,
+                                            passengerPickupLatLng = ride.passengerPickupLatLng,
+                                            passengerDestinationLatLng = ride.passengerDestLatLng,
+                                            driverLatLng = ride.driverLocationLatLng,
+                                            distance = ride.distance,
+                                            cost = ride.chargeAmount
+                                        )
+                                }
+
+                                else -> {
+                                    _currentHomeState.value =
+                                        DriverHomeUiState.SearchingForPassengers
+                                }
+                            }
+                        } else {
+                            _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                        }
+
+                    }
+                }
+
             }
 
         }
@@ -266,7 +301,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 pickupDistance <= MAX_DISTANCE_METERS_THRESHOLD && destinationDistance <= MAX_DISTANCE_METERS_THRESHOLD
             ) {
                 val totalDistance = pickupDistance + destinationDistance
-                filteredRides.add(RideWithDistance(ride, totalDistance.toDouble()))
+                filteredRides.add(RideWithDistance(ride, totalDistance))
             }
         }
         return filteredRides
@@ -275,7 +310,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
     private suspend fun getDrivingDistance(
         origin: LatLng,
         destination: LatLng,
-    ): Int? {
+    ): Double? {
         logD("origin: $origin")
         logD("dest: $destination")
         return withContext(Dispatchers.IO) {
@@ -293,7 +328,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 val route = result.routes[0]
                 val leg = route.legs[0]
                 logD("distance: ${leg.distance.inMeters.toInt()}")
-                leg.distance.inMeters.toInt()
+                leg.distance.inMeters.toInt() / 1000.0
             } catch (e: Exception) {
                 // Handle API exception
                 e.printStackTrace()
@@ -301,6 +336,69 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 null
             }
         }
+    }
+
+    fun onAdapterItemClicked(rideWithDistance: RideWithDistance) {
+        logD("item click: Not yet implemented")
+    }
+
+    fun onAdapterRideAccept(rideWithDistance: RideWithDistance, cost: Double) {
+        logD("item accept: Not yet implemented")
+        _currentHomeState.value = DriverHomeUiState.Loading
+
+        viewModelScope.launch {
+            ridesRepo.updateRideState(
+                rideWithDistance = rideWithDistance.copy(
+                    ride = rideWithDistance.ride.copy(
+                        chargeAmount = cost
+                    )
+                ),
+                status = RideStatus.WAITING_FOR_CONFIRMATION.value,
+                driver = Driver(
+                    driverID = driverData!!.driverID,
+                    name = driverData!!.name,
+                    pickup = driverData!!.pickup
+                ),
+            ) { result ->
+                if (result is UiState.Success) {
+                    val ride = rideWithDistance.ride
+                    _currentHomeState.value = DriverHomeUiState.WaitPassengerResponse(
+                        passengerDestinationLatLng = ride.passengerDestLatLng,
+                        passengerPickupLatLng = ride.passengerPickupLatLng,
+                        passengerName = ride.passengerName,
+                        driverLatLng = ride.driverLocationLatLng,
+                        distance = rideWithDistance.distance,
+                        cost = ride.chargeAmount
+                    )
+                }
+            }
+        }
+    }
+
+    fun onAdapterRideHide(rideId: String) {
+        //logD("item hide: Not yet implemented")
+        viewModelScope.launch {
+            ridesRepo.hideRide(rideId) { result ->
+                if (result is UiState.Success) {
+                    logD("success in hiding: ${result.data}")
+                } else {
+                    logD("error in hiding")
+                }
+
+            }
+        }
+    }
+
+
+    fun addPolyline(polyline: Polyline) {
+        drawnPolylines.add(polyline)
+    }
+
+    fun removePolylines() {
+        for (polyline in drawnPolylines) {
+            polyline.remove()
+        }
+        drawnPolylines.clear()
     }
 
 

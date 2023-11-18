@@ -35,7 +35,9 @@ import configureMapSettings
 import RIYADH
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -65,6 +67,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     private lateinit var currentLocation: LatLng
     val viewModel: DriverHomeViewModel by activityViewModels()
     private lateinit var polyline: Polyline
+
+    private val drawnPolylines: MutableList<Polyline> = mutableListOf()
 
     lateinit var header: View
 
@@ -233,6 +237,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 DriverHomeUiState.Error -> {
                     logD("Home state is: Error")
                 }
+
                 DriverHomeUiState.Loading -> {
                     logD("Home state is: Loading")
                 }
@@ -261,14 +266,47 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun searchingForPassengers() {
-        val anotherAdapter = PassengerRequestsAdapter(requireContext())
+        binding.waitingPassengerView.waitingPassengerLayout.hide()
+        //val anotherAdapter = PassengerRequestsAdapter(requireContext())
 //        adapter.getDistance = { pickup, destination ->
 //            viewModel.calculateDistance(pickup, destination)
 //        }
         adapter.getCost = { distance ->
             calculateFee(distance)
         }
-        binding.ridesRequestView.requestsRecyclerView.adapter = anotherAdapter
+
+        adapter.onItemClick = { item ->
+            viewModel.onAdapterItemClicked(item)
+
+            //viewModel.removePolylines()
+            map.clear()
+            drawLine(
+                currentLocation,
+                item.ride.passengerPickupLatLng,
+                R.color.md_theme_light_secondary
+            )
+            drawLine(item.ride.passengerPickupLatLng, item.ride.passengerDestLatLng)
+            drawLine(
+                item.ride.passengerDestLatLng,
+                viewModel.driverData!!.destinationLatLng,
+                R.color.md_theme_light_secondary
+            )
+
+            logD("item clicked: ${item.ride.rideID}")
+        }
+
+        adapter.onAccept = { item, cost ->
+            viewModel.onAdapterRideAccept(item, cost)
+            logD("accept ride: ${item.ride.rideID}")
+        }
+
+        adapter.onHide = { id ->
+            viewModel.onAdapterRideHide(id)
+            logD("hide ride: $id")
+        }
+
+
+        binding.ridesRequestView.requestsRecyclerView.adapter = adapter
         binding.pathDetailsView.pathDetailsLayout.hide()
         binding.ridesRequestView.ridesRequestLayout.show()
         binding.ridesRequestView.noRequestsTextView.show()
@@ -280,6 +318,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 is UiState.Loading -> {
                     binding.ridesRequestView.progressBar.show()
                 }
+
                 is UiState.Success -> {
                     binding.ridesRequestView.progressBar.hide()
                     binding.ridesRequestView.requestsRecyclerView.show()
@@ -291,15 +330,89 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                     } else {
                         binding.ridesRequestView.noRequestsTextView.hide()
                     }
-                    anotherAdapter.updateList(filteredRides.toMutableList())
+                    adapter.updateList(filteredRides.toMutableList())
                     //anotherAdapter.submitList(filteredRides)
                 }
+
                 is UiState.Failure -> {
                     binding.ridesRequestView.progressBar.hide()
                     val errorMessage = uiState.error.toString()
                     logD("error: $errorMessage")
                     // Handle error state
                 }
+            }
+        }
+    }
+
+    private fun drawLine(start: LatLng, end: LatLng, color: Int = R.color.md_theme_light_primary) {
+        val context = GeoApiContext.Builder()
+            .apiKey(getString(R.string.google_maps_key))
+            .build()
+
+        val lineColor = ContextCompat.getColor(requireContext(), color)
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+
+                val directions = DirectionsApi.newRequest(context)
+                    .origin(
+                        com.google.maps.model.LatLng(
+                            start.latitude,
+                            start.longitude
+                        )
+                    )
+                    .destination(
+                        com.google.maps.model.LatLng(
+                            end.latitude,
+                            end.longitude
+                        )
+                    )
+                    .mode(TravelMode.DRIVING)
+                    .units(Unit.METRIC)
+
+                val result = withContext(Dispatchers.IO) {
+                    directions.await() // Perform the network request asynchronously on IO dispatcher
+                }
+
+                dist = result.routes[0].legs.sumOf { it.distance.inMeters } / 1000.0
+                logD("distance: $dist")
+                toast(dist.toString())
+
+                val route = result.routes[0]
+
+                // Get the polyline data from the route
+                val encodedPolyline = route.overviewPolyline.encodedPath
+
+                val decodedPolyline = PolyUtil.decode(encodedPolyline)
+
+                val boundsBuilder = LatLngBounds.Builder()
+                for (point in decodedPolyline) {
+                    boundsBuilder.include(point)
+                }
+                val bounds = boundsBuilder.build()
+
+                val polylineOptions = PolylineOptions()
+                    .addAll(decodedPolyline)
+                    .color(lineColor)
+                    .width(10f)
+
+                // Add the polyline to the map
+                val polyline = map.addPolyline(polylineOptions)
+
+                val startMarkerOptions = MarkerOptions()
+                    .position(decodedPolyline.first())
+                    .title("Start")
+
+                map.addMarker(startMarkerOptions)
+
+                val endMarkerOptions = MarkerOptions()
+                    .position(decodedPolyline.last())
+                    .title("End")
+                map.addMarker(endMarkerOptions)
+
+            } catch (e: Exception) {
+                Log.d(TAG, "draw line: some error occurred")
+                Log.d(TAG, e.toString())
             }
         }
     }
@@ -325,9 +438,10 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun waitingPassengerResponse() {
-        TODO("Not yet implemented")
+        binding.ridesRequestView.ridesRequestLayout.hide()
+        binding.waitingPassengerView.waitingPassengerLayout.show()
+        logD("waiting: Not yet implemented")
     }
-
 
 
 //    private fun setIfReady() {
@@ -358,6 +472,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             if (location != null) {
                 // Animate the camera to the user's current location
                 currentLocation = LatLng(location.latitude, location.longitude)
+
                 val title = getAddressFromLatLng(currentLocation)
                 viewModel.pickup = RadeefLocation(currentLocation, title)
 

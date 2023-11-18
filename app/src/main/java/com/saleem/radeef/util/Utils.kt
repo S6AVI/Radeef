@@ -106,3 +106,5 @@ fun calculateFee(distance: Double): Double {
     Log.d(TAG, "calculateFee: $distance")
  return FEE_BASE + (distance * FEE_RATE)
 }
+
+

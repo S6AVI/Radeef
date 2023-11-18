@@ -34,3 +34,13 @@ fun String.isValidPlateNumber(): Boolean {
     val pattern = Regex("[A-Z]{3}[0-9]{4}")
     return pattern.matches(this)
 }
+
+fun Double.formatCost(): String {
+    val roundedValue = String.format("%.1f", this)
+    return "$roundedValue SAR"
+}
+
+fun Double.formatDistance(): String {
+    val roundedValue = String.format("%.2f", this)
+    return "$roundedValue KM"
+}

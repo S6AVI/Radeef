@@ -14,11 +14,14 @@ sealed interface DriverHomeUiState {
     ): DriverHomeUiState
     object SearchingForPassengers: DriverHomeUiState
     data class WaitPassengerResponse(
-        val passengerLatLng: LatLng,
-        val driverLatLng: LatLng,
+        val passengerPickupLatLng: LatLng,
+        //val passengerPickupAddress: String,
         val passengerDestinationLatLng: LatLng,
-        val passengerDestinationAddress: String,
+        //val passengerDestinationAddress: String,
         val passengerName: String,
+        val driverLatLng: LatLng,
+        val distance: Double,
+        val cost: Double
     ): DriverHomeUiState
 
     data class PassengerPickUp(

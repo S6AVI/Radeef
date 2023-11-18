@@ -3,6 +3,7 @@ package com.saleem.radeef.data.firestore
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ServerTimestamp
+import com.saleem.radeef.driver.ui.home.RideWithDistance
 
 import java.util.Date
 
@@ -29,13 +30,20 @@ data class Ride(
 
     val driverName: String = "",
 
+    val driverLocation: GeoPoint = GeoPoint(0.0, 0.0),
+
     val status: String = RideStatus.SEARCHING_FOR_DRIVER.value,
+
+    val distance: Double = 0.0
 ) {
 
     val passengerPickupLatLng: LatLng
         get() = LatLng(passengerPickupLocation.latitude, passengerPickupLocation.longitude)
     val passengerDestLatLng: LatLng
     get() = LatLng(passengerDestination.latitude, passengerDestination.longitude)
+
+    val driverLocationLatLng: LatLng
+        get() = LatLng(driverLocation.latitude, driverLocation.longitude)
 
 }
 enum class RideStatus(val value: String) {

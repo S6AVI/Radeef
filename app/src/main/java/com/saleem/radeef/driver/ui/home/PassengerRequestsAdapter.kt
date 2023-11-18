@@ -10,6 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.model.LatLng
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.databinding.ItemPassengerRequestBinding
+import com.saleem.radeef.util.calculateFee
+import com.saleem.radeef.util.formatCost
+import com.saleem.radeef.util.formatDistance
 import com.saleem.radeef.util.logD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +47,9 @@ class PassengerRequestsAdapter(val context: Context) :
 
     //var getDistance: ((LatLng, LatLng) -> Double)? = null
     var getCost: ((Double) -> Double)? = null
+    var onItemClick: ((RideWithDistance) -> Unit)? = null
+    var onAccept: ((RideWithDistance, Double) -> Unit)? = null
+    var onHide: ((String) -> Unit)? = null
     //var getPassengerName: ((String) -> String)? = null
 
 
@@ -90,13 +96,15 @@ class PassengerRequestsAdapter(val context: Context) :
         fun bind(item: RideWithDistance) {
             // Fetch data and perform calculations outside of the bind function
             logD("inside bind")
+            val distance = item.distance
+            val cost = getCost?.invoke(item.distance) ?: 0.0
+
             val coroutineScope = CoroutineScope(Dispatchers.IO)
             coroutineScope.launch {
                 val ride = item.ride
                 val pickup = getPickupAddress(ride.passengerPickupLocation.latitude, ride.passengerPickupLocation.longitude)
                 val destination = getPickupAddress(ride.passengerDestination.latitude, ride.passengerDestination.longitude)
-                val distance = item.distance
-                val cost = getCost?.invoke(distance).toString()
+
                 val passengerName = ride.passengerName
 
 
@@ -104,39 +112,30 @@ class PassengerRequestsAdapter(val context: Context) :
                     // Update the UI with the retrieved and calculated data
                     binding.pickupTextView.text = pickup
                     binding.destinationTextView.text = destination
-                    binding.distanceTextView.text = distance.toString()
-                    binding.costTextView.text = getCost?.invoke(distance).toString()
+                    binding.distanceTextView.text = distance.formatDistance()
+                    binding.costTextView.text = getCost?.invoke(item.distance)?.formatCost()
+                    logD("getCost: ${getCost.toString()}")
+                    //binding.costTextView.text = calculateFee(item.distance).toString()
                     binding.passengerNameTextView.text = passengerName
                 }
             }
+            binding.root.setOnClickListener {
+                onItemClick?.invoke(item)
+            }
+            binding.acceptButton.setOnClickListener {
+                onAccept?.invoke(item, cost)
+            }
+
+            binding.hideButton.setOnClickListener {
+                onHide?.invoke(item.ride.rideID)
+            }
         }
     }
-
-//    private class RideDiffUtil: DiffUtil.ItemCallback<Pair<Ride, LatLng>>() {
-//        override fun areItemsTheSame(
-//            oldItem: Pair<Ride, LatLng>,
-//            newItem: Pair<Ride, LatLng>
-//        ): Boolean {
-//            return oldItem.first.rideID == newItem.first.rideID
-//        }
-//
-//        override fun areContentsTheSame(
-//            oldItem: Pair<Ride, LatLng>,
-//            newItem: Pair<Ride, LatLng>
-//        ): Boolean {
-//            return oldItem.first.rideID == newItem.first.rideID
-//        }
-//    }
-
-
 
     private fun getPickupAddress(latitude: Double, longitude: Double): String {
         val geocoder = Geocoder(context, Locale.getDefault())
         val addresses = geocoder.getFromLocation(latitude, longitude, 1)
         return addresses?.firstOrNull()?.featureName ?: ""
     }
-
-
 }
-
 data class RideWithDistance(val ride: Ride, val distance: Double)

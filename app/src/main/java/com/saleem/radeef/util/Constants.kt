@@ -16,6 +16,7 @@ object FirestoreTables {
     val DRIVERS = "drivers"
     val VEHICLES = "vehicles"
     val LICENSE = "license"
+    val HIDDEN_RIDES = "hidden_rides"
 }
 
 object Constants {
