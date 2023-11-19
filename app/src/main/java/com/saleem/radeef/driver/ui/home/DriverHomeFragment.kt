@@ -34,8 +34,10 @@ import com.vmadalin.easypermissions.EasyPermissions
 import configureMapSettings
 import RIYADH
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.net.Uri
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -45,6 +47,8 @@ import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.calculateFee
+import com.saleem.radeef.util.formatCost
+import com.saleem.radeef.util.formatDistance
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
@@ -213,7 +217,15 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
                 is DriverHomeUiState.WaitPassengerResponse -> {
                     logD("waiting response state!")
-                    waitingPassengerResponse()
+                    waitingPassengerResponse(state)
+                }
+
+                is DriverHomeUiState.PassengerPickUp -> {
+                    passengerPickup(state)
+                }
+
+                is DriverHomeUiState.EnRoute -> {
+                    enRoute(state)
                 }
 
                 is DriverHomeUiState.Arrived -> {
@@ -226,13 +238,9 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                     continueRide()
                 }
 
-                is DriverHomeUiState.EnRoute -> {
-                    enRoute()
-                }
 
-                is DriverHomeUiState.PassengerPickUp -> {
-                    passengerPickup()
-                }
+
+
 
                 DriverHomeUiState.Error -> {
                     logD("Home state is: Error")
@@ -243,6 +251,27 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
             }
         }
+
+        lifecycleScope.launch {
+            viewModel.homeEvent.collect {event ->
+                when (event) {
+                    is DriverHomeViewModel.HomeEvent.CallPassenger -> {
+                        makePhoneCall(event.phoneNumber)
+                    }
+                    else -> {
+                        logD("in homeEvent collect: nothing here")
+                    }
+                }
+
+            }
+        }
+    }
+
+    private fun makePhoneCall(phoneNumber: String) {
+        logD("make a phone call")
+        val intent = Intent(Intent.ACTION_DIAL)
+        intent.data = Uri.parse("tel:$phoneNumber")
+        startActivity(intent)
     }
 
     private fun displayDriverPlaces(state: DriverHomeUiState.DisplayDriverPlaces) {
@@ -266,7 +295,9 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun searchingForPassengers() {
-        binding.waitingPassengerView.waitingPassengerLayout.hide()
+        hideOtherViews()
+        map.clear()
+
         //val anotherAdapter = PassengerRequestsAdapter(requireContext())
 //        adapter.getDistance = { pickup, destination ->
 //            viewModel.calculateDistance(pickup, destination)
@@ -344,6 +375,73 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
     }
 
+    private fun hideOtherViews() {
+        binding.ridesRequestView.ridesRequestLayout.hide()
+        binding.waitingPassengerView.waitingPassengerLayout.hide()
+        binding.passengerPickupView.passengerPickupLayout.hide()
+    }
+
+    private fun waitingPassengerResponse(state: DriverHomeUiState.WaitPassengerResponse) {
+        binding.ridesRequestView.ridesRequestLayout.hide()
+        map.clear()
+        drawLine(
+            currentLocation,
+            state.passengerPickupLatLng,
+            R.color.md_theme_light_secondary
+        )
+        drawLine(state.passengerPickupLatLng, state.ride.passengerDestLatLng)
+        drawLine(
+            state.ride.passengerDestLatLng,
+            viewModel.driverData!!.destinationLatLng,
+            R.color.md_theme_light_secondary
+        )
+        binding.waitingPassengerView.apply {
+            passengerNameTextView.text = state.passengerName
+            pickupTextView.text = getAddressFromLatLng(state.passengerPickupLatLng)
+            destinationTextView.text = getAddressFromLatLng(state.passengerDestinationLatLng)
+            distanceTextView.text = state.distance.formatDistance()
+            costTextView.text = state.cost.formatCost()
+        }
+        binding.waitingPassengerView.waitingPassengerLayout.show()
+
+        binding.waitingPassengerView.cancelButton.setOnClickListener {
+            viewModel.onCancelButtonClickedWaiting(state.ride)
+        }
+
+        binding.waitingPassengerView.callButton.setOnClickListener {
+            viewModel.onCallPassenger(state.passengerId)
+        }
+    }
+
+    private fun passengerPickup(state: DriverHomeUiState.PassengerPickUp) {
+        logD("passengerPickup UI state!")
+        binding.waitingPassengerView.waitingPassengerLayout.hide()
+        drawLine(
+            currentLocation,
+            state.ride.passengerPickupLatLng,
+            R.color.md_theme_light_primary
+        )
+        binding.passengerPickupView.passengerPickupLayout.show()
+        val ride = state.ride
+        binding.passengerPickupView.apply {
+            passengerNameTextView.text = ride.passengerName
+            pickupTextView.text = getAddressFromLatLng(ride.passengerPickupLatLng)
+            distanceTextView.text = state.distance.formatDistance()
+        }
+
+        binding.passengerPickupView.callButton.setOnClickListener {
+            viewModel.onCallPassenger(ride.passengerID)
+        }
+
+        binding.passengerPickupView.cancelButton.setOnClickListener {
+            viewModel.onCancelButton(ride)
+        }
+
+        binding.passengerPickupView.arrivedButton.setOnClickListener {
+            viewModel.onDriverArrivedToPassenger(ride, state)
+        }
+//        toast("picking up passenger")
+    }
     private fun drawLine(start: LatLng, end: LatLng, color: Int = R.color.md_theme_light_primary) {
         val context = GeoApiContext.Builder()
             .apiKey(getString(R.string.google_maps_key))
@@ -376,7 +474,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
                 dist = result.routes[0].legs.sumOf { it.distance.inMeters } / 1000.0
                 logD("distance: $dist")
-                toast(dist.toString())
+                //toast(dist.toString())
 
                 val route = result.routes[0]
 
@@ -417,16 +515,15 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
     }
 
-    private fun calculateCost(PassengerPickup: LatLng, PassengerDestination: LatLng): Double {
-        TODO("Not yet implemented")
-    }
 
-    private fun passengerPickup() {
-        TODO("Not yet implemented")
-    }
 
-    private fun enRoute() {
-        TODO("Not yet implemented")
+
+
+    private fun enRoute(state: DriverHomeUiState.EnRoute) {
+        binding.passengerPickupView.passengerPickupLayout.hide()
+        binding.enRouteView.enRouteLayout.show()
+        map.clear()
+        logD("Not yet implemented")
     }
 
     private fun continueRide() {
@@ -437,11 +534,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         TODO("Not yet implemented")
     }
 
-    private fun waitingPassengerResponse() {
-        binding.ridesRequestView.ridesRequestLayout.hide()
-        binding.waitingPassengerView.waitingPassengerLayout.show()
-        logD("waiting: Not yet implemented")
-    }
+
 
 
 //    private fun setIfReady() {

@@ -19,4 +19,8 @@ interface RideRepository {
     fun updateRideState(rideWithDistance: RideWithDistance, driver: Driver, status: String, result: (UiState<String>) -> Unit)
 
     fun getCurrentRide(result: (UiState<Ride?>) -> Unit)
+    fun cancelWaitingRide(ride: Ride, result: (UiState<String>) -> Unit)
+    fun cancelRide(ride: Ride, result: (UiState<String>) -> Unit)
+
+    fun updateCurrentRideState(ride: Ride, result: (UiState<String>) -> Unit)
 }

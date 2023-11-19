@@ -19,13 +19,13 @@ import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.data.firestore.RideStatus
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.UserStatus
+import com.saleem.radeef.data.repository.CloudRepository
 import com.saleem.radeef.data.repository.RideRepository
 import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.MAX_DISTANCE_METERS_THRESHOLD
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.UiState
-import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.logD
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
@@ -39,7 +39,8 @@ import java.lang.Exception
 class DriverHomeViewModel @ViewModelInject constructor(
     val repository: DriverRepository,
     private val ridesRepo: RideRepository,
-    val geoContext: GeoApiContext
+    val geoContext: GeoApiContext,
+    val passengerRepo: CloudRepository
 ) : ViewModel() {
 
     var pickup: RadeefLocation? = null
@@ -91,7 +92,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
 //        }
 //    }
 
-    private fun setHomeUiState(status: String) {
+    fun setHomeUiState(status: String) {
         logD("in home ui state setter - first line")
 
         val data = driverData!!
@@ -110,7 +111,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
             }
 
             UserStatus.SEARCHING.value -> {
-                ridesRepo.getCurrentRide() { result ->
+                ridesRepo.getCurrentRide { result ->
                     if (result is UiState.Success) {
                         logD("inside viewmodel - searching state of driver - ride: ${result.data}")
                         if (result.data != null) {
@@ -120,12 +121,14 @@ class DriverHomeViewModel @ViewModelInject constructor(
                                 RideStatus.WAITING_FOR_CONFIRMATION.value -> {
                                     _currentHomeState.value =
                                         DriverHomeUiState.WaitPassengerResponse(
+                                            ride = ride,
                                             passengerName = ride.passengerName,
                                             passengerPickupLatLng = ride.passengerPickupLatLng,
                                             passengerDestinationLatLng = ride.passengerDestLatLng,
                                             driverLatLng = ride.driverLocationLatLng,
                                             distance = ride.distance,
-                                            cost = ride.chargeAmount
+                                            cost = ride.chargeAmount,
+                                            passengerId = ride.passengerID
                                         )
                                 }
 
@@ -137,14 +140,58 @@ class DriverHomeViewModel @ViewModelInject constructor(
                         } else {
                             _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
                         }
-
                     }
                 }
-
             }
 
+            UserStatus.IN_RIDE.value -> {
+                ridesRepo.getCurrentRide { result ->
+                    if (result is UiState.Success) {
+                        logD("inside viewModel - in_ride state of driver - ride: ${result.data}")
+                        if (result.data != null) {
+                            val ride = result.data
+
+                            when (ride.status) {
+                                RideStatus.PASSENGER_PICK_UP.value -> {
+                                    logD("ride status: ride confirmed!")
+                                    viewModelScope.launch {
+                                        handlePassengerPickupState(ride, ride.status)
+                                    }
+                                }
+
+                                RideStatus.EN_ROUTE.value -> {
+                                    viewModelScope.launch {
+                                        handleEnRouteState(ride, ride.status)
+                                    }
+
+                                }
+
+                                RideStatus.CANCELED.value -> {
+                                    _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                                }
+
+                                else -> {
+                                    // Handle other ride statuses if necessary
+                                }
+                            }
+                        } else {
+                            _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                        }
+                    }
+                }
+            }
         }
         //_currentHomeState.value = DriverHomeUiState.SettingPlaces
+    }
+
+    private suspend fun handlePassengerPickupState(ride: Ride, status: String) {
+        val distance = getDrivingDistance(driverData!!.pickupLatLng, ride.passengerPickupLatLng) ?: 0.0
+        _currentHomeState.value = DriverHomeUiState.PassengerPickUp(ride, distance)
+    }
+
+    private suspend fun handleEnRouteState(ride: Ride, status: String) {
+        val distance = getDrivingDistance(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
+        _currentHomeState.value = DriverHomeUiState.EnRoute(ride, distance)
     }
 
     private fun getDriver() {
@@ -161,8 +208,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 logD("some problem in getDriver")
             }
             _driver.value = state
-
-
         }
     }
 
@@ -362,13 +407,16 @@ class DriverHomeViewModel @ViewModelInject constructor(
             ) { result ->
                 if (result is UiState.Success) {
                     val ride = rideWithDistance.ride
+                    logD("cost: ${ride.chargeAmount}")
                     _currentHomeState.value = DriverHomeUiState.WaitPassengerResponse(
                         passengerDestinationLatLng = ride.passengerDestLatLng,
                         passengerPickupLatLng = ride.passengerPickupLatLng,
                         passengerName = ride.passengerName,
                         driverLatLng = ride.driverLocationLatLng,
                         distance = rideWithDistance.distance,
-                        cost = ride.chargeAmount
+                        cost = cost,
+                        ride = ride,
+                        passengerId = ride.passengerID
                     )
                 }
             }
@@ -401,6 +449,56 @@ class DriverHomeViewModel @ViewModelInject constructor(
         drawnPolylines.clear()
     }
 
+    fun onCancelButtonClickedWaiting(ride: Ride) {
+        _currentHomeState.value = DriverHomeUiState.Loading
+        viewModelScope.launch {
+            ridesRepo.cancelWaitingRide(ride) { result ->
+                if (result is UiState.Success) {
+                    _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                } else {
+                    logD("cancel in waiting state: error: $result")
+                }
+            }
+        }
+    }
+
+    fun onCallPassenger(passengerId: String) {
+        viewModelScope.launch {
+            passengerRepo.getPassenger(passengerId) { result ->
+                if (result is UiState.Success) {
+                    viewModelScope.launch {
+                        homeEventChannel.send(HomeEvent.CallPassenger(phoneNumber = result.data!!.phoneNumber))
+                    }
+                } else {
+                    logD("some error occurred: $result")
+                }
+            }
+        }
+    }
+
+    fun onCancelButton(ride: Ride) {
+        _currentHomeState.value = DriverHomeUiState.Loading
+        logD("viewModel - on cancel ride button clicked")
+        viewModelScope.launch {
+            ridesRepo.cancelRide(ride) {result ->
+                if (result is UiState.Success) {
+                    _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                }
+            }
+        }
+    }
+
+    fun onDriverArrivedToPassenger(ride: Ride, state: DriverHomeUiState.PassengerPickUp) {
+        _currentHomeState.value = DriverHomeUiState.Loading
+        viewModelScope.launch {
+            ridesRepo.updateCurrentRideState(ride) {result ->
+                if (result is UiState.Success) {
+                    //_currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                }
+            }
+        }
+    }
+
 
 //    fun onDisplayPlaces() {
 //        val data = driverData!!
@@ -415,6 +513,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
     sealed class HomeEvent {
         data class UpdateResult(val state: UiState<Boolean>) : HomeEvent()
         data class StartSearching(val status: UiState<String>) : HomeEvent()
+        data class CallPassenger(val phoneNumber: String) : HomeEvent()
     }
 
 

@@ -235,30 +235,66 @@ class DriverRepositoryImpl(
     }
 
     override fun getDriver(result: (UiState<Driver>) -> Unit) {
-        database.collection(FirestoreTables.DRIVERS)
-            .whereEqualTo("driverID", auth.currentUser?.uid)
-            .limit(1)
-            .get()
-            .addOnSuccessListener {
-                if (!it.isEmpty) {
-                    val documentSnapshot = it.documents[0]
-                    val driver = documentSnapshot.toObject(Driver::class.java)!!
-                    result.invoke(
-                        UiState.Success(driver)
-                    )
-                } else {
+        val driverId = auth.currentUser?.uid
 
+        if (driverId != null) {
+            val driverDocumentRef = database.collection(FirestoreTables.DRIVERS)
+                .document(driverId)
+
+            val registration = driverDocumentRef.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    // Handle error
+                    result.invoke(UiState.Failure(error.message.toString()))
+                    return@addSnapshotListener
                 }
 
+                if (snapshot != null && snapshot.exists()) {
+                    val driver = snapshot.toObject(Driver::class.java)
+                    if (driver != null) {
+                        result.invoke(UiState.Success(driver))
+                    } else {
+                        // Handle error: unable to parse driver data
+                        result.invoke(UiState.Failure("Failed to parse driver data"))
+                    }
+                } else {
+                    // Handle error: driver document not found
+                    result.invoke(UiState.Failure("Driver document not found"))
+                }
             }
-            .addOnFailureListener { exception ->
-                result.invoke(
-                    UiState.Failure(
-                        exception.message.toString()
-                    )
-                )
-            }
+
+            // Store the registration reference if needed for later removal
+            // For example, you may want to remove the listener when it's no longer needed
+        } else {
+            // Handle error: driver ID is null
+            result.invoke(UiState.Failure("Driver ID is null"))
+        }
     }
+
+//    override fun getDriver(result: (UiState<Driver>) -> Unit) {
+//        database.collection(FirestoreTables.DRIVERS)
+//            .whereEqualTo("driverID", auth.currentUser?.uid)
+//            .limit(1)
+//            .get()
+//            .addOnSuccessListener {
+//                if (!it.isEmpty) {
+//                    val documentSnapshot = it.documents[0]
+//                    val driver = documentSnapshot.toObject(Driver::class.java)!!
+//                    result.invoke(
+//                        UiState.Success(driver)
+//                    )
+//                } else {
+//
+//                }
+//
+//            }
+//            .addOnFailureListener { exception ->
+//                result.invoke(
+//                    UiState.Failure(
+//                        exception.message.toString()
+//                    )
+//                )
+//            }
+//    }
 
 
     override fun updateDriver(driver: Driver, result: (UiState<String>) -> Unit) {

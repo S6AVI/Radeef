@@ -51,4 +51,17 @@ class CloudRepositoryImpl(
                 result(UiState.Failure(exception.message ?: "Failed to retrieve passenger name"))
             }
     }
+
+    override fun getPassenger(id: String, result: (UiState<Passenger?>) -> Unit) {
+        val passengersCollection = database.collection(FirestoreTables.PASSENGERS)
+            .document(id)
+            .get()
+            .addOnSuccessListener { documentSnapshot ->
+                val passenger = documentSnapshot.toObject(Passenger::class.java)
+                result.invoke(UiState.Success(passenger))
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(UiState.Failure(exception.localizedMessage))
+            }
+    }
 }

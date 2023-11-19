@@ -8,4 +8,6 @@ interface CloudRepository {
     fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit)
 
     fun getPassengerName(id: String, result: (UiState<String>) -> Unit)
+
+    fun getPassenger(id: String, result: (UiState<Passenger?>) -> Unit)
 }

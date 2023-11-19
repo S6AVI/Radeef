@@ -4,13 +4,14 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ServerTimestamp
 import com.saleem.radeef.driver.ui.home.RideWithDistance
+import kotlinx.parcelize.RawValue
 
 import java.util.Date
 
 
 data class Ride(
-    val passengerPickupLocation: GeoPoint = GeoPoint(0.0, 0.0),
-    val passengerDestination: GeoPoint = GeoPoint(0.0, 0.0),
+    val passengerPickupLocation: @RawValue GeoPoint = GeoPoint(0.0, 0.0),
+    val passengerDestination: @RawValue GeoPoint = GeoPoint(0.0, 0.0),
 
     val chargeAmount: Double = 0.0,
 
@@ -30,7 +31,7 @@ data class Ride(
 
     val driverName: String = "",
 
-    val driverLocation: GeoPoint = GeoPoint(0.0, 0.0),
+    val driverLocation: @RawValue GeoPoint = GeoPoint(0.0, 0.0),
 
     val status: String = RideStatus.SEARCHING_FOR_DRIVER.value,
 
