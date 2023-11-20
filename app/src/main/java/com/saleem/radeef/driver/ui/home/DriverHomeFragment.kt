@@ -199,6 +199,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             when (state) {
                 DriverHomeUiState.SettingPlaces -> {
                     logD("setting places: initial state")
+                    binding.pickupIl.show()
                 }
 
                 is DriverHomeUiState.DisplayDriverPlaces -> {
@@ -212,7 +213,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 DriverHomeUiState.SearchingForPassengers -> {
                     logD("searching state!")
                     searchingForPassengers()
-
                 }
 
                 is DriverHomeUiState.WaitPassengerResponse -> {
@@ -229,18 +229,14 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
 
                 is DriverHomeUiState.Arrived -> {
-                    logD("waiting response state!")
-                    arrived()
+                    logD("arrived status!")
+                    arrived(state)
                 }
 
                 is DriverHomeUiState.ContinueRide -> {
-                    logD("waiting response state!")
-                    continueRide()
+                    logD("continue state!")
+                    continueRide(state)
                 }
-
-
-
-
 
                 DriverHomeUiState.Error -> {
                     logD("Home state is: Error")
@@ -275,6 +271,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun displayDriverPlaces(state: DriverHomeUiState.DisplayDriverPlaces) {
+        binding.continueRideView.continueRideLayout.hide()
+        binding.passengerArrivedView.passengerArrivedLayout.hide()
         binding.pathDetailsView.pathDetailsLayout.show()
         binding.pathDetailsView.apply {
             pickupTitleTextView.text = viewModel.driverData?.pickup_title
@@ -442,6 +440,82 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
 //        toast("picking up passenger")
     }
+
+    private fun enRoute(state: DriverHomeUiState.EnRoute) {
+        binding.passengerPickupView.passengerPickupLayout.hide()
+        map.clear()
+        val ride = state.ride
+        drawLine(
+            ride.passengerPickupLatLng,
+            ride.passengerDestLatLng,
+            R.color.md_theme_light_primary
+        )
+        binding.enRouteView.enRouteLayout.show()
+
+        binding.enRouteView.apply {
+            passengerNameTextView.text = ride.passengerName
+            destinationTextView.text = getAddressFromLatLng(ride.passengerDestLatLng)
+            distanceTextView.text = state.distance.formatDistance()
+        }
+
+        binding.enRouteView.callButton.setOnClickListener {
+            viewModel.onCallPassenger(ride.passengerID)
+        }
+
+        binding.enRouteView.completeButton.setOnClickListener {
+            viewModel.onArrivedToPassengerDestination(ride, state)
+        }
+    }
+
+    private fun arrived(state: DriverHomeUiState.Arrived) {
+        logD("arrived state")
+        binding.enRouteView.enRouteLayout.hide()
+        map.clear()
+        val ride = state.ride
+        val driver = viewModel.driverData!!
+        drawLine(
+            ride.passengerDestLatLng,
+            driver.destinationLatLng,
+            R.color.md_theme_light_primary
+        )
+
+        binding.passengerArrivedView.passengerArrivedLayout.show()
+        binding.passengerArrivedView.apply {
+            passengerNameTextView.text = ride.passengerName
+            costTextView.text = ride.chargeAmount.formatCost()
+        }
+
+        binding.passengerArrivedView.confirmButton.setOnClickListener {
+            viewModel.onContinueButtonClicked()
+        }
+
+        binding.passengerArrivedView.stopButton.setOnClickListener {
+            viewModel.onStopButtonClicked()
+        }
+    }
+
+    private fun continueRide(state: DriverHomeUiState.ContinueRide) {
+        logD("CONTINUE status!")
+        binding.passengerArrivedView.passengerArrivedLayout.hide()
+        map.clear()
+        val driver = viewModel.driverData!!
+        drawLine(
+            driver.pickupLatLng,
+            driver.destinationLatLng,
+            R.color.md_theme_light_primary
+        )
+        binding.continueRideView.apply {
+        destinationTextView.text = driver.destination_title
+        distanceTextView.text = state.distance.formatDistance()
+        continueRideLayout.show()
+        }
+
+        binding.continueRideView.doneButton.setOnClickListener {
+            logD("done button clicked!")
+            viewModel.onStopButtonClicked()
+        }
+
+    }
     private fun drawLine(start: LatLng, end: LatLng, color: Int = R.color.md_theme_light_primary) {
         val context = GeoApiContext.Builder()
             .apiKey(getString(R.string.google_maps_key))
@@ -519,20 +593,11 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
 
 
-    private fun enRoute(state: DriverHomeUiState.EnRoute) {
-        binding.passengerPickupView.passengerPickupLayout.hide()
-        binding.enRouteView.enRouteLayout.show()
-        map.clear()
-        logD("Not yet implemented")
-    }
 
-    private fun continueRide() {
-        TODO("Not yet implemented")
-    }
 
-    private fun arrived() {
-        TODO("Not yet implemented")
-    }
+
+
+
 
 
 

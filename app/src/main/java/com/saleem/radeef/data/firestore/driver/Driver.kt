@@ -58,7 +58,8 @@ enum class Sex(val value: String) {
 enum class UserStatus(val value: String) {
     INACTIVE("INACTIVE"),
     SEARCHING("SEARCHING"),
-    IN_RIDE("IN_RIDE")
+    IN_RIDE("IN_RIDE"),
+    CONTINUE("CONTINUE")
 }
 
 

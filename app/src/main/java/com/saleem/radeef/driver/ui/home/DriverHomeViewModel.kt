@@ -99,8 +99,10 @@ class DriverHomeViewModel @ViewModelInject constructor(
         when (status) {
             UserStatus.INACTIVE.value -> {
                 if (data.pickup.latitude == 0.0) {
+                    logD("set places")
                     _currentHomeState.value = DriverHomeUiState.SettingPlaces
                 } else {
+                    logD("display places")
                     _currentHomeState.value = DriverHomeUiState.DisplayDriverPlaces(
                         driverLatLng = data.pickupLatLng,
                         driverAddress = data.pickup_title,
@@ -166,8 +168,15 @@ class DriverHomeViewModel @ViewModelInject constructor(
 
                                 }
 
+                                RideStatus.ARRIVED.value -> {
+                                    viewModelScope.launch {
+                                        _currentHomeState.value = DriverHomeUiState.Arrived(ride)
+                                    }
+                                }
+
                                 RideStatus.CANCELED.value -> {
-                                    _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                                    _currentHomeState.value =
+                                        DriverHomeUiState.SearchingForPassengers
                                 }
 
                                 else -> {
@@ -180,17 +189,31 @@ class DriverHomeViewModel @ViewModelInject constructor(
                     }
                 }
             }
+
+            UserStatus.CONTINUE.value -> {
+                viewModelScope.launch {
+                    handleContinueStatus()
+                }
+            }
         }
         //_currentHomeState.value = DriverHomeUiState.SettingPlaces
     }
 
+    private suspend fun handleContinueStatus() {
+        val distance =
+            getDrivingDistance(driverData!!.pickupLatLng, driverData!!.destinationLatLng) ?: 0.0
+        _currentHomeState.value = DriverHomeUiState.ContinueRide(distance)
+    }
+
     private suspend fun handlePassengerPickupState(ride: Ride, status: String) {
-        val distance = getDrivingDistance(driverData!!.pickupLatLng, ride.passengerPickupLatLng) ?: 0.0
+        val distance =
+            getDrivingDistance(driverData!!.pickupLatLng, ride.passengerPickupLatLng) ?: 0.0
         _currentHomeState.value = DriverHomeUiState.PassengerPickUp(ride, distance)
     }
 
     private suspend fun handleEnRouteState(ride: Ride, status: String) {
-        val distance = getDrivingDistance(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
+        val distance =
+            getDrivingDistance(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
         _currentHomeState.value = DriverHomeUiState.EnRoute(ride, distance)
     }
 
@@ -480,7 +503,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
         _currentHomeState.value = DriverHomeUiState.Loading
         logD("viewModel - on cancel ride button clicked")
         viewModelScope.launch {
-            ridesRepo.cancelRide(ride) {result ->
+            ridesRepo.cancelRide(ride) { result ->
                 if (result is UiState.Success) {
                     _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
                 }
@@ -491,9 +514,52 @@ class DriverHomeViewModel @ViewModelInject constructor(
     fun onDriverArrivedToPassenger(ride: Ride, state: DriverHomeUiState.PassengerPickUp) {
         _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
-            ridesRepo.updateCurrentRideState(ride) {result ->
+            ridesRepo.updateCurrentRideState(ride, RideStatus.EN_ROUTE.value) { result ->
                 if (result is UiState.Success) {
                     //_currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                }
+            }
+        }
+    }
+
+    fun onArrivedToPassengerDestination(ride: Ride, state: DriverHomeUiState.EnRoute) {
+        _currentHomeState.value = DriverHomeUiState.Loading
+        viewModelScope.launch {
+            ridesRepo.updateCurrentRideState(ride, RideStatus.ARRIVED.value) { result ->
+                if (result is UiState.Success) {
+                    //_currentHomeState.value = DriverHomeUiState.SearchingForPassengers
+                }
+            }
+        }
+    }
+
+    fun onStopButtonClicked() {
+        _currentHomeState.value = DriverHomeUiState.Loading
+        viewModelScope.launch {
+            repository.updateDriver(
+                driverData!!.copy(status = UserStatus.INACTIVE.value)
+            ) { result ->
+                if (result is UiState.Success) {
+                    logD("stop: status: ${driverData!!.status}")
+                }
+                else {
+                    logD("error on changing state to INACTIVE")
+                }
+            }
+        }
+    }
+
+    fun onContinueButtonClicked() {
+        _currentHomeState.value = DriverHomeUiState.Loading
+        viewModelScope.launch {
+            repository.updateDriver(
+                driverData!!.copy(status = UserStatus.CONTINUE.value)
+            ) { result ->
+                if (result is UiState.Success) {
+                    logD("continue: status: ${driverData!!.status}")
+                }
+                else {
+                    logD("error on changing state to CONTINUE")
                 }
             }
         }

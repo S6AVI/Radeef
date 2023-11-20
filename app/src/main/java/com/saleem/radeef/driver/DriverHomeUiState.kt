@@ -48,18 +48,11 @@ sealed interface DriverHomeUiState {
     ) : DriverHomeUiState
 
     data class Arrived(
-        val driverLatLng: LatLng,
-        val passengerDestinationLatLng: LatLng,
-        val passengerDestinationAddress: String,
-        val driverDestinationLatLng: LatLng,
-        val driverDestinationAddress: String,
-        val passengerName: String,
+        val ride: Ride
     ) : DriverHomeUiState
 
-    data class ContinueRide(
-        val driverLatLng: LatLng,
-        val driverDestinationLatLng: LatLng,
-        val driverDestinationAddress: String,
+    data class ContinueRide (
+        val distance: Double
     ) : DriverHomeUiState
 
     object Error : DriverHomeUiState

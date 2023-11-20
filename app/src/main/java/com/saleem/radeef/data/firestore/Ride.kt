@@ -53,6 +53,6 @@ enum class RideStatus(val value: String) {
     PASSENGER_PICK_UP("PASSENGER_PICK_UP"),
     EN_ROUTE("EN_ROUTE"),
     ARRIVED("ARRIVED"),
-    COMPLETED("COMPLETED"),
+    //COMPLETED("COMPLETED"),
     CANCELED("CANCELED"),
 }

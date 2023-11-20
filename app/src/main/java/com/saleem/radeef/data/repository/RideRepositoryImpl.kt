@@ -260,12 +260,12 @@ class RideRepositoryImpl(
             }
     }
 
-    override fun updateCurrentRideState(ride: Ride, result: (UiState<String>) -> Unit) {
+    override fun updateCurrentRideState(ride: Ride, status: String, result: (UiState<String>) -> Unit) {
         val rideDocument = database.collection(FirestoreTables.RIDES)
             .document(ride.rideID)
 
         val updates = hashMapOf<String, Any>(
-            "status" to RideStatus.EN_ROUTE.value,
+            "status" to status,
         )
         rideDocument
             .update(updates)
