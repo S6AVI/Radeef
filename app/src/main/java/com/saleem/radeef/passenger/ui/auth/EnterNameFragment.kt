@@ -9,7 +9,6 @@ import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
 import com.saleem.radeef.passenger.ui.map.TAG
-import com.saleem.radeef.ui.auth.EnterNameFragmentDirections
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide

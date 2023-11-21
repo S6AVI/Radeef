@@ -31,6 +31,8 @@ import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
 import com.saleem.radeef.passenger.ui.map.SearchResultAdapter
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.disable
+import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.logD
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -40,7 +42,8 @@ import java.lang.Math.cos
 val TAG = "savii"
 
 @AndroidEntryPoint
-class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.OnItemClickListener {
+class DriverSearchFragment : Fragment(R.layout.fragment_search),
+    SearchResultAdapter.OnItemClickListener {
     lateinit var binding: FragmentSearchBinding
     private lateinit var placesClient: PlacesClient
     private lateinit var currentLocation: LatLng
@@ -50,12 +53,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
     private val DELAY = 1000L
     val viewModel: DriverHomeViewModel by activityViewModels()
 
-    private val preferences: SharedPreferences by lazy {
-        requireContext().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
-    }
-
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -63,9 +60,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
 
         logD("in search fragment: line 58 - pickup: ${viewModel.pickup?.latLng}")
 
-       currentLocation = requireArguments().getParcelable("current")!!
-
-
+        currentLocation = requireArguments().getParcelable("current")!!
 
         Places.initialize(requireContext(), getString(R.string.google_maps_key))
 
@@ -74,14 +69,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
         // Create a new token for the autocomplete session. Pass this to FindAutocompletePredictionsRequest,
         // and once again when the user makes a selection (for example when calling fetchPlace()).
         token = AutocompleteSessionToken.newInstance()
-
-        // Create a RectangularBounds object.
-        val bounds = RectangularBounds.newInstance(
-            LatLng(-33.880490, 151.184363),
-            LatLng(-33.858754, 151.229596)
-        )
-        // Use the builder to create a FindAutocompletePredictionsRequest.
-
 
         handler = Handler(Looper.getMainLooper())
         runnable = Runnable {
@@ -96,101 +83,11 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
         Log.d(TAG, handler.toString())
 
 
-        binding.pickupEt.addTextChangedListener(object : TextWatcher {
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                handler.removeCallbacks(runnable)
-                handler.postDelayed(runnable, DELAY)
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                updateButton()
-
-            }
-        })
-        binding.destinationEt.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                handler.removeCallbacks(runnable)
-                handler.postDelayed(runnable, DELAY)
-                //Log.d(TAG, "postDelayed called with delay: $DELAY")
-                //findPredictions(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                updateButton()
-            }
-        })
-
-
-        binding.myLocation.setOnClickListener {
-            binding.pickupEt.setText("Current Location")
-        }
-
         binding.searchBtn.setOnClickListener {
-            // HERE
-
             viewModel.updateDriverLocations()
 
         }
-
-
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-
-
-            viewModel.homeEvent.collect { event ->
-                when (event) {
-                    is DriverHomeViewModel.HomeEvent.UpdateResult -> {
-                        when (event.state) {
-                            UiState.Loading -> {
-                                logD("loading for results in DriverSearchFragment - 139")
-                                // Handle loading state if needed
-                            }
-                            is UiState.Success -> {
-                                if (event.state.data) {
-                                    logD("DriverSearchFragment - 142: success: ${event.state.data}")
-                                    changeStateToReady()
-                                    val action = DriverSearchFragmentDirections.actionDriverSearchFragmentToDriverHomeFragment()
-                                    findNavController().navigate(action)
-                                }
-                            }
-                            is UiState.Failure -> {
-                                logD("DriverSearchFragment - 148: failure: ${event.state.error}")
-                                //toast(state.error.toString())
-                            }
-                        }
-                    }
-                    else -> {}
-                }
-
-            }
-        }
-
-//        viewModel.updateResult.observe(viewLifecycleOwner) {state ->
-//            when(state) {
-//                UiState.Loading -> {
-//                    logD("loading for results in DriverSearchFragment - 139")
-//                }
-//                is UiState.Success -> {
-//                    logD("DriverSearchFragment - 142: success: ${state.data}")
-//
-//                    val action = DriverSearchFragmentDirections.actionDriverSearchFragmentToDriverHomeFragment()
-//                    findNavController().navigate(action)
-//
-//                }
-//                is UiState.Failure -> {
-//                    logD("DriverSearchFragment - 148: failure: ${state.error}")
-//                    toast(state.error.toString())
-//                }
-//            }.exhaustive
-//
-//        }
+        observer()
     }
 
     private fun updateButton() {
@@ -213,7 +110,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
                 .setCountries("SA")
                 .setLocationBias(bounds)
                 .setSessionToken(token)
-                //.setQuery(binding.pickupInput.text.toString())
                 .setQuery(query)
                 .build()
 
@@ -258,14 +154,9 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
 
     override fun onItemClick(item: AutocompletePrediction) {
         val address = item.getFullText(null)
-        if (binding.pickupEt.hasFocus()) {
-            binding.pickupEt.setText(address)
-            viewModel.pickup = RadeefLocation(currentLocation, address.toString())
-        } else if (binding.destinationEt.hasFocus()) {
-            binding.destinationEt.setText(address)
-            val placeId = item.placeId
-            fetchDestinationLatLng(placeId, address.toString())
-        }
+        binding.destinationEt.setText(address)
+        val placeId = item.placeId
+        fetchDestinationLatLng(placeId, address.toString())
     }
 
     private fun fetchDestinationLatLng(placeId: String, address: String) {
@@ -293,9 +184,56 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search), SearchResultAda
         return place.latLng
     }
 
-    private fun changeStateToReady() {
-        val editor = preferences.edit()
-        editor.putBoolean("isReady", true)
-        editor.apply()
+    private fun observer() {
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            viewModel.homeEvent.collect { event ->
+                when (event) {
+                    is DriverHomeViewModel.HomeEvent.UpdateResult -> {
+                        when (event.state) {
+                            UiState.Loading -> {
+                                logD("loading for results in DriverSearchFragment - 139")
+                                // Handle loading state if needed
+                            }
+
+                            is UiState.Success -> {
+                                if (event.state.data) {
+                                    logD("DriverSearchFragment - 142: success: ${event.state.data}")
+                                    val action =
+                                        DriverSearchFragmentDirections.actionDriverSearchFragmentToDriverHomeFragment()
+                                    findNavController().navigate(action)
+                                }
+                            }
+
+                            is UiState.Failure -> {
+                                logD("DriverSearchFragment - 148: failure: ${event.state.error}")
+                                //toast(state.error.toString())
+                            }
+                        }
+                    }
+
+                    else -> {}
+                }
+
+            }
+        }
+
+        binding.destinationEt.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                handler.removeCallbacks(runnable)
+                handler.postDelayed(runnable, DELAY)
+                //Log.d(TAG, "postDelayed called with delay: $DELAY")
+                //findPredictions(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                updateButton()
+            }
+        })
+        binding.myLocation.hide()
+        binding.pickupIl.disable()
     }
+
 }

@@ -26,6 +26,7 @@ import com.saleem.radeef.driver.repo.DriverRepository
 import com.saleem.radeef.util.MAX_DISTANCE_METERS_THRESHOLD
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.isDefault
 import com.saleem.radeef.util.logD
 import com.vmadalin.easypermissions.EasyPermissions
 import com.vmadalin.easypermissions.dialogs.SettingsDialog
@@ -39,8 +40,8 @@ import java.lang.Exception
 class DriverHomeViewModel @ViewModelInject constructor(
     val repository: DriverRepository,
     private val ridesRepo: RideRepository,
-    val geoContext: GeoApiContext,
-    val passengerRepo: CloudRepository
+    private val geoContext: GeoApiContext,
+    private val passengerRepo: CloudRepository
 ) : ViewModel() {
 
     var pickup: RadeefLocation? = null
@@ -61,48 +62,33 @@ class DriverHomeViewModel @ViewModelInject constructor(
     val rideRequests: LiveData<UiState<List<RideWithDistance>>>
         get() = _rideRequests
 
-    // Method to update the current state
     private fun updateDriverState(newState: DriverHomeUiState) {
         _currentHomeState.value = newState
     }
 
-    private val drawnPolylines: MutableList<Polyline> = mutableListOf()
-
-//    private val _updateResult = MutableLiveData<UiState<Boolean>>()
-//    val updateResult: LiveData<UiState<Boolean>>
-//        get() = _updateResult
-
-//    private val updateResultChannel = Channel<HomeEvent>()
-//    val updateResult = updateResultChannel.receiveAsFlow()
-
-//    private val startSearchingChannel = Channel<HomeEvent>()
-//    val startSearching = startSearchingChannel.receiveAsFlow()
-
     private val homeEventChannel = Channel<HomeEvent>()
     val homeEvent = homeEventChannel.receiveAsFlow()
 
+    private var isSearchingStateSet = false
 
-//    private fun mapToUiState(driverUiState: DriverHomeUiState): UiState<DriverHomeUiState> {
-//        return when (driverUiState) {
-//            is DriverHomeUiState.SettingPlaces -> UiState.Success(driverUiState)
-//            // Map other driver states to UiState similarly
-//            else -> {
-//                UiState.Loading
-//            }
-//        }
-//    }
 
-    fun setHomeUiState(status: String) {
+    private fun setHomeUiState(status: String) {
         logD("in home ui state setter - first line")
 
         val data = driverData!!
+
+        if (status != UserStatus.SEARCHING.value) {
+            isSearchingStateSet = false
+        }
+
         when (status) {
             UserStatus.INACTIVE.value -> {
-                if (data.pickup.latitude == 0.0) {
-                    logD("set places")
+                logD("location: ${data.destinationLatLng}")
+                if (data.destinationLatLng.isDefault()) {
+                    logD("location: set places")
                     _currentHomeState.value = DriverHomeUiState.SettingPlaces
                 } else {
-                    logD("display places")
+                    logD("location: display places")
                     _currentHomeState.value = DriverHomeUiState.DisplayDriverPlaces(
                         driverLatLng = data.pickupLatLng,
                         driverAddress = data.pickup_title,
@@ -113,36 +99,41 @@ class DriverHomeViewModel @ViewModelInject constructor(
             }
 
             UserStatus.SEARCHING.value -> {
-                ridesRepo.getCurrentRide { result ->
-                    if (result is UiState.Success) {
-                        logD("inside viewmodel - searching state of driver - ride: ${result.data}")
-                        if (result.data != null) {
-                            val ride = result.data
+                if (!isSearchingStateSet) {
+                    ridesRepo.getCurrentRide { result ->
+                        if (result is UiState.Success) {
+                            logD("inside viewmodel - searching state of driver - ride: ${result.data}")
+                            if (result.data != null) {
+                                val ride = result.data
 
-                            when (ride.status) {
-                                RideStatus.WAITING_FOR_CONFIRMATION.value -> {
-                                    _currentHomeState.value =
-                                        DriverHomeUiState.WaitPassengerResponse(
-                                            ride = ride,
-                                            passengerName = ride.passengerName,
-                                            passengerPickupLatLng = ride.passengerPickupLatLng,
-                                            passengerDestinationLatLng = ride.passengerDestLatLng,
-                                            driverLatLng = ride.driverLocationLatLng,
-                                            distance = ride.distance,
-                                            cost = ride.chargeAmount,
-                                            passengerId = ride.passengerID
-                                        )
-                                }
+                                when (ride.status) {
+                                    RideStatus.WAITING_FOR_CONFIRMATION.value -> {
+                                        _currentHomeState.value =
+                                            DriverHomeUiState.WaitPassengerResponse(
+                                                ride = ride,
+                                                passengerName = ride.passengerName,
+                                                passengerPickupLatLng = ride.passengerPickupLatLng,
+                                                passengerDestinationLatLng = ride.passengerDestLatLng,
+                                                driverLatLng = ride.driverLocationLatLng,
+                                                distance = ride.distance,
+                                                cost = ride.chargeAmount,
+                                                passengerId = ride.passengerID
+                                            )
+                                    }
 
-                                else -> {
-                                    _currentHomeState.value =
-                                        DriverHomeUiState.SearchingForPassengers
+                                    else -> {
+                                        _currentHomeState.value =
+                                            DriverHomeUiState.SearchingForPassengers
+                                    }
                                 }
+                            } else {
+                                _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
                             }
-                        } else {
-                            _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
                         }
                     }
+
+                    // Set the flag to indicate that the Searching state has been set
+                    isSearchingStateSet = true
                 }
             }
 
@@ -223,10 +214,20 @@ class DriverHomeViewModel @ViewModelInject constructor(
 
             if (state is UiState.Success) {
                 logD("MapViewModel: in getDriver: success: ${state.data}")
-                driverData = state.data
-                setHomeUiState(driverData!!.status)
-                //_driver.value = UiState.Success(state.data)
 
+                val previousDriverStatus = driverData?.status
+                driverData = state.data
+
+                val currentDriverStatus = driverData?.status
+
+//                if (currentDriverStatus != previousDriverStatus) {
+//                    if (currentDriverStatus != null) {
+//                        setHomeUiState(currentDriverStatus)
+//                    }
+//                }
+                if (currentDriverStatus != null) {
+                    setHomeUiState(currentDriverStatus)
+                }
             } else {
                 logD("some problem in getDriver")
             }
@@ -263,25 +264,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
         mapFragment?.getMapAsync(fragment)
     }
 
-
-//    fun updateDriverLocations() {
-//        viewModelScope.launch {
-//            //updateResultChannel.send(UiState.Loading)
-//            updateResultChannel.send(HomeEvent.UpdateResult(UiState.Loading))
-//            logD("pickup: ${pickup?.title}\n destination: ${destination?.title}")
-//            if (pickup != null && destination != null) {
-//
-//                repository.updateDriverLocations(pickup!!, destination!!) { result ->
-//                    logD("viewModel: update locations - 78: $result")
-//                    viewModelScope.launch {
-//                        updateResultChannel.send(result)
-//                    }
-//                }
-//            } else {
-//                logD("something is null")
-//            }
-//        }
-//    }
 
     fun updateDriverLocations() {
         viewModelScope.launch {
@@ -375,10 +357,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
         return filteredRides
     }
 
-    private suspend fun getDrivingDistance(
-        origin: LatLng,
-        destination: LatLng,
-    ): Double? {
+    private suspend fun getDrivingDistance(origin: LatLng, destination: LatLng): Double? {
         logD("origin: $origin")
         logD("dest: $destination")
         return withContext(Dispatchers.IO) {
@@ -460,18 +439,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
         }
     }
 
-
-    fun addPolyline(polyline: Polyline) {
-        drawnPolylines.add(polyline)
-    }
-
-    fun removePolylines() {
-        for (polyline in drawnPolylines) {
-            polyline.remove()
-        }
-        drawnPolylines.clear()
-    }
-
     fun onCancelButtonClickedWaiting(ride: Ride) {
         _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
@@ -541,8 +508,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
             ) { result ->
                 if (result is UiState.Success) {
                     logD("stop: status: ${driverData!!.status}")
-                }
-                else {
+                } else {
                     logD("error on changing state to INACTIVE")
                 }
             }
@@ -557,24 +523,21 @@ class DriverHomeViewModel @ViewModelInject constructor(
             ) { result ->
                 if (result is UiState.Success) {
                     logD("continue: status: ${driverData!!.status}")
-                }
-                else {
+                } else {
                     logD("error on changing state to CONTINUE")
                 }
             }
         }
     }
 
+    fun updateLocation(location: LatLng) {
+        viewModelScope.launch {
+            repository.updateDriverCurrentLocation(location) { result ->
 
-//    fun onDisplayPlaces() {
-//        val data = driverData!!
-//        _currentHomeState.value = DriverHomeUiState.DisplayDriverPlaces(
-//            driverLatLng = data.pickupLatLng,
-//            driverDestinationLatLng = data.destinationLatLng,
-//            driverAddress = data.pickup_title,
-//            driverDestinationAddress = data.destination_title
-//        )
-//    }
+            }
+        }
+    }
+
 
     sealed class HomeEvent {
         data class UpdateResult(val state: UiState<Boolean>) : HomeEvent()

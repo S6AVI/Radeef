@@ -2,6 +2,7 @@ package com.saleem.radeef.driver.repo
 
 import android.app.Activity
 import android.net.Uri
+import com.google.android.gms.maps.model.LatLng
 import com.saleem.radeef.data.RadeefLocation
 
 import com.saleem.radeef.data.firestore.driver.Driver
@@ -51,5 +52,7 @@ interface DriverRepository {
     fun createEmptyLicense(result: (UiState<License>) -> Unit)
 
     fun updateDriverLocations(pickup: RadeefLocation, destination: RadeefLocation, result: (UiState<Boolean>) -> Unit)
+
+    fun updateDriverCurrentLocation(pickup: LatLng, result: (UiState<Boolean>) -> Unit)
 
 }

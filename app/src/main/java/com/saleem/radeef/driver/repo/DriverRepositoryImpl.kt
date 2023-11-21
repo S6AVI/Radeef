@@ -3,6 +3,7 @@ package com.saleem.radeef.driver.repo
 import android.app.Activity
 import android.net.Uri
 import android.util.Log
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
@@ -22,6 +23,7 @@ import com.saleem.radeef.util.FirebaseStorageConstants.DRIVER_DIRECTORY
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.toGeoPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -270,43 +272,34 @@ class DriverRepositoryImpl(
         }
     }
 
-//    override fun getDriver(result: (UiState<Driver>) -> Unit) {
-//        database.collection(FirestoreTables.DRIVERS)
-//            .whereEqualTo("driverID", auth.currentUser?.uid)
-//            .limit(1)
-//            .get()
-//            .addOnSuccessListener {
-//                if (!it.isEmpty) {
-//                    val documentSnapshot = it.documents[0]
-//                    val driver = documentSnapshot.toObject(Driver::class.java)!!
-//                    result.invoke(
-//                        UiState.Success(driver)
-//                    )
-//                } else {
-//
-//                }
-//
-//            }
-//            .addOnFailureListener { exception ->
-//                result.invoke(
-//                    UiState.Failure(
-//                        exception.message.toString()
-//                    )
-//                )
-//            }
-//    }
+    override fun updateDriverCurrentLocation(pickup: LatLng, result: (UiState<Boolean>) -> Unit) {
+        val data = mapOf(
+            "pickup" to pickup.toGeoPoint()
+        )
 
+        database.collection(FirestoreTables.DRIVERS).document(auth.currentUser!!.uid)
+            .update(data)
+            .addOnSuccessListener {
+                result(UiState.Success(true))
+            }.addOnFailureListener {
+                result(UiState.Failure(it.message))
+            }
+    }
 
     override fun updateDriver(driver: Driver, result: (UiState<String>) -> Unit) {
-        val driverWithId = driver.copy(driverID = auth.currentUser!!.uid, phoneNumber = auth.currentUser!!.phoneNumber!!)
-        val driverDocument = database.collection(FirestoreTables.DRIVERS).document(driverWithId.driverID)
-            .set(driverWithId)
-            .addOnSuccessListener {
-                result.invoke(UiState.Success("Driver updated successfully"))
-            }
-            .addOnFailureListener { exception ->
-                result.invoke(UiState.Failure(exception.message))
-            }
+        val driverWithId = driver.copy(
+            driverID = auth.currentUser!!.uid,
+            phoneNumber = auth.currentUser!!.phoneNumber!!
+        )
+        val driverDocument =
+            database.collection(FirestoreTables.DRIVERS).document(driverWithId.driverID)
+                .set(driverWithId)
+                .addOnSuccessListener {
+                    result.invoke(UiState.Success("Driver updated successfully"))
+                }
+                .addOnFailureListener { exception ->
+                    result.invoke(UiState.Failure(exception.message))
+                }
     }
 
 
@@ -498,7 +491,7 @@ class DriverRepositoryImpl(
             "pickup_title" to pickup.title,
             "destination" to destination.toGeoPoint(),
             "destination_title" to destination.title,
-           // "status" to UserStatus.SEARCHING.value
+            // "status" to UserStatus.SEARCHING.value
         )
         logD(data.toString())
 

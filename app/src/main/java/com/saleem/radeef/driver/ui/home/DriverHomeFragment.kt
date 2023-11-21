@@ -37,12 +37,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.location.Location
+//import android.location.LocationRequest
 import android.net.Uri
+import android.os.Looper
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.google.android.gms.location.LocationAvailability
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.Priority
 import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.util.UiState
@@ -52,6 +60,7 @@ import com.saleem.radeef.util.formatDistance
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
+import com.saleem.radeef.util.toLatLng
 import configureLocationButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -70,9 +79,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var currentLocation: LatLng
     val viewModel: DriverHomeViewModel by activityViewModels()
-    private lateinit var polyline: Polyline
 
-    private val drawnPolylines: MutableList<Polyline> = mutableListOf()
+    private var isImageLoaded = false
 
     lateinit var header: View
 
@@ -83,11 +91,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
     var dist = 0.0
 
-    private val preferences: SharedPreferences by lazy {
-        requireContext().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
-    }
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = DriverFragmentHomeBinding.bind(view)
@@ -96,62 +99,76 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
 
+        setNavigationDrawer()
+
+        observer()
+
+    }
 
 
+    @SuppressLint("MissingPermission")
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
+
+
+
+        setCurrentLocation()
+
+
+        map.isMyLocationEnabled = true
+
+
+        configureLocationButton(view)
+
+
+        configureMapSettings(map)
+        setCameraBoundsAndZoom(map, saudiArabiaBounds)
+
+        map.setOnMyLocationButtonClickListener(this)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun setCurrentLocation() {
+        fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(requireActivity())
+
+
+        val locationRequest = LocationRequest.Builder(1000)
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .setMinUpdateDistanceMeters(100.0f)
+            .build()
+
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                val lastLocation = locationResult.lastLocation
+                if (lastLocation != null) {
+                    val latitude = lastLocation.latitude
+                    val longitude = lastLocation.longitude
+
+
+                    viewModel.updateLocation(lastLocation.toLatLng())
+
+                    val newLocation = LatLng(latitude, longitude)
+                    logD("New current location: $latitude, $longitude")
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 15f))
+                } else {
+                    toast("last location is null")
+                }
+            }
+        }
+
+        fusedLocationProviderClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    private fun observer() {
 
         binding.menuButton.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.START)
-//            val action = HomeFragmentDirections.actionHomeFragmentToNavigationDrawerFragment()
-//            findNavController().navigate(action)
         }
-
-
-        header = binding.navigationView.getHeaderView(0)
-
-        binding.navigationView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_item_profile -> {
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverProfileFragment()
-                    findNavController().navigate(action)
-                }
-
-                R.id.nav_item_wallet -> {
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverWalletFragment()
-                    findNavController().navigate(action)
-                }
-
-                R.id.nav_item_payment -> {
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPaymentFragment()
-                    findNavController().navigate(action)
-
-                }
-
-                R.id.nav_item_rides -> {
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverRidesFragment()
-                    findNavController().navigate(action)
-                }
-
-                R.id.nav_item_help -> {
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverHelpFragment()
-                    findNavController().navigate(action)
-                }
-
-                R.id.nav_item_Settings -> {
-                    //val action = HomeFragmentDirections.actionHomeFragmentToSettingsFragment2()
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSettingsFragment()
-                    findNavController().navigate(action)
-                }
-            }
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-            true
-        }
-
 
         binding.pickupEt.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -169,28 +186,25 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         viewModel.driver.observe(viewLifecycleOwner) { state ->
             when (state) {
                 UiState.Loading -> {
-//                    binding.progressBar.show()
-//                    binding.continueBt.setText("")
+                    // Show loading progress if needed
                 }
 
                 is UiState.Success -> {
-                    // binding.progressBar.hide()
-                    //setIfReady()
-                    loadImage(state.data.personalPhotoUrl)
+                    if (!isImageLoaded) {
+                        loadImage(state.data.personalPhotoUrl)
+                        isImageLoaded = true
+                    }
+
                     val nameTf = header.findViewById<TextView>(R.id.name_label)
                     nameTf.text = state.data.name
 
                     logD(state.data.toString())
-
                 }
 
                 is UiState.Failure -> {
-//                    binding.progressBar.hide()
-//                    binding.continueBt.enable()
-//                    binding.continueBt.setText(getString(R.string.continue_label))
+                    // Handle failure state if needed
                     toast(state.error.toString())
                 }
-
             }
         }
 
@@ -249,17 +263,65 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
 
         lifecycleScope.launch {
-            viewModel.homeEvent.collect {event ->
+            viewModel.homeEvent.collect { event ->
                 when (event) {
                     is DriverHomeViewModel.HomeEvent.CallPassenger -> {
                         makePhoneCall(event.phoneNumber)
                     }
+
                     else -> {
                         logD("in homeEvent collect: nothing here")
                     }
                 }
 
             }
+        }
+    }
+
+    private fun setNavigationDrawer() {
+        header = binding.navigationView.getHeaderView(0)
+        binding.navigationView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_item_profile -> {
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverProfileFragment()
+                    findNavController().navigate(action)
+                }
+
+                R.id.nav_item_wallet -> {
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverWalletFragment()
+                    findNavController().navigate(action)
+                }
+
+                R.id.nav_item_payment -> {
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPaymentFragment()
+                    findNavController().navigate(action)
+
+                }
+
+                R.id.nav_item_rides -> {
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverRidesFragment()
+                    findNavController().navigate(action)
+                }
+
+                R.id.nav_item_help -> {
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverHelpFragment()
+                    findNavController().navigate(action)
+                }
+
+                R.id.nav_item_Settings -> {
+                    //val action = HomeFragmentDirections.actionHomeFragmentToSettingsFragment2()
+                    val action =
+                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSettingsFragment()
+                    findNavController().navigate(action)
+                }
+            }
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+            true
         }
     }
 
@@ -505,9 +567,9 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             R.color.md_theme_light_primary
         )
         binding.continueRideView.apply {
-        destinationTextView.text = driver.destination_title
-        distanceTextView.text = state.distance.formatDistance()
-        continueRideLayout.show()
+            destinationTextView.text = driver.destination_title
+            distanceTextView.text = state.distance.formatDistance()
+            continueRideLayout.show()
         }
 
         binding.continueRideView.doneButton.setOnClickListener {
@@ -516,6 +578,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
 
     }
+
     private fun drawLine(start: LatLng, end: LatLng, color: Int = R.color.md_theme_light_primary) {
         val context = GeoApiContext.Builder()
             .apiKey(getString(R.string.google_maps_key))
@@ -589,88 +652,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    private fun setIfReady() {
-//        val isReady = preferences.getBoolean("isReady", false)
-//        logD("isReady: $isReady")
-//
-//        if (isReady) {
-//            if (viewModel.pickup != null && viewModel.destination != null) {
-//                logD("in first branch: ${viewModel.pickup?.latLng}")
-//                drawLineOnMap(viewModel.pickup!!.latLng, viewModel.destination!!.latLng)
-//                //showPathDetailsBottomSheet()
-//            } else {
-//                logD("in second branch: ${viewModel.driverData}")
-//                drawLineOnMap(viewModel.driverData?.pickupLatLng, viewModel.driverData?.destinationLatLng)
-//                //showPathDetailsBottomSheet()
-//            }
-//        }
-//    }
-
-    @SuppressLint("MissingPermission")
-    override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-
-
-        fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(requireActivity())
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
-            if (location != null) {
-                // Animate the camera to the user's current location
-                currentLocation = LatLng(location.latitude, location.longitude)
-
-                val title = getAddressFromLatLng(currentLocation)
-                viewModel.pickup = RadeefLocation(currentLocation, title)
-
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15f))
-            } else {
-                // If the user's location is not available, animate the camera to Riyadh
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(RIYADH, 15f))
-            }
-        }
-
-        map.addMarker(MarkerOptions().position(RIYADH).title("Riyadh"))
-        map.animateCamera(CameraUpdateFactory.newLatLng(RIYADH))
-        map.isMyLocationEnabled = true
-
-        // place my-location button on bottom-right-corner
-        configureLocationButton(view)
-
-
-        configureMapSettings(map)
-        setCameraBoundsAndZoom(map, saudiArabiaBounds)
-
-        map.setOnMyLocationButtonClickListener(this)
-
-
-        Log.d(TAG, viewModel.pickup.toString())
-        if (viewModel.pickup != null && viewModel.destination != null) {
-            //val pickupLatLng = getLatLngFromAddress(viewModel.pickup.latLng!!)
-            val pickupLatLng = viewModel.pickup?.latLng
-            val destinationLatLng = viewModel.destination?.latLng
-            drawLineOnMap(pickupLatLng!!, destinationLatLng!!)
-
-        }
-
-    }
-
-//    private fun showPathDetailsBottomSheet() {
-//        logD("in showPathDetailsBottomSheet")
-//        val action = DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPathDetailsFragment(dist.toFloat())
-//        findNavController().navigate(action)
-//    }
 
     private fun drawLineOnMap(pickupLatLng: LatLng?, destinationLatLng: LatLng?) {
 
@@ -816,17 +797,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         }
     }
 
-
-    @SuppressLint("MissingPermission")
-    private fun setCurrent() {
-        fusedLocationProviderClient.lastLocation.addOnCompleteListener {
-            val lastLocation = LatLng(
-                it.result.latitude,
-                it.result.longitude
-            )
-            currentLocation = lastLocation
-        }
-    }
 
     override fun onMyLocationButtonClick(): Boolean {
         setMarker()

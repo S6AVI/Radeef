@@ -6,7 +6,7 @@
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".ui.drawer.wallet.AddMethodFragment">
+    tools:context=".passenger.ui.drawer.wallet.AddMethodFragment">
 
     <ImageButton
         android:id="@+id/back_btn"

@@ -9,7 +9,6 @@ import com.saleem.radeef.AuthNavigationDirections
 import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.databinding.FragmentOtpBinding
-import com.saleem.radeef.ui.auth.OtpFragmentDirections
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide

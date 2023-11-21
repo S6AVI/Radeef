@@ -35,7 +35,6 @@ import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentHomeBinding
-import com.saleem.radeef.ui.map.HomeFragmentDirections
 import com.saleem.radeef.util.Permissions.hasLocationPermission
 import com.saleem.radeef.util.Permissions.requestLocationPermission
 import com.saleem.radeef.util.toast

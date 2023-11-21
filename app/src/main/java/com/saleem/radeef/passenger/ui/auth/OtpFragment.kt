@@ -7,7 +7,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentOtpBinding
-import com.saleem.radeef.ui.auth.OtpFragmentDirections
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
