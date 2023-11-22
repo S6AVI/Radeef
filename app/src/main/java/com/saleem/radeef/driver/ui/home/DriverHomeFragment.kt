@@ -19,7 +19,6 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
@@ -32,12 +31,7 @@ import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.toast
 import com.vmadalin.easypermissions.EasyPermissions
 import configureMapSettings
-import RIYADH
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.graphics.Color
-import android.location.Location
 //import android.location.LocationRequest
 import android.net.Uri
 import android.os.Looper
@@ -46,13 +40,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
-import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.driver.DriverHomeUiState
+import com.saleem.radeef.util.MIN_UPDATE_DISTANCE_METERS
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.calculateFee
 import com.saleem.radeef.util.formatCost
@@ -135,7 +128,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
         val locationRequest = LocationRequest.Builder(1000)
             .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-            .setMinUpdateDistanceMeters(100.0f)
+            .setMinUpdateDistanceMeters(MIN_UPDATE_DISTANCE_METERS)
             .build()
 
         val locationCallback = object : LocationCallback() {
@@ -150,7 +143,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
                     val newLocation = LatLng(latitude, longitude)
                     logD("New current location: $latitude, $longitude")
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 15f))
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 12f))
                 } else {
                     toast("last location is null")
                 }
@@ -172,12 +165,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
         binding.pickupEt.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-                logD("in home fragment: line 127 - pickup: ${viewModel.pickup?.latLng}")
-                logD("in home fragment: line 128 - current: $currentLocation")
                 val action =
-                    DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSearchFragment(
-                        currentLocation
-                    )
+                    DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSearchFragment()
                 findNavController().navigate(action)
             }
         }
@@ -207,7 +196,26 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
             }
         }
+        observeCurrentHomeState()
 
+
+        lifecycleScope.launch {
+            viewModel.homeEvent.collect { event ->
+                when (event) {
+                    is DriverHomeViewModel.HomeEvent.CallPassenger -> {
+                        makePhoneCall(event.phoneNumber)
+                    }
+
+                    else -> {
+                        logD("in homeEvent collect: nothing here")
+                    }
+                }
+
+            }
+        }
+    }
+
+    private fun observeCurrentHomeState() {
         viewModel.currentHomeState.observe(viewLifecycleOwner) { state ->
             logD("in currentHomeState observer")
             when (state) {
@@ -219,8 +227,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 is DriverHomeUiState.DisplayDriverPlaces -> {
                     //drawLineOnMap(viewModel.driverData?.pickupLatLng, viewModel.driverData?.destinationLatLng)
                     logD("setting places: display driver places")
-                    binding.pickupIl.hide()
-                    drawLineOnMap(state.driverLatLng, state.driverDestinationLatLng)
                     displayDriverPlaces(state)
                 }
 
@@ -261,24 +267,10 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
             }
         }
-
-        lifecycleScope.launch {
-            viewModel.homeEvent.collect { event ->
-                when (event) {
-                    is DriverHomeViewModel.HomeEvent.CallPassenger -> {
-                        makePhoneCall(event.phoneNumber)
-                    }
-
-                    else -> {
-                        logD("in homeEvent collect: nothing here")
-                    }
-                }
-
-            }
-        }
     }
 
     private fun setNavigationDrawer() {
+
         header = binding.navigationView.getHeaderView(0)
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
@@ -333,31 +325,33 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun displayDriverPlaces(state: DriverHomeUiState.DisplayDriverPlaces) {
-        binding.continueRideView.continueRideLayout.hide()
-        binding.passengerArrivedView.passengerArrivedLayout.hide()
+        hideAllViews()
+        map.clear()
+        drawLine(state.driverLatLng, state.driverDestinationLatLng)
         binding.pathDetailsView.pathDetailsLayout.show()
         binding.pathDetailsView.apply {
-            pickupTitleTextView.text = viewModel.driverData?.pickup_title
-            destinationTitleTextView.text = viewModel.driverData?.destination_title
-            try {
-                distanceTextView.text =
-                    calculateDistance(state.driverLatLng, state.driverDestinationLatLng).toString()
-            } catch (e: Exception) {
-                logD(e.message.toString())
-            }
-
+            pickupTitleTextView.setText(R.string.current_location)
+            destinationTitleTextView.text = getAddressFromLatLng(state.driverDestinationLatLng)
+            distanceTextView.text = state.distance.formatDistance()
         }
 
         binding.pathDetailsView.searchButton.setOnClickListener {
             logD("search button clicked!")
             viewModel.onSearchButtonClicked()
         }
+
+        binding.pathDetailsView.changeDestinationTextView.setOnClickListener {
+            val action =
+                DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSearchFragment()
+            findNavController().navigate(action)
+        }
     }
 
     private fun searchingForPassengers() {
-        hideOtherViews()
+        hideAllViews()
         map.clear()
 
+        val driver = viewModel.driverData!!
         //val anotherAdapter = PassengerRequestsAdapter(requireContext())
 //        adapter.getDistance = { pickup, destination ->
 //            viewModel.calculateDistance(pickup, destination)
@@ -368,18 +362,16 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
         adapter.onItemClick = { item ->
             viewModel.onAdapterItemClicked(item)
-
-            //viewModel.removePolylines()
             map.clear()
             drawLine(
-                currentLocation,
+                driver.pickupLatLng,
                 item.ride.passengerPickupLatLng,
                 R.color.md_theme_light_secondary
             )
             drawLine(item.ride.passengerPickupLatLng, item.ride.passengerDestLatLng)
             drawLine(
                 item.ride.passengerDestLatLng,
-                viewModel.driverData!!.destinationLatLng,
+                driver.destinationLatLng,
                 R.color.md_theme_light_secondary
             )
 
@@ -398,9 +390,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
 
         binding.ridesRequestView.requestsRecyclerView.adapter = adapter
-        binding.pathDetailsView.pathDetailsLayout.hide()
         binding.ridesRequestView.ridesRequestLayout.show()
-        binding.ridesRequestView.noRequestsTextView.show()
+
         logD("we are searching!")
 
         viewModel.fetchRideRequests()
@@ -433,26 +424,38 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 }
             }
         }
+
+        binding.ridesRequestView.doneButton.setOnClickListener {
+            viewModel.onDoneButtonClicked()
+        }
     }
 
-    private fun hideOtherViews() {
-        binding.ridesRequestView.ridesRequestLayout.hide()
-        binding.waitingPassengerView.waitingPassengerLayout.hide()
-        binding.passengerPickupView.passengerPickupLayout.hide()
+    private fun hideAllViews() {
+        binding.apply {
+            pathDetailsView.pathDetailsLayout.hide()
+            ridesRequestView.ridesRequestLayout.hide()
+            waitingPassengerView.waitingPassengerLayout.hide()
+            passengerPickupView.passengerPickupLayout.hide()
+            enRouteView.enRouteLayout.hide()
+            passengerArrivedView.passengerArrivedLayout.hide()
+            continueRideView.continueRideLayout.hide()
+            pickupIl.hide()
+        }
     }
 
     private fun waitingPassengerResponse(state: DriverHomeUiState.WaitPassengerResponse) {
-        binding.ridesRequestView.ridesRequestLayout.hide()
+        hideAllViews()
         map.clear()
+        val driver = viewModel.driverData!!
         drawLine(
-            currentLocation,
+            driver.pickupLatLng,
             state.passengerPickupLatLng,
             R.color.md_theme_light_secondary
         )
         drawLine(state.passengerPickupLatLng, state.ride.passengerDestLatLng)
         drawLine(
             state.ride.passengerDestLatLng,
-            viewModel.driverData!!.destinationLatLng,
+            driver.destinationLatLng,
             R.color.md_theme_light_secondary
         )
         binding.waitingPassengerView.apply {
@@ -634,11 +637,11 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 // Add the polyline to the map
                 val polyline = map.addPolyline(polylineOptions)
 
-                val startMarkerOptions = MarkerOptions()
-                    .position(decodedPolyline.first())
-                    .title("Start")
-
-                map.addMarker(startMarkerOptions)
+//                val startMarkerOptions = MarkerOptions()
+//                    .position(decodedPolyline.first())
+//                    .title("Start")
+//
+//                map.addMarker(startMarkerOptions)
 
                 val endMarkerOptions = MarkerOptions()
                     .position(decodedPolyline.last())
@@ -793,13 +796,13 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 it.result.longitude
             )
 
-            map.addMarker(MarkerOptions().position(lastLocation))
+            //map.addMarker(MarkerOptions().position(lastLocation))
         }
     }
 
 
     override fun onMyLocationButtonClick(): Boolean {
-        setMarker()
+        //setMarker()
         return false
     }
 
@@ -813,6 +816,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
     private fun getAddressFromLatLng(latlng: LatLng): String {
         val geocoder = Geocoder(requireContext(), Locale.getDefault())
+        logD("getAddressFromLatLng: $latlng")
         val addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
         return addresses?.firstOrNull()?.featureName ?: ""
     }

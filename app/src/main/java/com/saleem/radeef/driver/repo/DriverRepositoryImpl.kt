@@ -286,6 +286,20 @@ class DriverRepositoryImpl(
             }
     }
 
+    override fun updateDriverDestination(destination: LatLng, result: (UiState<Boolean>) -> Unit) {
+        val data = mapOf(
+            "destination" to destination.toGeoPoint()
+        )
+
+        database.collection(FirestoreTables.DRIVERS).document(auth.currentUser!!.uid)
+            .update(data)
+            .addOnSuccessListener {
+                result(UiState.Success(true))
+            }.addOnFailureListener {
+                result(UiState.Failure(it.message))
+            }
+    }
+
     override fun updateDriver(driver: Driver, result: (UiState<String>) -> Unit) {
         val driverWithId = driver.copy(
             driverID = auth.currentUser!!.uid,

@@ -16,10 +16,10 @@ data class Ride(
     val chargeAmount: Double = 0.0,
 
     @ServerTimestamp
-    val startTime: Date = Date(),
+    val startTime: Date = Date(0),
 
     @ServerTimestamp
-    val endTime: Date = Date(),
+    val endTime: Date = Date(0),
 
     var rideID: String = "",
 

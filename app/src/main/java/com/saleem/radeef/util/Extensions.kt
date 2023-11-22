@@ -61,3 +61,5 @@ fun LatLng.isDefault(): Boolean {
     return this.latitude.toInt() == 0 && this.longitude.toInt() == 0
 }
 
+fun Double.toKm() = this / 1000.0
+

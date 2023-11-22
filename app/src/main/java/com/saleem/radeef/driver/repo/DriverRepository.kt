@@ -55,4 +55,6 @@ interface DriverRepository {
 
     fun updateDriverCurrentLocation(pickup: LatLng, result: (UiState<Boolean>) -> Unit)
 
+    fun updateDriverDestination(destination: LatLng, result: (UiState<Boolean>) -> Unit)
+
 }

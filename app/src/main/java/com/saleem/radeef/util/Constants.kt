@@ -10,6 +10,8 @@ const val FEE_BASE = 0
 
 const val MAX_DISTANCE_METERS_THRESHOLD = 5000
 
+const val MIN_UPDATE_DISTANCE_METERS = 1000.0f
+
 object FirestoreTables {
     val RIDES = "rides"
     val PASSENGERS = "passengers"

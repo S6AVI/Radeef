@@ -46,7 +46,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
     SearchResultAdapter.OnItemClickListener {
     lateinit var binding: FragmentSearchBinding
     private lateinit var placesClient: PlacesClient
-    private lateinit var currentLocation: LatLng
     private lateinit var token: AutocompleteSessionToken
     private lateinit var handler: Handler
     private lateinit var runnable: Runnable
@@ -57,10 +56,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentSearchBinding.bind(view)
-
-        logD("in search fragment: line 58 - pickup: ${viewModel.pickup?.latLng}")
-
-        currentLocation = requireArguments().getParcelable("current")!!
 
         Places.initialize(requireContext(), getString(R.string.google_maps_key))
 
@@ -84,8 +79,13 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
 
 
         binding.searchBtn.setOnClickListener {
+
             viewModel.updateDriverLocations()
 
+        }
+
+        binding.backBtn.setOnClickListener {
+            findNavController().popBackStack()
         }
         observer()
     }
@@ -106,7 +106,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
                 // Call either setLocationBias() OR setLocationRestriction().
                 //.setLocationRestriction(bounds)
                 //setOrigin(LatLng(-33.8749937, 151.2041382))
-                .setOrigin(currentLocation)
+                .setOrigin(viewModel.driverData?.pickupLatLng)
                 .setCountries("SA")
                 .setLocationBias(bounds)
                 .setSessionToken(token)
@@ -138,6 +138,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
     private fun getBounds(): LocationBias {
 
         val radiusInMeters = 100000 // 100 km in meters
+        val currentLocation = viewModel.driverData!!.pickupLatLng
         val bounds = RectangularBounds.newInstance(
             LatLng(
                 currentLocation.latitude - 1 / 111.0 * radiusInMeters,
@@ -171,6 +172,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
     }
 
     private suspend fun getLatLngFromPlaceId(placeId: String): LatLng? {
+        try {
         val placeFields = listOf(Place.Field.LAT_LNG)
 
         // Build the fetch place request
@@ -182,6 +184,10 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
         // Retrieve the LatLng from the place response
         val place = placeResponse.place
         return place.latLng
+        } catch (e: Exception) {
+            logD("error occurred in getLatLngFromPlaceId: ${e.message}")
+        }
+        return LatLng(.0,.0)
     }
 
     private fun observer() {
@@ -198,9 +204,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
                             is UiState.Success -> {
                                 if (event.state.data) {
                                     logD("DriverSearchFragment - 142: success: ${event.state.data}")
-                                    val action =
-                                        DriverSearchFragmentDirections.actionDriverSearchFragmentToDriverHomeFragment()
-                                    findNavController().navigate(action)
+                                    findNavController().popBackStack()
                                 }
                             }
 

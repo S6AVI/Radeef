@@ -1,9 +1,11 @@
 package com.saleem.radeef.data.repository
 
 import android.util.Log
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.Query
 import com.saleem.radeef.data.firestore.HiddenRides
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.data.firestore.RideStatus
@@ -14,6 +16,7 @@ import com.saleem.radeef.driver.ui.home.RideWithDistance
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
+import java.util.Date
 
 class RideRepositoryImpl(
     val database: FirebaseFirestore,
@@ -186,16 +189,18 @@ class RideRepositoryImpl(
     }
 
     override fun getCurrentRide(result: (UiState<Ride?>) -> Unit) {
+        val defaultTime = Timestamp(Date())
+        logD("default date: $defaultTime")
         database.collection(FirestoreTables.RIDES)
             .whereEqualTo("driverId", auth.currentUser!!.uid)
             //.whereEqualTo("status", RideStatus.WAITING_FOR_CONFIRMATION)
+            .orderBy("startTime", Query.Direction.DESCENDING)
             .limit(1)
             .addSnapshotListener { value, error ->
                 if (error != null) {
                     result.invoke(UiState.Failure(error.localizedMessage))
                     return@addSnapshotListener
                 }
-
                 val ride = value?.documents?.firstOrNull()?.toObject(Ride::class.java)
                 ride?.rideID = value?.documents?.firstOrNull()!!.id
                 result.invoke(UiState.Success(ride))

@@ -8,9 +8,8 @@ sealed interface DriverHomeUiState {
     object SettingPlaces : DriverHomeUiState
     data class DisplayDriverPlaces(
         val driverLatLng: LatLng,
-        val driverAddress: String,
         val driverDestinationLatLng: LatLng,
-        val driverDestinationAddress: String,
+        val distance: Double
         //val distance: Double
     ) : DriverHomeUiState
 

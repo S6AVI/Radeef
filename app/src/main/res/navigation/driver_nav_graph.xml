@@ -135,9 +135,6 @@
             android:name="com.saleem.radeef.driver.ui.home.DriverSearchFragment"
             android:label="DriverSearchFragment">
 
-            <argument
-                android:name="current"
-                app:argType="com.google.android.gms.maps.model.LatLng" />
             <action
                 android:id="@+id/action_driverSearchFragment_to_driverHomeFragment"
                 app:destination="@id/driverHomeFragment" />
