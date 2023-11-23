@@ -61,8 +61,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import saudiArabiaBounds
 import setCameraBoundsAndZoom
-import java.lang.Exception
 import java.util.Locale
+import kotlin.Exception
 
 @AndroidEntryPoint
 class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCallback,
@@ -143,7 +143,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
                     val newLocation = LatLng(latitude, longitude)
                     logD("New current location: $latitude, $longitude")
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 12f))
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 15f))
                 } else {
                     toast("last location is null")
                 }
@@ -478,9 +478,10 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
     private fun passengerPickup(state: DriverHomeUiState.PassengerPickUp) {
         logD("passengerPickup UI state!")
-        binding.waitingPassengerView.waitingPassengerLayout.hide()
+        hideAllViews()
+        val driver = viewModel.driverData!!
         drawLine(
-            currentLocation,
+            driver.pickupLatLng,
             state.ride.passengerPickupLatLng,
             R.color.md_theme_light_primary
         )
@@ -507,11 +508,13 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun enRoute(state: DriverHomeUiState.EnRoute) {
-        binding.passengerPickupView.passengerPickupLayout.hide()
+        hideAllViews()
         map.clear()
         val ride = state.ride
+        val driver = viewModel.driverData!!
         drawLine(
-            ride.passengerPickupLatLng,
+            //ride.passengerPickupLatLng,
+            driver.pickupLatLng,
             ride.passengerDestLatLng,
             R.color.md_theme_light_primary
         )
@@ -534,7 +537,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
     private fun arrived(state: DriverHomeUiState.Arrived) {
         logD("arrived state")
-        binding.enRouteView.enRouteLayout.hide()
+        hideAllViews()
         map.clear()
         val ride = state.ride
         val driver = viewModel.driverData!!
@@ -570,7 +573,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             R.color.md_theme_light_primary
         )
         binding.continueRideView.apply {
-            destinationTextView.text = driver.destination_title
+            destinationTextView.text = getAddressFromLatLng(driver.destinationLatLng)
             distanceTextView.text = state.distance.formatDistance()
             continueRideLayout.show()
         }
@@ -815,10 +818,15 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun getAddressFromLatLng(latlng: LatLng): String {
-        val geocoder = Geocoder(requireContext(), Locale.getDefault())
-        logD("getAddressFromLatLng: $latlng")
-        val addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
-        return addresses?.firstOrNull()?.featureName ?: ""
+        try {
+            val geocoder = Geocoder(requireContext(), Locale.getDefault())
+            logD("getAddressFromLatLng: $latlng")
+            val addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
+            return addresses?.firstOrNull()?.featureName ?: ""
+        } catch (e: Exception) {
+            logD("get address error: ${e.message}")
+            return ""
+        }
     }
 
     private fun calculateDistance(start: LatLng, end: LatLng): Double {

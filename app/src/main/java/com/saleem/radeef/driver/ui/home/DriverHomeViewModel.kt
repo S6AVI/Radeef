@@ -144,7 +144,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
                         logD("inside viewModel - in_ride state of driver - ride: ${result.data}")
                         if (result.data != null) {
                             val ride = result.data
-
+                            logD("ride status: ${ride.status}")
                             when (ride.status) {
                                 RideStatus.PASSENGER_PICK_UP.value -> {
                                     logD("ride status: ride confirmed!")
@@ -162,7 +162,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
 
                                 RideStatus.ARRIVED.value -> {
                                     viewModelScope.launch {
-                                        _currentHomeState.value = DriverHomeUiState.Arrived(ride)
+                                        handleArrivedState(ride)
                                     }
                                 }
 
@@ -191,22 +191,28 @@ class DriverHomeViewModel @ViewModelInject constructor(
         //_currentHomeState.value = DriverHomeUiState.SettingPlaces
     }
 
+    private suspend fun handleArrivedState(ride: Ride) {
+        val distance =
+            getDrivingDistanceInMeters(driverData!!.pickupLatLng, driverData!!.destinationLatLng) ?: 0.0
+        _currentHomeState.value = DriverHomeUiState.Arrived(ride)
+    }
+
     private suspend fun handleContinueStatus() {
         val distance =
             getDrivingDistanceInMeters(driverData!!.pickupLatLng, driverData!!.destinationLatLng) ?: 0.0
-        _currentHomeState.value = DriverHomeUiState.ContinueRide(distance)
+        _currentHomeState.value = DriverHomeUiState.ContinueRide(distance.toKm())
     }
 
     private suspend fun handlePassengerPickupState(ride: Ride, status: String) {
         val distance =
             getDrivingDistanceInMeters(driverData!!.pickupLatLng, ride.passengerPickupLatLng) ?: 0.0
-        _currentHomeState.value = DriverHomeUiState.PassengerPickUp(ride, distance)
+        _currentHomeState.value = DriverHomeUiState.PassengerPickUp(ride, distance.toKm())
     }
 
     private suspend fun handleEnRouteState(ride: Ride, status: String) {
         val distance =
             getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
-        _currentHomeState.value = DriverHomeUiState.EnRoute(ride, distance)
+        _currentHomeState.value = DriverHomeUiState.EnRoute(ride, distance.toKm())
     }
 
     private fun getDriver() {

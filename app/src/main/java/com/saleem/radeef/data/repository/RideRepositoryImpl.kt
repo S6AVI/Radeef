@@ -5,7 +5,9 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
 import com.saleem.radeef.data.firestore.HiddenRides
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.data.firestore.RideStatus
@@ -64,6 +66,27 @@ class RideRepositoryImpl(
 //        } else {
 //            return UiState.Success(data)
 //        }
+    }
+
+    override fun getDriverRides(result: (UiState<List<Ride>>) -> Unit) {
+        database.collection(FirestoreTables.RIDES)
+            .whereEqualTo("driverId", auth.currentUser?.uid)
+            .whereIn("status", listOf("ARRIVED", "CANCELED")) // Add this line to filter by status
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                Log.d("savii", "success in getRides()")
+                val rides = arrayListOf<Ride>()
+                for (document in querySnapshot) {
+                    val ride = document.toObject(Ride::class.java)
+                    ride.rideID = document.id
+                    rides.add(ride)
+                }
+                result.invoke(UiState.Success(rides))
+            }
+            .addOnFailureListener { exception ->
+                Log.d("savii", "failure in getRides()")
+                result.invoke(UiState.Failure(exception.localizedMessage))
+            }
     }
 
     override fun getAllRidesRequests(result: (UiState<List<Ride>>) -> Unit) {
@@ -188,22 +211,44 @@ class RideRepositoryImpl(
             }
     }
 
+//    override fun getCurrentRide(result: (UiState<Ride?>) -> Unit) {
+////        val defaultTime = Timestamp(Date())
+////        logD("default date: $defaultTime")
+//        database.collection(FirestoreTables.RIDES)
+//            .whereEqualTo("driverId", auth.currentUser!!.uid)
+//            //.whereEqualTo("status", RideStatus.WAITING_FOR_CONFIRMATION)
+//            //.orderBy("startTime", Query.Direction.DESCENDING)
+//            .limit(1)
+//            .addSnapshotListener(MetadataChanges.INCLUDE) { value, error ->
+//                if (error != null) {
+//                    result.invoke(UiState.Failure(error.localizedMessage))
+//                    return@addSnapshotListener
+//                }
+//                val ride = value?.documents?.firstOrNull()?.toObject(Ride::class.java)
+//                logD("get current ride: $ride")
+//                ride?.rideID = value?.documents?.firstOrNull()!!.id
+//                result.invoke(UiState.Success(ride))
+//            }
+//    }
+
     override fun getCurrentRide(result: (UiState<Ride?>) -> Unit) {
-        val defaultTime = Timestamp(Date())
-        logD("default date: $defaultTime")
         database.collection(FirestoreTables.RIDES)
             .whereEqualTo("driverId", auth.currentUser!!.uid)
-            //.whereEqualTo("status", RideStatus.WAITING_FOR_CONFIRMATION)
-            .orderBy("startTime", Query.Direction.DESCENDING)
-            .limit(1)
-            .addSnapshotListener { value, error ->
+            .addSnapshotListener { querySnapshot, error ->
                 if (error != null) {
                     result.invoke(UiState.Failure(error.localizedMessage))
                     return@addSnapshotListener
                 }
-                val ride = value?.documents?.firstOrNull()?.toObject(Ride::class.java)
-                ride?.rideID = value?.documents?.firstOrNull()!!.id
-                result.invoke(UiState.Success(ride))
+
+                val rides = querySnapshot?.documents?.mapNotNull { document ->
+                    document.toObject(Ride::class.java)?.apply {
+                        rideID = document.id
+                    }
+                }
+
+                val currentRide: Ride? = rides?.maxByOrNull { it.startTime }
+
+                result.invoke(UiState.Success(currentRide))
             }
     }
 
@@ -266,6 +311,7 @@ class RideRepositoryImpl(
     }
 
     override fun updateCurrentRideState(ride: Ride, status: String, result: (UiState<String>) -> Unit) {
+        logD("update current ride status: ${ride.status}, $status")
         val rideDocument = database.collection(FirestoreTables.RIDES)
             .document(ride.rideID)
 

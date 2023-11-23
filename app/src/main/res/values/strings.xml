@@ -89,4 +89,5 @@
     <string name="permission_description">Location is needed to use Radeef</string>
     <string name="riyadh_title">Riyadh</string>
     <string name="requests_will_be_displayed_here">Requests will be displayed here</string>
+    <string name="rides_history">Rides History</string>
 </resources>

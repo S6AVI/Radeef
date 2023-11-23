@@ -8,6 +8,9 @@ import androidx.fragment.app.Fragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 import com.saleem.radeef.passenger.ui.map.TAG
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.abs
 
 fun View.hide(){
@@ -62,4 +65,9 @@ fun LatLng.isDefault(): Boolean {
 }
 
 fun Double.toKm() = this / 1000.0
+
+fun Date.formatDate(): String {
+    val format = SimpleDateFormat("EEE MMM dd yyyy HH:mm:ss", Locale.getDefault())
+    return format.format(this)
+}
 

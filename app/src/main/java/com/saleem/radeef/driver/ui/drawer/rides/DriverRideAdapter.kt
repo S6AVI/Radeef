@@ -7,12 +7,16 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.databinding.ItemRideBinding
+import com.saleem.radeef.util.formatCost
+import com.saleem.radeef.util.formatDate
+import com.saleem.radeef.util.logD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-class DriverRideAdapter(val context: Context) : RecyclerView.Adapter<DriverRideAdapter.RideViewHolder>() {
+class DriverRideAdapter(val context: Context) :
+    RecyclerView.Adapter<DriverRideAdapter.RideViewHolder>() {
 
     private var list: MutableList<Ride> = arrayListOf()
 
@@ -55,21 +59,37 @@ class DriverRideAdapter(val context: Context) : RecyclerView.Adapter<DriverRideA
             var destination = ""
             coroutineScope.launch {
                 pickup =
-                    getPickupAddress(item.passengerPickupLocation.latitude, item.passengerPickupLocation.longitude)
+                    getPickupAddress(
+                        item.passengerPickupLocation.latitude,
+                        item.passengerPickupLocation.longitude
+                    )
                 destination =
-                    getPickupAddress(item.passengerDestination.latitude, item.passengerDestination.longitude)
-                binding.pickupTv.text = pickup
-                binding.destinationTv.text = destination
+                    getPickupAddress(
+                        item.passengerDestination.latitude,
+                        item.passengerDestination.longitude
+                    )
+                binding.apply {
+                    pickupTv.text = pickup
+                    destinationTv.text = destination
+                    passengerNameTv.text = item.passengerName
+                    costTv.text = item.chargeAmount.formatCost()
+                    dateTv.text = item.startTime.formatDate()
+                    statusTv.text = item.status
+                }
             }
-
 
 
         }
 
         private suspend fun getPickupAddress(latitude: Double, longitude: Double): String {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-            return addresses?.firstOrNull()?.featureName ?: ""
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                return addresses?.firstOrNull()?.featureName ?: ""
+            } catch (e: Exception) {
+                logD("DriverRideAdapter - getPickupAddress - error: ${e.message}")
+                return ""
+            }
         }
     }
 }
