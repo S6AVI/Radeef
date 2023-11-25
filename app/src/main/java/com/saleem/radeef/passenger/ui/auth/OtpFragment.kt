@@ -5,6 +5,7 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.saleem.radeef.PassengerAuthNavigationDirections
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentOtpBinding
 import com.saleem.radeef.util.UiState
@@ -52,7 +53,7 @@ class OtpFragment : Fragment(R.layout.fragment_otp) {
                     binding.progressBar.hide()
                     toast(state.data)
                     val action =
-                        OtpFragmentDirections.actionOtpFragmentToEnterNameFragment()
+                        PassengerAuthNavigationDirections.actionGlobalPassengerInfoNavigation()
                     findNavController().navigate(action)
                 }
 

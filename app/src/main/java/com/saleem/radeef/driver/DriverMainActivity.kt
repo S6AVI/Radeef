@@ -39,39 +39,6 @@ class DriverMainActivity : AppCompatActivity() {
 
         navController = navHostFragment.findNavController()
 
-//        if (currentPageName == null) {
-////            val navHostFragment =
-////                supportFragmentManager.findFragmentById(R.id.driver_nav_host_fragment) as NavHostFragment
-////
-////            navController = navHostFragment.findNavController()
-//        } else {
-//            logD("RegistrationStatus.valueOf(currentPageName): ${RegistrationStatus.valueOf(currentPageName)}")
-//            val currentScreen = RegistrationStatus.valueOf(currentPageName)
-//            val nextScreen = getNextScreen(currentScreen)
-//            when (nextScreen) {
-//                RegistrationStatus.INFO -> {
-//                    val action = AuthNavigationDirections.actionGlobalInfoNavigation()
-//                    navController.navigate(action)
-//                }
-//
-//                RegistrationStatus.LICENSE -> {
-//                    val action =
-//                        DriverInfoFragmentDirections.actionDriverInfoFragmentToDriverLicenseFragment()
-//                    navController.navigate(R.id.driverLicenseFragment)
-//                }
-//
-//                RegistrationStatus.VEHICLE -> {
-//                    val action =
-//                        DriverLicenseFragmentDirections.actionDriverLicenseFragmentToDriverVehicleFragment()
-//                    navController.navigate(action)
-//                }
-//
-//                RegistrationStatus.COMPLETED -> {
-//
-//                }
-//            }
-//        }
-
     }
 
     private fun getNextScreen(currentPage: RegistrationStatus): RegistrationStatus {

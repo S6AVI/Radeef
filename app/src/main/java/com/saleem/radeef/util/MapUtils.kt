@@ -1,8 +1,26 @@
+import android.location.Geocoder
+import android.util.Log
 import android.view.View
 import android.widget.RelativeLayout
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
+import com.google.maps.DirectionsApi
+import com.google.maps.GeoApiContext
+import com.google.maps.android.PolyUtil
+import com.google.maps.model.TravelMode
+import com.google.maps.model.Unit
+import com.saleem.radeef.R
+import com.saleem.radeef.passenger.ui.map.TAG
+import com.saleem.radeef.util.logD
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.content.Context
 
 fun configureMapSettings(map: GoogleMap) {
     map.uiSettings.apply {
@@ -40,4 +58,11 @@ fun configureLocationButton(mapView: View?) {
         rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE)
         rlp.setMargins(0, 0, 30, 30)
     }
+}
+
+private fun getLatLngFromAddress(address: String, context: Context): LatLng {
+    val geocoder = Geocoder(context)
+    val results = geocoder.getFromLocationName(address, 1)
+    val location = results?.get(0)!!
+    return LatLng(location.latitude, location.longitude)
 }

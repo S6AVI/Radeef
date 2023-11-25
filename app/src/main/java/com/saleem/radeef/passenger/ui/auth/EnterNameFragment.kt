@@ -6,6 +6,7 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.saleem.radeef.PassengerInfoNavigationDirections
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
 import com.saleem.radeef.passenger.ui.map.TAG
@@ -24,7 +25,9 @@ class EnterNameFragment() : Fragment(R.layout.fragment_enter_name) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        checkIfAlreadyHasName()
         binding = FragmentEnterNameBinding.bind(view)
+        binding.root.hide()
 
         binding.continueBt.setOnClickListener {
             val name = binding.nameEt.text?.trim().toString()
@@ -43,7 +46,7 @@ class EnterNameFragment() : Fragment(R.layout.fragment_enter_name) {
                 is UiState.Success -> {
                     binding.progressBar.hide()
                     toast(state.data)
-                    val action = EnterNameFragmentDirections.actionEnterNameFragmentToHomeFragment()
+                    val action = PassengerInfoNavigationDirections.actionGlobalPassengerHomeNavigation()
                     //EnterNameFragmentDirections.actionEnterNameFragmentToRidesFragment()
                     findNavController().navigate(action)
                 }
@@ -61,17 +64,22 @@ class EnterNameFragment() : Fragment(R.layout.fragment_enter_name) {
 
     }
 
-
-    override fun onStart() {
+    private fun checkIfAlreadyHasName() {
         val result = viewModel.alreadyHasName { result ->
             Log.d(TAG, "hasName() -> $result")
             if (result) {
                 Log.d(TAG, "hasName() -> true: skip fragment")
-                val action = EnterNameFragmentDirections.actionEnterNameFragmentToHomeFragment()
+                val action = PassengerInfoNavigationDirections.actionGlobalPassengerHomeNavigation()
                 findNavController().navigate(action)
+            } else {
+                binding.root.show()
             }
-
         }
+    }
+
+
+    override fun onStart() {
+
         super.onStart()
     }
 

@@ -7,98 +7,133 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.map.HomeFragment" >
-
-<!--    <fragment-->
-<!--        android:id="@+id/nav_drawer_fragment"-->
-<!--        android:name="com.saleem.radeef.ui.map.NavigationDrawerFragment"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="8dp"-->
-<!--        android:layout_marginTop="8dp"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
-
-
-    <!--        app:layout_constraintDimensionRatio="5:3.5"-->
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/pickup_il"
-        app:layout_constraintTop_toTopOf="parent"
-        />
+        android:layout_height="match_parent">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/pickup_il"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="64dp"
-        android:layout_marginEnd="32dp"
-        android:hint="Where to go?"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/pickup_et"
-            android:background="@color/md_theme_light_onPrimary"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="none" />
+            android:layout_height="match_parent"
+            tools:context=".ui.map.HomeFragment">
 
-    </com.google.android.material.textfield.TextInputLayout>
-
-<!--    &lt;!&ndash; Destination Text Field &ndash;&gt;-->
-<!--    <com.google.android.material.textfield.TextInputLayout-->
-<!--        android:id="@+id/destination_il"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:backgroundTintMode="screen"-->
-<!--        android:layout_marginTop="4dp"-->
-<!--        android:layout_marginBottom="16dp"-->
-<!--        android:hint="Destination"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="@id/pickup_il"-->
-<!--        app:layout_constraintStart_toStartOf="@id/pickup_il"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/pickup_il">-->
-
-<!--        <com.google.android.material.textfield.TextInputEditText-->
-<!--            android:id="@+id/destination_et"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:inputType="text" />-->
-
-<!--    </com.google.android.material.textfield.TextInputLayout>-->
-
-    <!-- Menu Button for Navigation Drawer -->
-    <ImageButton
-        android:id="@+id/menu_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/menu"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/pickup_il"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
 
+            <ImageButton
+                android:id="@+id/menu_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/menu"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/pickup_il"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="64dp"
+                android:layout_marginEnd="32dp"
+                android:hint="Where to go?"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/pickup_et"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/md_theme_light_onPrimary"
+                    android:inputType="none" />
+
+            </com.google.android.material.textfield.TextInputLayout>
 
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <FrameLayout
+                android:id="@+id/includedParentLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+
+                <include
+                    android:id="@+id/pathDetailsView"
+                    layout="@layout/view_driver_path_details"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <include
+                    android:id="@+id/passengerWaitView"
+                    layout="@layout/view_wait_acceptance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone" />
+
+
+                <include
+                    android:id="@+id/displayOfferView"
+                    layout="@layout/view_display_offer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone" />
+
+
+                <include
+                    android:id="@+id/passengerPickupView"
+                    layout="@layout/view_passenger_pickup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone" />
+
+
+                <include
+                    android:id="@+id/enRouteView"
+                    layout="@layout/view_en_route"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone" />
+
+                <include
+                    android:id="@+id/passengerArrivedView"
+                    layout="@layout/view_passenger_arrived"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="gone" />
+
+
+
+
+
+
+            </FrameLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </FrameLayout>
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigation_view"
@@ -107,7 +142,6 @@
         android:layout_gravity="start"
         app:headerLayout="@layout/navigation_drawer_header"
         app:menu="@menu/navigation_drawer_menu" />
-
 
 
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -5,6 +5,7 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.saleem.radeef.PassengerAuthNavigationDirections
 import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.Passenger
 import com.saleem.radeef.databinding.FragementEnterNumberBinding
@@ -79,71 +80,14 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
         )
     }
 
-//    private val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-//
-//        override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-//
-//            signInWithPhoneAuthCredential(credential)
-//        }
-//
-//        override fun onVerificationFailed(e: FirebaseException) {
-//
-//            if (e is FirebaseAuthInvalidCredentialsException) {
-//                Toast.makeText(requireContext(), "CODE Problem", Toast.LENGTH_LONG).show()
-//                // Invalid request
-//                Log.d("Savi", "firebase invalid")
-//            } else if (e is FirebaseTooManyRequestsException) {
-//                // The SMS quota for the project has been exceeded
-//                Log.d("Savi", "firebase invalid")
-//            }
-//        }
-//
-//        override fun onCodeSent(
-//            verificationId: String,
-//            token: PhoneAuthProvider.ForceResendingToken,
-//        ) {
-//
-//            Toast.makeText(requireContext(), "CODE SENT", Toast.LENGTH_LONG).show()
-////
-//            val action = EnterNumberFragmentDirections.actionEnterNumberFragmentToOtpFragment(
-//                verificationId, phoneNumber
-//            )
-//            findNavController().navigate(action)
-//
-//        }
-//    }
-//
-//    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
-//        auth.signInWithCredential(credential)
-//            .addOnCompleteListener(requireActivity()) { task ->
-//                if (task.isSuccessful) {
-//                    Toast.makeText(requireContext(), "success!", Toast.LENGTH_LONG)
-//
-//                    val user = task.result?.user
-//                } else {
-//
-//                    if (task.exception is FirebaseAuthInvalidCredentialsException) {
-//                    }
-//
-//                }
-//            }
-//    }
 
     override fun onStart() {
         super.onStart()
         if (viewModel.isRegistered()) {
-            val action = EnterNumberFragmentDirections.actionEnterNumberFragmentToHomeFragment()
+            val action = PassengerAuthNavigationDirections.actionGlobalPassengerInfoNavigation()
             findNavController().navigate(action)
         }
 
     }
-//    override fun onStart() {
-//        super.onStart()
-//        if (auth.currentUser != null) {
-//            val action =
-//                EnterNumberFragmentDirections.actionEnterNumberFragmentToEnterNameFragment()
-//            findNavController().navigate(action)
-//        }
-//    }
 
 }

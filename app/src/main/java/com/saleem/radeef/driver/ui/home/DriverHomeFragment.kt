@@ -175,7 +175,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         viewModel.driver.observe(viewLifecycleOwner) { state ->
             when (state) {
                 UiState.Loading -> {
-                    // Show loading progress if needed
                 }
 
                 is UiState.Success -> {
@@ -324,6 +323,10 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         startActivity(intent)
     }
 
+
+    /*
+    handle states section
+     */
     private fun displayDriverPlaces(state: DriverHomeUiState.DisplayDriverPlaces) {
         hideAllViews()
         map.clear()
@@ -585,6 +588,12 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
     }
 
+    /*
+    handle states section
+     */
+
+
+
     private fun drawLine(start: LatLng, end: LatLng, color: Int = R.color.md_theme_light_primary) {
         val context = GeoApiContext.Builder()
             .apiKey(getString(R.string.google_maps_key))
@@ -786,8 +795,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         val results = geocoder.getFromLocationName(address, 1)
         val location = results?.get(0)!!
         return LatLng(location.latitude, location.longitude)
-
-
     }
 
     @SuppressLint("MissingPermission")
@@ -828,52 +835,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
             return ""
         }
     }
-
-    private fun calculateDistance(start: LatLng, end: LatLng): Double {
-
-        val directionsContext = GeoApiContext.Builder()
-            .apiKey(getString(R.string.google_maps_key))
-            .build()
-
-        var distance = 0.0
-        logD("inside calc")
-        logD("start Lat: ${start.latitude}, Lng: ${start.longitude}")
-        logD("end Lat: ${end.latitude}, Lng: ${end.longitude}")
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val directions = DirectionsApi.newRequest(directionsContext)
-                directions.origin(
-                    com.google.maps.model.LatLng(
-                        start.latitude,
-                        start.longitude
-                    )
-                )
-                directions
-                    .destination(
-                        com.google.maps.model.LatLng(
-                            end.latitude,
-                            end.longitude
-                        )
-                    )
-                val result =
-                    directions
-                        .mode(TravelMode.DRIVING)
-                        .units(Unit.METRIC)
-                        .await()
-
-                distance = result.routes[0].legs.sumOf { it.distance.inMeters } / 1000.0
-                logD("distance inside coroutine: $distance")
-                binding.pathDetailsView.distanceTextView.text = distance.toString()
-            } catch (e: Exception) {
-                Log.d(TAG, e.toString())
-                e.printStackTrace()
-            }
-        }
-        logD("distance in helper: $distance")
-
-        return distance
-    }
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

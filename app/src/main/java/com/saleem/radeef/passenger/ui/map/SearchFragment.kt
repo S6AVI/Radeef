@@ -9,6 +9,8 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.maps.model.LatLng
@@ -16,13 +18,21 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.LocationBias
+import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.saleem.radeef.R
+import com.saleem.radeef.data.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
+import com.saleem.radeef.driver.ui.home.DriverHomeViewModel
+import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.logD
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.lang.Math.cos
 
 val TAG = "savii"
@@ -36,7 +46,7 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
     private lateinit var handler: Handler
     private lateinit var runnable: Runnable
     private val DELAY = 1000L
-    val viewModel: MapViewModel by activityViewModels()
+    val viewModel: PassengerHomeViewModel by activityViewModels()
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -46,7 +56,9 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
 
 
 
-        currentLocation = requireArguments().getParcelable("current")!!
+        currentLocation = viewModel.currentLocation!!.latLng!!
+
+        viewModel.pickup = RadeefLocation(currentLocation, title = viewModel.currentLocation!!.title)
 
         Places.initialize(requireContext(), getString(R.string.google_maps_key))
 
@@ -55,13 +67,6 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         // Create a new token for the autocomplete session. Pass this to FindAutocompletePredictionsRequest,
         // and once again when the user makes a selection (for example when calling fetchPlace()).
         token = AutocompleteSessionToken.newInstance()
-
-        // Create a RectangularBounds object.
-        val bounds = RectangularBounds.newInstance(
-            LatLng(-33.880490, 151.184363),
-            LatLng(-33.858754, 151.229596)
-        )
-        // Use the builder to create a FindAutocompletePredictionsRequest.
 
 
         handler = Handler(Looper.getMainLooper())
@@ -112,12 +117,21 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
 
         binding.myLocation.setOnClickListener {
             binding.pickupEt.setText("Current Location")
+            viewModel.pickup = RadeefLocation(currentLocation, title = viewModel.currentLocation!!.title)
         }
 
         binding.searchBtn.setOnClickListener {
-            val action = SearchFragmentDirections.actionSearchFragmentToHomeFragment()
-            findNavController().navigate(action)
+            viewModel.updatePassengerLocations()
         }
+
+        binding.backBtn.setOnClickListener {
+            findNavController().popBackStack()
+        }
+        observer()
+
+//            val action = SearchFragmentDirections.actionSearchFragmentToHomeFragment()
+//            findNavController().navigate(action)
+
     }
 
     private fun updateButton() {
@@ -187,11 +201,83 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         val address = item.getFullText(null)
         if (binding.pickupEt.hasFocus()) {
             binding.pickupEt.setText(address)
-            viewModel.pickup = binding.pickupEt.text.toString()
+            fetchPickupLatLng(placeId = item.placeId, address.toString())
             Log.d(TAG, "in viewmodel ${viewModel.pickup.toString()}")
         } else if (binding.destinationEt.hasFocus()) {
-            binding.destinationEt.setText(item.getFullText(null))
-            viewModel.destination = address.toString()
+            binding.destinationEt.setText(address)
+            fetchDestinationLatLng(placeId = item.placeId, address.toString())
         }
+    }
+
+    private fun observer() {
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            viewModel.homeEvent.collect { event ->
+                when (event) {
+                    is DriverHomeViewModel.HomeEvent.UpdateResult -> {
+                        when (event.state) {
+                            UiState.Loading -> {
+                                logD("loading for results in Passenger SearchFragment - 139")
+                                // Handle loading state if needed
+                            }
+
+                            is UiState.Success -> {
+                                if (event.state.data) {
+                                    logD("Passenger SearchFragment - 142: success: ${event.state.data}")
+                                    findNavController().popBackStack()
+                                }
+                            }
+                            is UiState.Failure -> {
+                                logD("Passenger SearchFragment - 148: failure: ${event.state.error}")
+                                //toast(state.error.toString())
+                            }
+                        }
+                    }
+
+                    else -> {}
+                }
+
+            }
+        }
+    }
+
+    private fun fetchPickupLatLng(placeId: String, address: String) {
+        viewModel.viewModelScope.launch {
+            val pickupLatLng = getLatLngFromPlaceId(placeId)
+            if (pickupLatLng != null) {
+                viewModel.pickup = RadeefLocation(pickupLatLng, address)
+            } else {
+                // Handle error or show a message that the destination details couldn't be retrieved
+            }
+        }
+    }
+
+    private fun fetchDestinationLatLng(placeId: String, address: String) {
+        viewModel.viewModelScope.launch {
+            val destinationLatLng = getLatLngFromPlaceId(placeId)
+            if (destinationLatLng != null) {
+                viewModel.destination = RadeefLocation(destinationLatLng, address)
+            } else {
+                // Handle error or show a message that the destination details couldn't be retrieved
+            }
+        }
+    }
+
+    private suspend fun getLatLngFromPlaceId(placeId: String): LatLng? {
+        try {
+            val placeFields = listOf(Place.Field.LAT_LNG)
+
+            // Build the fetch place request
+            val request = FetchPlaceRequest.newInstance(placeId, placeFields)
+
+            // Fetch the place details
+            val placeResponse = placesClient.fetchPlace(request).await()
+
+            // Retrieve the LatLng from the place response
+            val place = placeResponse.place
+            return place.latLng
+        } catch (e: Exception) {
+            logD("error occurred in getLatLngFromPlaceId: ${e.message}")
+        }
+        return LatLng(.0, .0)
     }
 }

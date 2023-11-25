@@ -49,7 +49,7 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
 
                 Log.d(TAG,"name:$name\nemail:$email\ngender:$gender")
 
-                val passenger = Passenger(name = name, email = email, gender = gender)
+                val passenger = Passenger(name = name, email = email, sex = gender)
                 viewModel.updatePassengerInfo(
                     passenger
                 )
@@ -145,7 +145,7 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
             nameEt.setText(passenger.name)
             phoneEt.setText(passenger.phoneNumber)
             emailEt.setText(passenger.email)
-            genderAutoComplete.setText(passenger.gender)
+            genderAutoComplete.setText(passenger.sex)
         }
     }
 
