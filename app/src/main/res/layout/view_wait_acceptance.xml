@@ -45,9 +45,10 @@
         android:id="@+id/pickupTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:text="Pickup"
-        android:textSize="14sp"
 
+        android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/titleTextView" />
 
@@ -58,7 +59,7 @@
         android:layout_marginTop="8dp"
         android:text="Destination"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/pickupTextView"
         app:layout_constraintTop_toBottomOf="@id/pickupTextView" />
 
     <TextView
@@ -68,7 +69,7 @@
         android:layout_marginTop="8dp"
         android:text="Distance"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/pickupTextView"
         app:layout_constraintTop_toBottomOf="@+id/destinationTextView" />
 
 
@@ -78,7 +79,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="8dp"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/distanceTextView"

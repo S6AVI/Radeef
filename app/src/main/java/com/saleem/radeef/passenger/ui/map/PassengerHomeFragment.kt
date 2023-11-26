@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
@@ -13,6 +14,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -35,11 +38,14 @@ import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentHomeBinding
+import com.saleem.radeef.driver.ui.home.DriverHomeFragmentDirections
 import com.saleem.radeef.passenger.PassengerHomeUiState
 import com.saleem.radeef.util.MIN_UPDATE_DISTANCE_METERS
 import com.saleem.radeef.util.Permissions.hasLocationPermission
 import com.saleem.radeef.util.Permissions.requestLocationPermission
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.formatCost
+import com.saleem.radeef.util.formatDistance
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
@@ -81,11 +87,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         }
 
         setNavigationDrawer()
-
         observer()
-
-
-
     }
 
     private fun observer() {
@@ -98,6 +100,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                 UiState.Loading -> {
 
                 }
+
                 is UiState.Success -> {
 
                     val nameTf = header.findViewById<TextView>(R.id.name_label)
@@ -129,7 +132,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
     private fun observeCurrentHomeState() {
 
-        viewModel.currentHomeState.observe(viewLifecycleOwner) {state ->
+        viewModel.currentHomeState.observe(viewLifecycleOwner) { state ->
             logD("in currentHomeState observer")
             when (state) {
 
@@ -142,16 +145,87 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                     logD("setting places: display passengers places")
                     displayPlaces(state)
                 }
+
+                is PassengerHomeUiState.WaitForDriverAcceptance -> {
+                    waitDriverAcceptance(state)
+                }
+
+                is PassengerHomeUiState.DisplayDriverOffer -> {
+                    displayDriverOffer(state)
+                }
                 is PassengerHomeUiState.Arrived -> TODO()
-                is PassengerHomeUiState.DisplayDriverOffer -> TODO()
+
 
                 is PassengerHomeUiState.EnRoute -> TODO()
                 PassengerHomeUiState.Error -> TODO()
-                PassengerHomeUiState.Loading -> TODO()
-                is PassengerHomeUiState.PassengerPickUp -> TODO()
+                PassengerHomeUiState.Loading -> {
+                    hideAllViews()
+                    binding.loadingView.viewLoadingLayout.show()
+                }
+                is PassengerHomeUiState.PassengerPickUp -> {
+                    passengerPickup(state)
+                }
 
-                is PassengerHomeUiState.WaitForDriverAcceptance -> TODO()
+
             }
+        }
+    }
+
+    private fun passengerPickup(state: PassengerHomeUiState.PassengerPickUp) {
+        hideAllViews()
+        map.clear()
+        binding.passengerPickupView.apply {
+            passengerPickupLayout.show()
+        }
+        toast("in passenger pickup state!")
+    }
+
+    private fun displayDriverOffer(state: PassengerHomeUiState.DisplayDriverOffer) {
+        binding.loadingView.viewLoadingLayout.show()
+        val ride = state.ride
+        val driver = state.driver
+        val vehicle = state.vehicle
+        drawLine(ride.passengerPickupLatLng, ride.passengerDestLatLng)
+        binding.displayOfferView.apply {
+            loadImage(driver.personalPhotoUrl, driverImageView)
+            hideButton.setText(getString(R.string.cancel_label))
+            acceptButton.setText(getString(R.string.confrim_lable))
+            nameTextView.text = driver.name
+            carTextView.text = getString(R.string.vehicle_make_model, vehicle.make, vehicle.model)
+            plateTextView.text = vehicle.plateNumber
+            pickupTextView.text = getAddressFromLatLng(ride.passengerPickupLatLng)
+            destinationTextView.text = getAddressFromLatLng(ride.passengerDestLatLng)
+            distanceTextView.text = state.distance.formatDistance()
+            costTextView.text = ride.chargeAmount.formatCost()
+            hideAllViews()
+            displayOfferLayout.show()
+        }
+        logD("ride:${state.ride}\ndriver:${state.driver}\n${state.vehicle}")
+
+        binding.displayOfferView.acceptButton.setOnClickListener {
+            viewModel.onConfirmButtonClicked(ride)
+            logD("confirm button clicked")
+        }
+        binding.displayOfferView.hideButton.setOnClickListener {
+            viewModel.onCancelButtonClicked(ride)
+            logD("cancel button clicked")
+        }
+    }
+
+    private fun waitDriverAcceptance(state: PassengerHomeUiState.WaitForDriverAcceptance) {
+        hideAllViews()
+        val ride = state.ride
+        drawLine(ride.passengerPickupLatLng, ride.passengerDestLatLng)
+        binding.passengerWaitView.apply {
+            pickupTextView.text = getAddressFromLatLng(ride.passengerPickupLatLng)
+            destinationTextView.text = getAddressFromLatLng(ride.passengerDestLatLng)
+            distanceTextView.text = state.distance.formatDistance()
+            passengerWaitLayout.show()
+        }
+
+        binding.passengerWaitView.cancelButton.setOnClickListener {
+            toast("cancel button clicked")
+            viewModel.onCancelButtonClicked(ride)
         }
     }
 
@@ -160,6 +234,24 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         map.clear()
         drawLine(state.pickupLatLng, state.destinationLatLng)
 
+        binding.pathDetailsView.apply {
+            pickupTitleTextView.text = getAddressFromLatLng(state.pickupLatLng)
+            destinationTitleTextView.text = getAddressFromLatLng(state.destinationLatLng)
+            distanceTextView.text = state.distance.formatDistance()
+        }
+        binding.pathDetailsView.pathDetailsLayout.show()
+
+        binding.pathDetailsView.changeDestinationTextView.setText("change places")
+        binding.pathDetailsView.changeDestinationTextView.setOnClickListener {
+            val action =
+                PassengerHomeFragmentDirections.actionHomeFragmentToSearchFragment()
+            findNavController().navigate(action)
+        }
+
+        binding.pathDetailsView.searchButton.setOnClickListener {
+            logD("search button clicked!")
+            viewModel.onSearchButtonClicked(state)
+        }
     }
 
     private fun setNavigationDrawer() {
@@ -169,17 +261,20 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_item_profile -> {
-                    val action = PassengerHomeFragmentDirections.actionHomeFragmentToProfileFragment2()
+                    val action =
+                        PassengerHomeFragmentDirections.actionHomeFragmentToProfileFragment2()
                     findNavController().navigate(action)
                 }
 
                 R.id.nav_item_wallet -> {
-                    val action = PassengerHomeFragmentDirections.actionHomeFragmentToWalletFragment2()
+                    val action =
+                        PassengerHomeFragmentDirections.actionHomeFragmentToWalletFragment2()
                     findNavController().navigate(action)
                 }
 
                 R.id.nav_item_payment -> {
-                    val action = PassengerHomeFragmentDirections.actionHomeFragmentToPaymentFragment2()
+                    val action =
+                        PassengerHomeFragmentDirections.actionHomeFragmentToPaymentFragment2()
                     findNavController().navigate(action)
                 }
 
@@ -218,70 +313,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         setCameraBoundsAndZoom(map, saudiArabiaBounds)
 
         map.setOnMyLocationButtonClickListener(this)
-
-        val riyadh = LatLng(24.7136, 46.6753)
-
-//        val saudiArabiaBounds = LatLngBounds(
-//            LatLng(16.0, 34.0), // Southwest corner
-//            LatLng(33.0, 56.0)  // Northeast corner
-//        )
-//
-//        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-//        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
-//            if (location != null) {
-//                // Animate the camera to the user's current location
-//                currentLocation = LatLng(location.latitude, location.longitude)
-//                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15f))
-//            } else {
-//                // If the user's location is not available, animate the camera to Riyadh
-//                map.animateCamera(CameraUpdateFactory.newLatLngZoom(riyadh, 15f))
-//            }
-//        }
-//
-//        map.addMarker(MarkerOptions().position(riyadh).title("Riyadh"))
-//        map.animateCamera(CameraUpdateFactory.newLatLng(riyadh))
-//        map.isMyLocationEnabled = true
-//
-//        // place my-location button on bottom-right-corner
-//        val locationButton =
-//            (this.view?.findViewById<View>(Integer.parseInt("1"))?.parent as View).findViewById<View>(
-//                Integer.parseInt("2")
-//            )
-//        val rlp = locationButton.getLayoutParams() as RelativeLayout.LayoutParams
-//        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0)
-//        rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE)
-//        rlp.setMargins(0, 0, 30, 30)
-//
-////        map.setPadding(0, 1000, 0, 0)
-//        map.uiSettings.apply {
-//            isZoomControlsEnabled = true
-//            isZoomGesturesEnabled = true
-//            isRotateGesturesEnabled = true
-//            isTiltGesturesEnabled = false
-//            isCompassEnabled = false
-//            isScrollGesturesEnabled = true
-//            isMyLocationButtonEnabled = true
-//        }
-//        map.setLatLngBoundsForCameraTarget(saudiArabiaBounds)
-//        map.setMinZoomPreference(8f)
-//        map.setMaxZoomPreference(15f)
-//        map.setOnMyLocationButtonClickListener(this)
-//
-//
-////        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-////        val lat = fusedLocationProviderClient.lastLocation.getResult().latitude
-////        val lng = fusedLocationProviderClient.lastLocation.getResult().latitude
-////        map.addMarker(MarkerOptions().position(LatLng(lat, lng)))
-
-
-
-//        Log.d(TAG, viewModel.pickup.toString())
-//        if (viewModel.pickup != null && viewModel.destination != null) {
-//            val pickupLatLng = getLatLngFromAddress(viewModel.pickup!!)
-//            val destinationLatLng = getLatLngFromAddress(viewModel.destination!!)
-//            drawLineOnMap(pickupLatLng, destinationLatLng)
-//        }
-
     }
 
     @SuppressLint("MissingPermission")
@@ -303,9 +334,12 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                     val longitude = lastLocation.longitude
 
                     //viewModel.updateLocation(lastLocation.toLatLng())
-                    val newLocation  = lastLocation.toLatLng()
+                    val newLocation = lastLocation.toLatLng()
 
-                    viewModel.setPassengerCurrentLocation(newLocation, getAddressFromLatLng(newLocation))
+                    viewModel.setPassengerCurrentLocation(
+                        newLocation,
+                        getAddressFromLatLng(newLocation)
+                    )
                     logD("New current location: $latitude, $longitude")
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 15f))
                 } else {
@@ -432,13 +466,12 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         return false
     }
 
-    private fun loadImage(uri: String) {
-//        Glide.with(requireContext())
-//            .load(uri)
-//            .diskCacheStrategy(DiskCacheStrategy.NONE)
-//            .skipMemoryCache(true)
-//            .into(header.findViewById(R.id.profile_image))
-        TODO("load image;")
+    private fun loadImage(uri: String, view: ImageView) {
+        Glide.with(requireContext())
+            .load(uri)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+            .into(view)
     }
 
     override fun onRequestPermissionsResult(
@@ -466,13 +499,13 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
     private fun hideAllViews() {
         binding.apply {
-//            pathDetailsView.pathDetailsLayout.hide()
-//            ridesRequestView.ridesRequestLayout.hide()
-//            waitingPassengerView.waitingPassengerLayout.hide()
-//            passengerPickupView.passengerPickupLayout.hide()
-//            enRouteView.enRouteLayout.hide()
-//            passengerArrivedView.passengerArrivedLayout.hide()
-//            continueRideView.continueRideLayout.hide()
+            pathDetailsView.pathDetailsLayout.hide()
+            passengerWaitView.passengerWaitLayout.hide()
+            displayOfferView.displayOfferLayout.hide()
+            passengerPickupView.passengerPickupLayout.hide()
+            enRouteView.enRouteLayout.hide()
+            passengerArrivedView.passengerArrivedLayout.hide()
+            loadingView.viewLoadingLayout.hide()
             pickupIl.hide()
         }
     }

@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".passenger.ui.map.PassengerHomeFragment">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -19,10 +20,10 @@
             <fragment
                 android:id="@+id/map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/pickup_il"
+                app:layout_constraintBottom_toTopOf="@id/includedParentLayout"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -48,6 +49,7 @@
                 android:layout_marginTop="64dp"
                 android:layout_marginEnd="32dp"
                 android:hint="Where to go?"
+                android:visibility="invisible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
@@ -79,7 +81,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
-                    tools:visibility="visible" />
+                    tools:visibility="gone" />
 
                 <include
                     android:id="@+id/passengerWaitView"
@@ -123,6 +125,14 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     tools:visibility="gone" />
+
+                <include
+                    android:id="@+id/loadingView"
+                    layout="@layout/view_loading_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
 
 

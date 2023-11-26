@@ -273,6 +273,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
 
 
     fun updateDriverLocations() {
+        _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
             //updateResultChannel.send(UiState.Loading)
             homeEventChannel.send(HomeEvent.UpdateResult(UiState.Loading))
@@ -282,6 +283,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
                     logD("viewModel: update destination - 78: $result")
                     viewModelScope.launch {
                         homeEventChannel.send(HomeEvent.UpdateResult(result))
+                        setHomeUiState(driverData!!.status)
                     }
                 }
             } else {

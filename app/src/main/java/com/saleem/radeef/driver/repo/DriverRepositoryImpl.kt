@@ -15,6 +15,7 @@ import com.google.firebase.storage.StorageReference
 import com.saleem.radeef.data.RadeefLocation
 
 import com.saleem.radeef.data.firestore.driver.Driver
+import com.saleem.radeef.data.firestore.driver.DriverWithVehicle
 import com.saleem.radeef.data.firestore.driver.License
 import com.saleem.radeef.data.firestore.driver.UserStatus
 import com.saleem.radeef.data.firestore.driver.Vehicle
@@ -314,6 +315,48 @@ class DriverRepositoryImpl(
                 .addOnFailureListener { exception ->
                     result.invoke(UiState.Failure(exception.message))
                 }
+    }
+
+    override fun getDriver(id: String, result: (UiState<DriverWithVehicle?>) -> Unit) {
+        val driverDocumentRef = database.collection(FirestoreTables.DRIVERS).document(id)
+
+        driverDocumentRef.addSnapshotListener { driverSnapshot, exception ->
+            if (exception != null) {
+                result.invoke(UiState.Failure("Failed to fetch driver data: ${exception.localizedMessage}"))
+                return@addSnapshotListener
+            }
+
+            if (driverSnapshot != null && driverSnapshot.exists()) {
+                val driver = driverSnapshot.toObject(Driver::class.java)
+
+                if (driver != null) {
+                    val vehicleQuery = database.collection(FirestoreTables.VEHICLES)
+                        .whereEqualTo("driverID", driver.driverID)
+                        .limit(1)
+
+                    vehicleQuery.get()
+                        .addOnSuccessListener { vehicleQuerySnapshot ->
+                            if (!vehicleQuerySnapshot.isEmpty) {
+                                val vehicleSnapshot = vehicleQuerySnapshot.documents[0]
+                                val vehicle = vehicleSnapshot.toObject(Vehicle::class.java)
+
+                                val driverWithVehicle = DriverWithVehicle(driver, vehicle)
+                                result.invoke(UiState.Success(driverWithVehicle))
+                            } else {
+                                val driverWithVehicle = DriverWithVehicle(driver, null)
+                                result.invoke(UiState.Success(driverWithVehicle))
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            result.invoke(UiState.Failure("Failed to fetch vehicle data: ${exception.localizedMessage}"))
+                        }
+                } else {
+                    result.invoke(UiState.Failure("Driver is null"))
+                }
+            } else {
+                result.invoke(UiState.Failure("Driver document not found"))
+            }
+        }
     }
 
 

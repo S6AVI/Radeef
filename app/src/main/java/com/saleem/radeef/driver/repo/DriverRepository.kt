@@ -6,6 +6,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.saleem.radeef.data.RadeefLocation
 
 import com.saleem.radeef.data.firestore.driver.Driver
+import com.saleem.radeef.data.firestore.driver.DriverWithVehicle
 import com.saleem.radeef.data.firestore.driver.License
 import com.saleem.radeef.data.firestore.driver.Vehicle
 import com.saleem.radeef.util.UiState
@@ -56,5 +57,6 @@ interface DriverRepository {
     fun updateDriverCurrentLocation(pickup: LatLng, result: (UiState<Boolean>) -> Unit)
 
     fun updateDriverDestination(destination: LatLng, result: (UiState<Boolean>) -> Unit)
+    fun getDriver(id: String, result: (UiState<DriverWithVehicle?>) -> Unit)
 
 }

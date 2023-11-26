@@ -3,6 +3,7 @@ package com.saleem.radeef.passenger
 import com.google.android.gms.maps.model.LatLng
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.data.firestore.driver.Driver
+import com.saleem.radeef.data.firestore.driver.Vehicle
 
 
 sealed interface PassengerHomeUiState {
@@ -16,14 +17,13 @@ sealed interface PassengerHomeUiState {
 
     data class WaitForDriverAcceptance(
         val ride: Ride,
-        val passengerPickupLatLng: LatLng,
-        val passengerDestinationLatLng: LatLng,
         val distance: Double,
     ) : PassengerHomeUiState
 
     data class DisplayDriverOffer(
         val ride: Ride,
         val driver: Driver,
+        val vehicle: Vehicle,
         val distance: Double,
     ) : PassengerHomeUiState
 
@@ -31,6 +31,7 @@ sealed interface PassengerHomeUiState {
     data class PassengerPickUp(
         val ride: Ride,
         val driver: Driver,
+        val vehicle: Vehicle,
         val distance: Double,
 
     ) : PassengerHomeUiState

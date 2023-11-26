@@ -90,4 +90,8 @@
     <string name="riyadh_title">Riyadh</string>
     <string name="requests_will_be_displayed_here">Requests will be displayed here</string>
     <string name="rides_history">Rides History</string>
+    <string name="cancel_label">CANCEL</string>
+
+    <string name="vehicle_make_model">%1$s | %2$s</string>
+    <string name="confrim_lable">CONFIRM</string>
 </resources>

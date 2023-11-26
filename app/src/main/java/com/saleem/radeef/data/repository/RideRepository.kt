@@ -25,4 +25,8 @@ interface RideRepository {
     fun cancelRide(ride: Ride, result: (UiState<String>) -> Unit)
 
     fun updateCurrentRideState(ride: Ride, status: String, result: (UiState<String>) -> Unit)
+    fun getPassengerCurrentRide(result: (UiState<Ride?>) -> Unit)
+    fun cancelPassengerRide(ride: Ride, result: (UiState<String>) -> Unit)
+    fun confirmRide(ride: Ride, result: (UiState<String>) -> Unit)
+
 }

@@ -21,16 +21,20 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.DirectionsApi
 import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
+import com.saleem.radeef.data.firestore.Ride
+import com.saleem.radeef.data.firestore.RideStatus
 import com.saleem.radeef.driver.DriverHomeUiState
 import com.saleem.radeef.passenger.PassengerHomeUiState
 import com.saleem.radeef.util.PassengerStatus
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.formatDistance
 import com.saleem.radeef.util.isDefault
+import com.saleem.radeef.util.toGeoPoint
 import com.saleem.radeef.util.toKm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.lang.Exception
+import java.util.Date
 
 class PassengerHomeViewModel @ViewModelInject constructor(
     val repository: CloudRepository,
@@ -137,10 +141,88 @@ class PassengerHomeViewModel @ViewModelInject constructor(
             }
 
             else -> {
+                ridesRepo.getPassengerCurrentRide { result ->
+                    if (result is UiState.Success) {
+                        if (result.data != null) {
+                            val ride = result.data
+                            when (ride.status) {
+                                RideStatus.SEARCHING_FOR_DRIVER.value -> {
+                                    viewModelScope.launch {
+                                        handleSearchingState(ride)
+                                    }
+                                }
 
+                                RideStatus.WAITING_FOR_CONFIRMATION.value -> {
+                                    viewModelScope.launch {
+                                        handleWaitingForConfirmationStatus(ride)
+                                    }
+                                }
+
+                                RideStatus.PASSENGER_PICK_UP.value -> {
+                                    viewModelScope.launch {
+                                        handlePassengerPickup(ride)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+
+    private suspend fun handlePassengerPickup(ride: Ride) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
+        viewModelScope.launch {
+            driverRepo.getDriver(ride.driverId) { result ->
+                if (result is UiState.Success) {
+                    val data = result.data!!
+                    viewModelScope.launch {
+                        val distance =
+                            getDrivingDistanceInMeters(
+                                data.driver!!.pickupLatLng,
+                                ride.passengerPickupLatLng
+                            ) ?: 0.0
+                        _currentHomeState.value = PassengerHomeUiState.PassengerPickUp(
+                            ride = ride,
+                            driver = data.driver,
+                            vehicle = data.vehicle!!,
+                            distance = distance.toKm()
+                        )
+                    }
+
+                }
+            }
+        }
+    }
+
+    private suspend fun handleSearchingState(ride: Ride) {
+        val distance =
+            getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
+        _currentHomeState.value = PassengerHomeUiState.WaitForDriverAcceptance(
+            ride = ride,
+            distance = distance.toKm()
+        )
+    }
+
+    private suspend fun handleWaitingForConfirmationStatus(ride: Ride) {
+        val distance =
+            getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
+        viewModelScope.launch {
+            driverRepo.getDriver(ride.driverId) { result ->
+                if (result is UiState.Success) {
+                    val data = result.data!!
+                    _currentHomeState.value = PassengerHomeUiState.DisplayDriverOffer(
+                        ride = ride,
+                        driver = data.driver!!,
+                        vehicle = data.vehicle!!,
+                        distance = distance.toKm()
+                    )
+                }
+            }
+        }
+    }
+
 
     private suspend fun handleDisplayPlacesState(data: Passenger) {
         val distance = getDrivingDistanceInMeters(data.pickupLatLng, data.destinationLatLng) ?: 0.0
@@ -148,6 +230,30 @@ class PassengerHomeViewModel @ViewModelInject constructor(
             pickupLatLng = data.pickupLatLng,
             destinationLatLng = data.destinationLatLng,
             distance = distance.toKm()
+        )
+    }
+
+
+    fun onSearchButtonClicked(state: PassengerHomeUiState.DisplayPassengerPlaces) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
+        val ride = createNewRide(state)
+        viewModelScope.launch {
+            ridesRepo.addRide(ride) { result ->
+                if (result is UiState.Success) {
+
+                }
+            }
+        }
+    }
+
+    private fun createNewRide(state: PassengerHomeUiState.DisplayPassengerPlaces): Ride {
+        return Ride(
+            passengerPickupLocation = state.pickupLatLng.toGeoPoint(),
+            passengerDestination = state.destinationLatLng.toGeoPoint(),
+            startTime = Date(),
+            passengerID = passengerData!!.passengerID,
+            passengerName = passengerData!!.name,
+            status = RideStatus.SEARCHING_FOR_DRIVER.value,
         )
     }
 
@@ -176,6 +282,24 @@ class PassengerHomeViewModel @ViewModelInject constructor(
                 e.printStackTrace()
                 logD("error in calc distance: ${e.message}")
                 null
+            }
+        }
+    }
+
+    fun onCancelButtonClicked(ride: Ride) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
+        viewModelScope.launch {
+            ridesRepo.cancelPassengerRide(ride) {
+
+            }
+        }
+    }
+
+    fun onConfirmButtonClicked(ride: Ride) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
+        viewModelScope.launch {
+            ridesRepo.confirmRide(ride) {
+
             }
         }
     }
