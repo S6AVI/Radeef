@@ -59,4 +59,6 @@ interface DriverRepository {
     fun updateDriverDestination(destination: LatLng, result: (UiState<Boolean>) -> Unit)
     fun getDriver(id: String, result: (UiState<DriverWithVehicle?>) -> Unit)
 
+    fun getDriverWhenArrived(id: String, result: (UiState<DriverWithVehicle?>) -> Unit)
+
 }

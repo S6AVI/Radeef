@@ -100,6 +100,20 @@ class CloudRepositoryImpl(
         }
     }
 
+    override fun updatePassengerState(status: String, result: (UiState<String>) -> Unit) {
+
+        val passengerId = auth.currentUser?.uid!!
+        val passengerDocumentRef = database.collection(FirestoreTables.PASSENGERS).document(passengerId)
+
+        passengerDocumentRef.update("status", status)
+            .addOnSuccessListener {
+                result(UiState.Success(status))
+            }
+            .addOnFailureListener { exception ->
+                result(UiState.Failure("Failed to update passenger state: ${exception.localizedMessage}"))
+            }
+    }
+
     override fun updatePassengerLocations(pickup: LatLng, destination: LatLng, result: (UiState<Boolean>) -> Unit) {
         val data = mapOf(
             "pickup" to pickup.toGeoPoint(),

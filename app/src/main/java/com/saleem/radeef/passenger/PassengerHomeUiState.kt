@@ -34,18 +34,21 @@ sealed interface PassengerHomeUiState {
         val vehicle: Vehicle,
         val distance: Double,
 
-    ) : PassengerHomeUiState
+        ) : PassengerHomeUiState
 
     data class EnRoute(
         val ride: Ride,
         val distance: Double,
-        val driver: Driver
+        val driver: Driver,
+        val vehicle: Vehicle
 
     ) : PassengerHomeUiState
 
     data class Arrived(
         val ride: Ride,
-        val driver: Driver
+        val driver: Driver,
+        val distance: Double,
+        val vehicle: Vehicle
     ) : PassengerHomeUiState
 
     object Error : PassengerHomeUiState

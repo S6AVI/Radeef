@@ -14,4 +14,5 @@ interface CloudRepository {
 
     fun getPassenger(result: (UiState<Passenger>) -> Unit)
     fun updatePassengerLocations(pickup: LatLng, destination: LatLng, result: (UiState<Boolean>) -> Unit)
+    fun updatePassengerState(status: String, result: (UiState<String>) -> Unit)
 }

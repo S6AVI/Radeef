@@ -23,11 +23,9 @@ import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.data.firestore.RideStatus
-import com.saleem.radeef.driver.DriverHomeUiState
+import com.saleem.radeef.data.firestore.driver.DriverWithVehicle
 import com.saleem.radeef.passenger.PassengerHomeUiState
 import com.saleem.radeef.util.PassengerStatus
-import com.saleem.radeef.util.exhaustive
-import com.saleem.radeef.util.formatDistance
 import com.saleem.radeef.util.isDefault
 import com.saleem.radeef.util.toGeoPoint
 import com.saleem.radeef.util.toKm
@@ -145,24 +143,41 @@ class PassengerHomeViewModel @ViewModelInject constructor(
                     if (result is UiState.Success) {
                         if (result.data != null) {
                             val ride = result.data
+                            logD("ride status: ${ride.status}")
                             when (ride.status) {
                                 RideStatus.SEARCHING_FOR_DRIVER.value -> {
                                     viewModelScope.launch {
+                                        logD("ride status: SEARCHING")
                                         handleSearchingState(ride)
                                     }
                                 }
 
                                 RideStatus.WAITING_FOR_CONFIRMATION.value -> {
                                     viewModelScope.launch {
+                                        logD("ride status: wait")
                                         handleWaitingForConfirmationStatus(ride)
                                     }
                                 }
 
                                 RideStatus.PASSENGER_PICK_UP.value -> {
                                     viewModelScope.launch {
-                                        handlePassengerPickup(ride)
+                                        logD("ride status: pickup")
+                                        handleInRideStates(ride)
                                     }
                                 }
+
+                                RideStatus.EN_ROUTE.value -> {
+                                    viewModelScope.launch {
+                                        logD("ride status: en_route")
+                                        handleInRideStates(ride)
+                                    }
+                                }
+
+                                RideStatus.ARRIVED.value -> {
+                                    logD("arrived!")
+                                    handleArrivedState(ride)
+                                }
+
                             }
                         }
                     }
@@ -171,34 +186,91 @@ class PassengerHomeViewModel @ViewModelInject constructor(
         }
     }
 
-    private suspend fun handlePassengerPickup(ride: Ride) {
+    private fun handleArrivedState(ride: Ride) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
+        viewModelScope.launch {
+            driverRepo.getDriverWhenArrived(ride.driverId) { result ->
+                if (result is UiState.Success) {
+                    val data = result.data!!
+                    viewModelScope.launch {
+                        val distance =
+                            getDrivingDistanceInMeters(
+                                ride.passengerPickupLatLng,
+                                ride.passengerDestLatLng
+                            ) ?: 0.0
+                        _currentHomeState.value = PassengerHomeUiState.Arrived(
+                            ride = ride,
+                            driver = data.driver!!,
+                            vehicle = data.vehicle!!,
+                            distance = distance.toKm()
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleInRideStates(ride: Ride) {
         _currentHomeState.value = PassengerHomeUiState.Loading
         viewModelScope.launch {
             driverRepo.getDriver(ride.driverId) { result ->
                 if (result is UiState.Success) {
                     val data = result.data!!
                     viewModelScope.launch {
-                        val distance =
-                            getDrivingDistanceInMeters(
-                                data.driver!!.pickupLatLng,
-                                ride.passengerPickupLatLng
-                            ) ?: 0.0
-                        _currentHomeState.value = PassengerHomeUiState.PassengerPickUp(
-                            ride = ride,
-                            driver = data.driver,
-                            vehicle = data.vehicle!!,
-                            distance = distance.toKm()
-                        )
-                    }
+                        when (ride.status) {
+                            RideStatus.PASSENGER_PICK_UP.value -> {
+                                logD("handle in_ride states: ${ride.status}")
+                                handlePassengerPickup(ride, data)
+                            }
 
+                            RideStatus.EN_ROUTE.value -> {
+                                logD("handle in_ride states: ${ride.status}")
+                                handleEnRoute(ride, data)
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
+    private suspend fun handlePassengerPickup(ride: Ride, data: DriverWithVehicle) {
+        viewModelScope.launch {
+            val distance =
+                getDrivingDistanceInMeters(
+                    data.driver!!.pickupLatLng,
+                    ride.passengerPickupLatLng
+                ) ?: 0.0
+            _currentHomeState.value = PassengerHomeUiState.PassengerPickUp(
+                ride = ride,
+                driver = data.driver,
+                vehicle = data.vehicle!!,
+                distance = distance.toKm()
+            )
+        }
+    }
+
+    private suspend fun handleEnRoute(ride: Ride, data: DriverWithVehicle) {
+        viewModelScope.launch {
+            val distance =
+                getDrivingDistanceInMeters(
+                    data.driver!!.pickupLatLng,
+                    ride.passengerDestLatLng
+                ) ?: 0.0
+            _currentHomeState.value = PassengerHomeUiState.EnRoute(
+                ride = ride,
+                driver = data.driver,
+                vehicle = data.vehicle!!,
+                distance = distance.toKm()
+            )
+        }
+    }
+
+
     private suspend fun handleSearchingState(ride: Ride) {
         val distance =
-            getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
+            getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng)
+                ?: 0.0
         _currentHomeState.value = PassengerHomeUiState.WaitForDriverAcceptance(
             ride = ride,
             distance = distance.toKm()
@@ -207,7 +279,8 @@ class PassengerHomeViewModel @ViewModelInject constructor(
 
     private suspend fun handleWaitingForConfirmationStatus(ride: Ride) {
         val distance =
-            getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
+            getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng)
+                ?: 0.0
         viewModelScope.launch {
             driverRepo.getDriver(ride.driverId) { result ->
                 if (result is UiState.Success) {
@@ -225,7 +298,8 @@ class PassengerHomeViewModel @ViewModelInject constructor(
 
 
     private suspend fun handleDisplayPlacesState(data: Passenger) {
-        val distance = getDrivingDistanceInMeters(data.pickupLatLng, data.destinationLatLng) ?: 0.0
+        val distance =
+            getDrivingDistanceInMeters(data.pickupLatLng, data.destinationLatLng) ?: 0.0
         _currentHomeState.value = PassengerHomeUiState.DisplayPassengerPlaces(
             pickupLatLng = data.pickupLatLng,
             destinationLatLng = data.destinationLatLng,
@@ -257,7 +331,10 @@ class PassengerHomeViewModel @ViewModelInject constructor(
         )
     }
 
-    private suspend fun getDrivingDistanceInMeters(origin: LatLng, destination: LatLng): Double? {
+    private suspend fun getDrivingDistanceInMeters(
+        origin: LatLng,
+        destination: LatLng
+    ): Double? {
         logD("origin: $origin")
         logD("dest: $destination")
         return withContext(Dispatchers.IO) {
@@ -303,5 +380,15 @@ class PassengerHomeViewModel @ViewModelInject constructor(
             }
         }
     }
+
+    fun onDoneButtonClicked() {
+        _currentHomeState.value = PassengerHomeUiState.Loading
+        viewModelScope.launch {
+            repository.updatePassengerState(PassengerStatus.INACTIVE.value) {
+
+            }
+        }
+    }
+
 
 }

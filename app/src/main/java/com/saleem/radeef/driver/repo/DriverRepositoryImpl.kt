@@ -359,6 +359,47 @@ class DriverRepositoryImpl(
         }
     }
 
+    override fun getDriverWhenArrived(id: String, result: (UiState<DriverWithVehicle?>) -> Unit) {
+        val driverDocumentRef = database.collection(FirestoreTables.DRIVERS).document(id)
+
+        driverDocumentRef.get()
+            .addOnSuccessListener { driverSnapshot ->
+                if (driverSnapshot.exists()) {
+                    val driver = driverSnapshot.toObject(Driver::class.java)
+
+                    if (driver != null) {
+                        val vehicleQuery = database.collection(FirestoreTables.VEHICLES)
+                            .whereEqualTo("driverID", driver.driverID)
+                            .limit(1)
+
+                        vehicleQuery.get()
+                            .addOnSuccessListener { vehicleQuerySnapshot ->
+                                if (!vehicleQuerySnapshot.isEmpty) {
+                                    val vehicleSnapshot = vehicleQuerySnapshot.documents[0]
+                                    val vehicle = vehicleSnapshot.toObject(Vehicle::class.java)
+
+                                    val driverWithVehicle = DriverWithVehicle(driver, vehicle)
+                                    result.invoke(UiState.Success(driverWithVehicle))
+                                } else {
+                                    val driverWithVehicle = DriverWithVehicle(driver, null)
+                                    result.invoke(UiState.Success(driverWithVehicle))
+                                }
+                            }
+                            .addOnFailureListener { exception ->
+                                result.invoke(UiState.Failure("Failed to fetch vehicle data: ${exception.localizedMessage}"))
+                            }
+                    } else {
+                        result.invoke(UiState.Failure("Driver is null"))
+                    }
+                } else {
+                    result.invoke(UiState.Failure("Driver document not found"))
+                }
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(UiState.Failure("Failed to fetch driver data: ${exception.localizedMessage}"))
+            }
+    }
+
 
     override fun getVehicle(result: (UiState<Vehicle>) -> Unit) {
         database.collection(FirestoreTables.VEHICLES)

@@ -1,7 +1,9 @@
 package com.saleem.radeef.passenger.ui.map
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.location.Geocoder
+import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -9,6 +11,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -26,6 +29,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
@@ -153,31 +157,112 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                 is PassengerHomeUiState.DisplayDriverOffer -> {
                     displayDriverOffer(state)
                 }
-                is PassengerHomeUiState.Arrived -> TODO()
 
 
-                is PassengerHomeUiState.EnRoute -> TODO()
+                is PassengerHomeUiState.EnRoute -> {
+                    enRoute(state)
+                }
+
+                is PassengerHomeUiState.Arrived -> {
+                    arrived(state)
+                }
+
                 PassengerHomeUiState.Error -> TODO()
                 PassengerHomeUiState.Loading -> {
                     hideAllViews()
                     binding.loadingView.viewLoadingLayout.show()
                 }
+
                 is PassengerHomeUiState.PassengerPickUp -> {
                     passengerPickup(state)
                 }
-
-
             }
+        }
+    }
+
+    private fun arrived(state: PassengerHomeUiState.Arrived) {
+        hideAllViews()
+        map.clear()
+        val ride = state.ride
+        val driver = state.driver
+        val vehicle = state.vehicle
+        logD("in arrived state!")
+        binding.passengerArrivedView.apply {
+            loadImage(driver.personalPhotoUrl, driverImageView)
+            driverNameTextView.text = driver.name
+            costTextView.text = ride.chargeAmount.formatCost()
+            passengerArrivedLayout.show()
+        }
+
+        binding.passengerArrivedView.doneButton.setOnClickListener {
+            viewModel.onDoneButtonClicked()
+        }
+    }
+
+    private fun enRoute(state: PassengerHomeUiState.EnRoute) {
+        hideAllViews()
+        map.clear()
+        val ride = state.ride
+        val driver = state.driver
+        val vehicle = state.vehicle
+        setMarker(driver.pickupLatLng)
+        drawLine(driver.pickupLatLng, ride.passengerDestLatLng)
+        binding.enRouteView.apply {
+            loadImage(driver.personalPhotoUrl, driverImageView)
+            driverNameTextView.text = driver.name
+            carTextView.text = getString(R.string.vehicle_make_model, vehicle.make, vehicle.model)
+            plateTextView.text = vehicle.plateNumber
+            destTextView.text = getAddressFromLatLng(ride.passengerDestLatLng)
+            distanceTextView.text = state.distance.formatDistance()
+            enRouteLayout.show()
+        }
+
+        binding.enRouteView.callButton.setOnClickListener {
+            makePhoneCall(driver.phoneNumber)
         }
     }
 
     private fun passengerPickup(state: PassengerHomeUiState.PassengerPickUp) {
         hideAllViews()
         map.clear()
+        val ride = state.ride
+        val driver = state.driver
+        val vehicle = state.vehicle
+        setMarker(driver.pickupLatLng)
+        drawLine(ride.passengerPickupLatLng, ride.passengerDestLatLng)
+        drawLine(driver.pickupLatLng, ride.passengerPickupLatLng, R.color.md_theme_light_secondary)
+
         binding.passengerPickupView.apply {
+            loadImage(driver.personalPhotoUrl, driverImageView)
+            driverNameTextView.text = driver.name
+            carTextView.text = getString(R.string.vehicle_make_model, vehicle.make, vehicle.model)
+            plateTextView.text = vehicle.plateNumber
+            pickupTextView.text = getAddressFromLatLng(ride.passengerPickupLatLng)
+            distanceTextView.text = state.distance.formatDistance()
             passengerPickupLayout.show()
         }
-        toast("in passenger pickup state!")
+
+        binding.passengerPickupView.callButton.setOnClickListener {
+            makePhoneCall(driver.phoneNumber)
+        }
+
+        binding.passengerPickupView.cancelButton.setOnClickListener {
+            viewModel.onCancelButtonClicked(ride)
+        }
+
+    }
+
+    private fun setMarker(pickupLatLng: LatLng) {
+        map.addMarker(
+            MarkerOptions().apply {
+                position(pickupLatLng)
+                val markerBitmap =
+                    requireContext().getDrawable(R.drawable.ic_car_marker)
+                        ?.toBitmap()
+                markerBitmap?.let {
+                    icon(BitmapDescriptorFactory.fromBitmap(it))
+                }
+            })
     }
 
     private fun displayDriverOffer(state: PassengerHomeUiState.DisplayDriverOffer) {
@@ -341,7 +426,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                         getAddressFromLatLng(newLocation)
                     )
                     logD("New current location: $latitude, $longitude")
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 15f))
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 14f))
                 } else {
                     toast("last location is null")
                 }
@@ -495,6 +580,13 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
     override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
+    }
+
+    private fun makePhoneCall(phoneNumber: String) {
+        logD("make a phone call")
+        val intent = Intent(Intent.ACTION_DIAL)
+        intent.data = Uri.parse("tel:$phoneNumber")
+        startActivity(intent)
     }
 
     private fun hideAllViews() {
