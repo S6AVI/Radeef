@@ -60,5 +60,6 @@ interface DriverRepository {
     fun getDriver(id: String, result: (UiState<DriverWithVehicle?>) -> Unit)
 
     fun getDriverWhenArrived(id: String, result: (UiState<DriverWithVehicle?>) -> Unit)
+    fun isPhoneNumberAssociatedWithPassenger(phone: String, callback: (Boolean) -> Unit)
 
 }

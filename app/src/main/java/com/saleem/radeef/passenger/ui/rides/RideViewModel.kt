@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.data.repository.RideRepository
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.logD
 
 
 class RideViewModel @ViewModelInject constructor(
@@ -20,6 +21,7 @@ class RideViewModel @ViewModelInject constructor(
 
 
     fun getRides() {
+        logD("Passenger, RideViewModel: getRides()")
         _rides.value = UiState.Loading
         repository.getPassengerRides {
             _rides.value = it

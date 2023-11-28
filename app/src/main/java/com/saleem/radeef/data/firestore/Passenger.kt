@@ -16,7 +16,7 @@ data class Passenger(
     val name: String = "",
     var passengerID: String = "",
     val email: String = "",
-    val sex: String = Sex.NOTSPECIFIED.value,
+    val gender: String = Sex.NONE.value,
     val personalPhotoUrl: String = "",
     val status: String = PassengerStatus.INACTIVE.value,
 

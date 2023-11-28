@@ -13,6 +13,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.storage.StorageReference
 import com.saleem.radeef.data.RadeefLocation
+import com.saleem.radeef.data.firestore.Passenger
 
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.DriverWithVehicle
@@ -127,7 +128,7 @@ class DriverRepositoryImpl(
                         UiState.Success("Driver is a registered user")
                     )
                 } else {
-                    documentCollection.document()
+                    documentCollection.document(driver.driverID)
                         .set(driver)
                         .addOnSuccessListener {
                             result.invoke(
@@ -150,6 +151,26 @@ class DriverRepositoryImpl(
                     )
                 )
             }
+    }
+
+    override fun isPhoneNumberAssociatedWithPassenger(phone: String, callback: (Boolean) -> Unit) {
+        val passengersCollection = database.collection(FirestoreTables.PASSENGERS)
+
+        val query = passengersCollection.whereEqualTo("phoneNumber", phone)
+
+        query.get().addOnSuccessListener { querySnapshot ->
+            val passengers = querySnapshot.toObjects(Passenger::class.java)
+            if (passengers.isNotEmpty()) {
+                // Phone number is associated with a passenger
+                callback(true)
+            } else {
+                // Phone number is not associated with any passenger
+                callback(false)
+            }
+        }.addOnFailureListener { exception ->
+            // Handle any errors that occurred while retrieving data
+            callback(false)
+        }
     }
 
     override fun logout(result: (UiState<String>) -> Unit) {
@@ -265,10 +286,7 @@ class DriverRepositoryImpl(
                 }
             }
 
-            // Store the registration reference if needed for later removal
-            // For example, you may want to remove the listener when it's no longer needed
         } else {
-            // Handle error: driver ID is null
             result.invoke(UiState.Failure("Driver ID is null"))
         }
     }

@@ -9,6 +9,7 @@ import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
@@ -25,7 +26,26 @@ class AuthRepositoryImpl(
 //    override val currentUser: FirebaseUser?
 //        get() =
 
-    fun getUserId() = auth.currentUser?.uid
+    private fun getUserId() = auth.currentUser?.uid
+    override fun isPhoneNumberAssociatedWithDriver(phone: String, callback: (Boolean) -> Unit) {
+        val driversCollection = database.collection(FirestoreTables.DRIVERS)
+
+        val query = driversCollection.whereEqualTo("phoneNumber", phone)
+
+        query.get().addOnSuccessListener { querySnapshot ->
+            val drivers = querySnapshot.toObjects(Driver::class.java)
+            if (drivers.isNotEmpty()) {
+                // Phone number is associated with a driver
+                callback(true)
+            } else {
+                // Phone number is not associated with any driver
+                callback(false)
+            }
+        }.addOnFailureListener { exception ->
+            // Handle any errors that occurred while retrieving data
+            callback(false)
+        }
+    }
 
     override fun registerPassenger(
         passenger: Passenger,
@@ -47,6 +67,7 @@ class AuthRepositoryImpl(
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 passenger.passengerID = task.result.user?.uid ?: ""
+                                logD("passenger ID: ${passenger.passengerID}")
                                 updatePassengerInfo(passenger) { state ->
                                     when (state) {
                                         is UiState.Success -> {
@@ -89,6 +110,7 @@ class AuthRepositoryImpl(
                     this@AuthRepositoryImpl.passenger = passenger
                     this@AuthRepositoryImpl.verificationId = verificationId
                     this@AuthRepositoryImpl.token = token
+                    logD("verification code sent!")
                     result.invoke(UiState.Success("Verification code sent"))
                 }
             })
@@ -98,26 +120,19 @@ class AuthRepositoryImpl(
     }
 
     override fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit) {
-
-//        val document = if (passenger.passengerID.isNotEmpty()) {
-//            database.collection(FirestoreTables.PASSENGERS).document(passenger.passengerID)
-//
-//
-//        } else {
-//            database.collection(FirestoreTables.PASSENGERS).document()
-//        }
-
         val documentCollection = database.collection(FirestoreTables.PASSENGERS)
         documentCollection
             .whereEqualTo("phoneNumber", passenger.phoneNumber)
             .get()
             .addOnSuccessListener {
                 if (it.documents.isNotEmpty()) {
+                    logD("document: ${it.documents.get(0)}")
                     result.invoke(
                         UiState.Success("Passenger is a registered user")
                     )
                 } else {
-                    documentCollection.document()
+                    logD("passenger: $passenger")
+                    documentCollection.document(passenger.passengerID)
                         .set(passenger)
                         .addOnSuccessListener {
                             result.invoke(
@@ -140,7 +155,6 @@ class AuthRepositoryImpl(
                     )
                 )
             }
-        //passenger.passengerID = document.id
     }
 
 
@@ -150,6 +164,7 @@ class AuthRepositoryImpl(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     passenger.passengerID = task.result?.user?.uid ?: ""
+                    logD("signIn: ${passenger.passengerID}")
                     updatePassengerInfo(passenger) { state ->
                         when (state) {
                             is UiState.Success -> {
@@ -181,23 +196,21 @@ class AuthRepositoryImpl(
     }
 
     override fun updateName(name: String, result: (UiState<String>) -> Unit) {
-        updatePassengerInfo(passenger.copy(name = name)) { state ->
-            when (state) {
-                is UiState.Success -> {
-                    result.invoke(UiState.Success(state.data))
+        val id = auth.currentUser?.uid
+        if (id != null) {
+            val passengerRef = database.collection(FirestoreTables.PASSENGERS).document(id)
+            passengerRef
+                .update("name", name)
+                .addOnSuccessListener {
+                    result.invoke(UiState.Success("Name updated successfully"))
                 }
-
-                is UiState.Failure -> {
-                    result.invoke(UiState.Failure(state.error))
+                .addOnFailureListener { exception ->
+                    result.invoke(UiState.Failure("Failed to update name: ${exception.message}"))
                 }
-
-                else -> {}
-            }
+        } else {
+            result.invoke(UiState.Failure("User ID is null"))
         }
     }
-
-
-    //val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks()
 
     override fun resendCode(activity: Activity, result: (UiState<String>) -> Unit) {
         val options = PhoneAuthOptions.newBuilder(auth)
@@ -262,7 +275,6 @@ class AuthRepositoryImpl(
 
     override fun getName(result: (UiState<String>) -> Unit) {
         var name: String = ""
-        //val db = database.collection(FirestoreTables.PASSENGERS).document(auth.uid.toString())
         database.collection(FirestoreTables.PASSENGERS)
             .whereEqualTo("passengerID", auth.currentUser?.uid)
             .limit(1)

@@ -7,6 +7,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.saleem.radeef.data.firestore.Ride
 import com.saleem.radeef.databinding.ItemRideBinding
+import com.saleem.radeef.databinding.ItemRidePassengerBinding
+import com.saleem.radeef.util.formatCost
+import com.saleem.radeef.util.formatDate
+import com.saleem.radeef.util.logD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +21,8 @@ class RideAdapter(val context: Context) : RecyclerView.Adapter<RideAdapter.Drive
     private var list: MutableList<Ride> = arrayListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DriverRideViewHolder {
-        val itemView = ItemRideBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val itemView =
+            ItemRidePassengerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return DriverRideViewHolder(itemView)
     }
 
@@ -27,49 +32,59 @@ class RideAdapter(val context: Context) : RecyclerView.Adapter<RideAdapter.Drive
     }
 
     fun updateList(list: MutableList<Ride>) {
-        this.list = list
+        this.list = filterList(list)
         notifyDataSetChanged()
     }
+
+
 
     override fun getItemCount() = list.size
 
 
-    inner class DriverRideViewHolder(val binding: ItemRideBinding) :
+    inner class DriverRideViewHolder(val binding: ItemRidePassengerBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Ride) {
-            val geocoder = Geocoder(context, Locale.getDefault())
-//            val pickup = geocoder.getFromLocation(
-//                item.pickupLocation.latitude,
-//                item.pickupLocation.longitude,
-//                1
-//            )?.firstOrNull()?.getAddressLine(0) ?: ""
-//
-//            val destination = geocoder.getFromLocation(
-//                item.destination.latitude,
-//                item.destination.longitude,
-//                1
-//            )?.firstOrNull()?.getAddressLine(0) ?: ""
-
             val coroutineScope = CoroutineScope(Dispatchers.Main)
             var pickup = ""
             var destination = ""
             coroutineScope.launch {
                 pickup =
-                    getPickupAddress(item.passengerPickupLocation.latitude, item.passengerPickupLocation.longitude)
+                    getPickupAddress(
+                        item.passengerPickupLocation.latitude,
+                        item.passengerPickupLocation.longitude
+                    )
                 destination =
-                    getPickupAddress(item.passengerDestination.latitude, item.passengerDestination.longitude)
-                binding.pickupTv.text = pickup
-                binding.destinationTv.text = destination
+                    getPickupAddress(
+                        item.passengerDestination.latitude,
+                        item.passengerDestination.longitude
+                    )
+                binding.apply {
+                    pickupTv.text = pickup
+                    destinationTv.text = destination
+                    driverNameTv.text = item.driverName
+                    costTv.text = item.chargeAmount.formatCost()
+                    dateTv.text = item.startTime.formatDate()
+                    statusTv.text = item.status
+                }
             }
 
 
-
         }
 
-        private suspend fun getPickupAddress(latitude: Double, longitude: Double): String {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-            return addresses?.firstOrNull()?.featureName ?: ""
+        private fun getPickupAddress(latitude: Double, longitude: Double): String {
+            return try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                addresses?.firstOrNull()?.featureName ?: ""
+            } catch (e: Exception) {
+                logD("error in getPickupAddress: ${e.message}")
+                ""
+            }
         }
+
+
+    }
+    private fun filterList(list: MutableList<Ride>): MutableList<Ride> {
+        return list.filter { ride -> ride.driverId != "" }.toMutableList()
     }
 }

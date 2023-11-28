@@ -49,7 +49,7 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
 
                 Log.d(TAG,"name:$name\nemail:$email\ngender:$gender")
 
-                val passenger = Passenger(name = name, email = email, sex = gender)
+                val passenger = Passenger(name = name, email = email, gender = gender)
                 viewModel.updatePassengerInfo(
                     passenger
                 )
@@ -136,8 +136,8 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
 
     private fun isDataValid(): Boolean {
         return (!binding.nameIl.isErrorEnabled) ||
-                (!binding.emailIl.isErrorEnabled)
-
+                (!binding.emailIl.isErrorEnabled) ||
+                binding.genderAutoComplete.text.toString().isEmpty()
     }
 
     private fun fillFields(passenger: Passenger) {
@@ -145,7 +145,15 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
             nameEt.setText(passenger.name)
             phoneEt.setText(passenger.phoneNumber)
             emailEt.setText(passenger.email)
-            genderAutoComplete.setText(passenger.sex)
+            genderAutoComplete.setText(
+                if (passenger.gender == "none") {
+                    ""
+                } else {
+                    passenger.gender
+                })
+
+            val genderAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, genders.subList(0,2))
+            binding.genderAutoComplete.setAdapter(genderAdapter)
         }
     }
 

@@ -24,5 +24,6 @@ interface AuthRepository {
 
 
     abstract fun getPassenger(result: (UiState<Passenger>) -> Unit)
+    fun isPhoneNumberAssociatedWithDriver(phone: String, callback: (Boolean) -> Unit)
 
 }

@@ -10,6 +10,7 @@ import com.saleem.radeef.data.firestore.Passenger
 
 import com.saleem.radeef.data.repository.AuthRepository
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.logD
 
 
 class RegisterViewModel @ViewModelInject constructor(
@@ -33,25 +34,25 @@ class RegisterViewModel @ViewModelInject constructor(
     val logout: LiveData<UiState<String>>
         get() = _logout
 
-    fun register(
-        passenger: Passenger,
-        phone: String,
-        activity: Activity,
-        onVerificationCompleted: (Any) -> Unit = { credential ->
-           // repository.signIn(passenger, credential) { state ->
-              //  _verify.value = state
-            }
-
-    ) {
+    fun register(passenger: Passenger, phone: String, activity: Activity) {
         _register.value = UiState.Loading
-        repository.registerPassenger(
-            passenger = passenger,
-            phone = phone,
-            activity = activity
-        ) {
-            _register.value = it
+        repository.isPhoneNumberAssociatedWithDriver(phone) { result ->
+            if (result) {
+                _register.value =
+                    UiState.Failure("Phone number: $phone is already associated with a driver!")
+            } else {
+                logD("registerPassenger: $phone")
+                repository.registerPassenger(
+                    passenger = passenger,
+                    phone = phone,
+                    activity = activity
+                ) {
+                    _register.value = it
+                }
+            }
         }
     }
+
 
     fun signInWithPhoneAuthCredential(code: String) {
         _verify.value = UiState.Loading
@@ -61,7 +62,7 @@ class RegisterViewModel @ViewModelInject constructor(
     }
 
     fun updateName(name: String) {
-        repository.updateName(name) {state ->
+        repository.updateName(name) { state ->
             _name.value = state
         }
     }

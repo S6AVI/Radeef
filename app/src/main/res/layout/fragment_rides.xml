@@ -44,7 +44,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/back_btn"
         tools:itemCount="5"
-        tools:listitem="@layout/item_ride" />
+        tools:listitem="@layout/item_ride_passenger" />
 
     <ProgressBar
         android:id="@+id/progress_bar"

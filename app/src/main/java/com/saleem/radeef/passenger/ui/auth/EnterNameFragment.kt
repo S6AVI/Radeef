@@ -77,11 +77,4 @@ class EnterNameFragment() : Fragment(R.layout.fragment_enter_name) {
         }
     }
 
-
-    override fun onStart() {
-
-        super.onStart()
-    }
-
-
 }

@@ -4,7 +4,7 @@ package com.saleem.radeef.util
 enum class Sex(val value: String) {
     MALE("MALE"),
     FEMALE("FEMALE"),
-    NOTSPECIFIED("none")
+    NONE("none")
 }
 
 enum class PassengerStatus(val value: String) {

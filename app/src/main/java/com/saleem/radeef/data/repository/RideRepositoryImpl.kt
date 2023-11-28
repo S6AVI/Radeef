@@ -29,9 +29,10 @@ class RideRepositoryImpl(
     override fun getPassengerRides(result: (UiState<List<Ride>>) -> Unit) {
         database.collection(FirestoreTables.RIDES)
             .whereEqualTo("passengerID", auth.currentUser?.uid)
+            .whereIn("status", listOf("ARRIVED", "CANCELED"))
             .get()
             .addOnSuccessListener {
-                Log.d("savii", "success in getRides()")
+                Log.d("savii", "success in getRides(), Passenger collection")
                 val rides = arrayListOf<Ride>()
                 for (document in it) {
 
@@ -51,22 +52,6 @@ class RideRepositoryImpl(
                     )
                 )
             }
-//        val data = arrayListOf(
-//            Ride(
-//                pickupLocation = LatLng.getDefaultInstance(),
-//                destination = LatLng.getDefaultInstance(),
-//                chargeAmount = 15.0,
-//                startTime = DateTime.getDefaultInstance(),
-//                endTime = DateTime.getDefaultInstance(),
-//                passengerID = 0
-//            )
-//        )
-
-//        if (data.isNullOrEmpty()) {
-//            return UiState.Failure("data is empty")
-//        } else {
-//            return UiState.Success(data)
-//        }
     }
 
     override fun getDriverRides(result: (UiState<List<Ride>>) -> Unit) {

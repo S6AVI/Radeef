@@ -18,11 +18,11 @@ class CloudRepositoryImpl(
     override fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit) {
         val passengersCollection = database.collection("passengers")
         //Log.d(TAG, passengersCollection.id.toString())
-        Log.d(TAG, "name:${passenger.name}\nemail:${passenger.email}\ngender:${passenger.sex}")
+        Log.d(TAG, "name:${passenger.name}\nemail:${passenger.email}\ngender:${passenger.gender}")
         val data = mapOf(
             "name" to passenger.name,
             "email" to passenger.email,
-            "gender" to passenger.sex
+            "gender" to passenger.gender
         )
 
         Log.d(TAG, data.toString())

@@ -20,9 +20,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class RidesFragment : Fragment(R.layout.fragment_rides) {
     lateinit var binding: FragmentRidesBinding
-    private val viewModel: DriverRideViewModel by viewModels()
+    private val viewModel: RideViewModel by viewModels()
     private val adapter by lazy {
-        DriverRideAdapter(requireContext())
+        RideAdapter(requireContext())
     }
 
 
@@ -43,12 +43,14 @@ class RidesFragment : Fragment(R.layout.fragment_rides) {
                 is UiState.Loading -> {
                     binding.progressBar.show()
                     Log.d("savii", "Loading")
+                    true
                 }
 
                 is UiState.Failure -> {
                     binding.progressBar.hide()
                     toast("something")
                     Log.d("savii", state.error.toString())
+                    true
                 }
 
                 is UiState.Success -> {
@@ -60,6 +62,7 @@ class RidesFragment : Fragment(R.layout.fragment_rides) {
                     state.data.forEach {
                         Log.d("savii", it.toString())
                     }
+                    true
                 }
 
             }.exhaustive

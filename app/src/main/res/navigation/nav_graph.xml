@@ -83,7 +83,7 @@
             tools:layout="@layout/fragment_help" />
         <fragment
             android:id="@+id/ridesFragment"
-            android:name="com.saleem.radeef.driver.ui.drawer.rides.DriverRidesFragment"
+            android:name="com.saleem.radeef.passenger.ui.rides.RidesFragment"
             android:label="fragment_rides"
             tools:layout="@layout/fragment_rides" />
         <fragment

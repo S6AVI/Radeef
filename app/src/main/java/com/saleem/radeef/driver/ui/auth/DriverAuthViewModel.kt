@@ -32,24 +32,21 @@ class DriverAuthViewModel @ViewModelInject constructor(
     val logout: LiveData<UiState<String>>
         get() = _logout
 
-    fun register(
-        driver: Driver,
-        phone: String,
-        activity: Activity,
-        onVerificationCompleted: (Any) -> Unit = { credential ->
-           // repository.signIn(passenger, credential) { state ->
-              //  _verify.value = state
-            }
-
-    ) {
+    fun register(driver: Driver, phone: String, activity: Activity) {
         _register.value = UiState.Loading
-        repository.registerDriver(
-            driver = driver,
-            phone = phone,
-            activity = activity
-        ) {
-            _register.value = it
+        repository.isPhoneNumberAssociatedWithPassenger(phone) { result ->
+            if (result) {
+                _register.value =
+                    UiState.Failure("Phone number: $phone is already associated with a passenger!")
+            } else {
+                repository.registerDriver(
+                    driver = driver, phone = phone, activity = activity
+                ) {
+                    _register.value = it
+                }
+            }
         }
+
     }
 
     fun signInWithPhoneAuthCredential(code: String) {
@@ -60,7 +57,7 @@ class DriverAuthViewModel @ViewModelInject constructor(
     }
 
     fun updateName(name: String) {
-        repository.updateName(name) {state ->
+        repository.updateName(name) { state ->
             _name.value = state
         }
     }
