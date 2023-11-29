@@ -11,10 +11,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
+        android:theme="@style/splashScreenTheme"
         tools:targetApi="31">
         <activity
-            android:name=".driver.DriverMainActivity"
+            android:name=".driver.ui.DriverMainActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 
@@ -34,7 +34,7 @@
              "YOUR_API_KEY" string in this file with "${MAPS_API_KEY}".
         -->
         <activity
-            android:name=".passenger.ui.MainActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

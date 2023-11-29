@@ -94,4 +94,7 @@
 
     <string name="vehicle_make_model">%1$s | %2$s</string>
     <string name="confrim_lable">CONFIRM</string>
+    <string name="phone_verification">Phone Verification</string>
+    <string name="send_code">SEND CODE</string>
+    <string name="error_phone">Phone number must be 9 digits</string>
 </resources>

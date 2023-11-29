@@ -10,8 +10,11 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.Passenger
 import com.saleem.radeef.databinding.FragementEnterNumberBinding
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.disable
+import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.hideKeyboard
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,14 +37,21 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
 
 
         binding.registerButton.setOnClickListener {
+
             phoneNumber = binding.phoneEt.text?.trim().toString()
             if (phoneNumber.isNotEmpty() && phoneNumber.length == 9) {
+                hideKeyboard()
+                binding.textInputLayout.error = ""
+                binding.textInputLayout.isErrorEnabled = false
                 phoneNumber = "+${binding.countryCodePicker.selectedCountryCode}$phoneNumber"
                 viewModel.register(
                     createPassenger(),
                     phoneNumber,
                     requireActivity()
                 )
+            } else {
+                binding.textInputLayout.error = getString(R.string.error_phone)
+                //binding.textInputLayout.isErrorEnabled = true
             }
 
         }
@@ -53,6 +63,7 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
                 when(state) {
                     UiState.Loading -> {
                         binding.registerButton.setText("")
+                        binding.registerButton.disable()
                         binding.progressBar.show()
                     }
                     is UiState.Success -> {
@@ -66,7 +77,8 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
                     }
                     is UiState.Failure -> {
                         binding.progressBar.hide()
-                        binding.registerButton.setText("Continue")
+                        binding.registerButton.enable()
+                        binding.registerButton.setText(R.string.send_code)
                         toast(state.error)
                     }
                 }.exhaustive

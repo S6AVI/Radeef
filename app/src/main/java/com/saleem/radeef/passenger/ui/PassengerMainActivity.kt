@@ -16,7 +16,7 @@ class PassengerMainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setTheme(R.style.AppTheme)
+        setTheme(R.style.AppTheme)
 
         setContentView(R.layout.passenger_activity_main)
 

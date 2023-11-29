@@ -1,8 +1,11 @@
 package com.saleem.radeef.util
 
+import android.app.Activity
+import android.content.Context
 import android.location.Location
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.gms.maps.model.LatLng
@@ -69,5 +72,14 @@ fun Double.toKm() = this / 1000.0
 fun Date.formatDate(): String {
     val format = SimpleDateFormat("EEE MMM dd yyyy HH:mm:ss", Locale.getDefault())
     return format.format(this)
+}
+
+fun Fragment.hideKeyboard() {
+    view?.let { activity?.hideKeyboard(it) }
+}
+
+fun Context.hideKeyboard(view: View) {
+    val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+    inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
 }
 

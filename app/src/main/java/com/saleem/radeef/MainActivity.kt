@@ -1,4 +1,4 @@
-package com.saleem.radeef.passenger.ui
+package com.saleem.radeef
 
 import android.content.Context
 import android.content.Intent
@@ -12,7 +12,8 @@ import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderF
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
 import com.saleem.radeef.databinding.ActivityMainBinding
-import com.saleem.radeef.driver.DriverMainActivity
+import com.saleem.radeef.driver.ui.DriverMainActivity
+import com.saleem.radeef.passenger.ui.PassengerMainActivity
 import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.Constants.USER_TYPE
 import com.saleem.radeef.util.UserType
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 
         userType?.let {
             val intent = when (userType) {
-                UserType.PASSENGER.name -> Intent(this, com.saleem.radeef.passenger.ui.PassengerMainActivity::class.java)
+                UserType.PASSENGER.name -> Intent(this, PassengerMainActivity::class.java)
                 else -> {
                     Intent(this, DriverMainActivity::class.java)
                 }

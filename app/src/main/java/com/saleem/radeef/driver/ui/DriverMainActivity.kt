@@ -1,4 +1,4 @@
-package com.saleem.radeef.driver
+package com.saleem.radeef.driver.ui
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -25,6 +25,7 @@ class DriverMainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setTheme(R.style.AppTheme)
         setContentView(R.layout.activity_driver_main)
 
 

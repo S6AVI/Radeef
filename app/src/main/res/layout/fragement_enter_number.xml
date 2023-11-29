@@ -8,13 +8,26 @@
 
 
     <TextView
+        android:id="@+id/phone_verif_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:padding="16dp"
+        android:text="@string/phone_verification"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
         android:id="@+id/enter_phone_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
         android:text="@string/enter_your_phone_number"
         android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/phone_verif_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:padding="16dp" />
@@ -25,38 +38,37 @@
         android:layout_height="wrap_content"
         app:ccp_showNameCode="false"
         app:ccp_showPhoneCode="true"
-        android:padding="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:layout_margin="8dp"
         app:ccp_defaultPhoneCode="966"
         tools:ccp_defaultPhoneCode="966"
         app:layout_constraintTop_toTopOf="@id/textInputLayout"
         app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
-
         app:layout_constraintStart_toStartOf="parent" >
 
     </com.hbb20.CountryCodePicker>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
         android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-
         app:layout_constraintStart_toEndOf="@id/country_code_picker"
         app:layout_constraintTop_toBottomOf="@id/enter_phone_tv">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/phone_et"
-            android:text="@string/my_number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/enter_number"
-            android:inputType="phone" />
+            android:inputType="phone"
+            android:maxLength="9"
+            android:text="" />
     </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -64,30 +76,30 @@
         android:id="@+id/button_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="9dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginEnd="24dp"
         app:layout_constraintEnd_toEndOf="parent"
-
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textInputLayout">
 
         <Button
             android:id="@+id/register_button"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/continue_label" />
+            android:layout_height="@dimen/button_height"
+            android:textSize="@dimen/button_text_size"
+            android:text="@string/send_code" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
-            android:layout_centerInParent="true"
             android:layout_width="36dp"
             android:layout_height="36dp"
+            android:layout_centerInParent="true"
             android:layout_marginTop="16dp"
             android:elevation="10dp"
+            android:indeterminateTint="@color/md_theme_light_primary"
             android:visibility="invisible"
-            tools:visibility="visible"
-            android:indeterminateTint="@color/md_theme_light_onPrimary"/>
+            tools:visibility="invisible" />
 
     </RelativeLayout>
 
