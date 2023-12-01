@@ -119,7 +119,7 @@ class AuthRepositoryImpl(
         PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
-    override fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit) {
+    override fun updatePassengerInfo(passenger: Passenger, result: (UiState<Passenger>) -> Unit) {
         val documentCollection = database.collection(FirestoreTables.PASSENGERS)
         documentCollection
             .whereEqualTo("phoneNumber", passenger.phoneNumber)
@@ -127,16 +127,20 @@ class AuthRepositoryImpl(
             .addOnSuccessListener {
                 if (it.documents.isNotEmpty()) {
                     logD("document: ${it.documents.get(0)}")
-                    result.invoke(
-                        UiState.Success("Passenger is a registered user")
-                    )
+                    val retrievedPassenger = it.documents[0].toObject(Passenger::class.java)
+                    if (retrievedPassenger != null) {
+                        result.invoke(
+                            UiState.Success(retrievedPassenger)
+                        )
+                    }
+
                 } else {
                     logD("passenger: $passenger")
                     documentCollection.document(passenger.passengerID)
                         .set(passenger)
                         .addOnSuccessListener {
                             result.invoke(
-                                UiState.Success("Passenger has been created")
+                                UiState.Success(passenger)
                             )
                         }
                         .addOnFailureListener {
@@ -158,7 +162,7 @@ class AuthRepositoryImpl(
     }
 
 
-    override fun signIn(code: String, result: (UiState<String>) -> Unit) {
+    override fun signIn(code: String, result: (UiState<Passenger>) -> Unit) {
         val credential = PhoneAuthProvider.getCredential(verificationId, code)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->

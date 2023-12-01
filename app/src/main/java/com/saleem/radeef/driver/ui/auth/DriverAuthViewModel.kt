@@ -20,8 +20,8 @@ class DriverAuthViewModel @ViewModelInject constructor(
     val register: LiveData<UiState<String>>
         get() = _register
 
-    private val _verify = MutableLiveData<UiState<String>>()
-    val verify: LiveData<UiState<String>>
+    private val _verify = MutableLiveData<UiState<Driver>>()
+    val verify: LiveData<UiState<Driver>>
         get() = _verify
 
     private val _name = MutableLiveData<UiState<String>>()

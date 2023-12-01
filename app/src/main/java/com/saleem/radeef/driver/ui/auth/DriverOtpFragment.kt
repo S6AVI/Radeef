@@ -10,8 +10,12 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.databinding.FragmentOtpBinding
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.disable
+import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.hideKeyboard
+import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import com.saleem.radeef.util.updateRegistrationStatus
@@ -33,7 +37,13 @@ class DriverOtpFragment : Fragment(R.layout.fragment_otp) {
             val code = binding.otpEditText.text.toString()
             if (code.isNotEmpty() && code.length == 6) {
 
+                hideKeyboard()
+                binding.otpInputLayout.error = ""
+                binding.otpInputLayout.isErrorEnabled = false
+
                 viewModel.signInWithPhoneAuthCredential(code)
+            } else {
+                binding.otpInputLayout.error = getString(R.string.error_otp_length)
             }
         }
 
@@ -48,25 +58,41 @@ class DriverOtpFragment : Fragment(R.layout.fragment_otp) {
             when (state) {
                 UiState.Loading -> {
                     binding.verifyBtn.setText("")
+                    binding.verifyBtn.disable()
                     binding.progressBar.show()
                 }
 
                 is UiState.Success -> {
                     binding.progressBar.hide()
-                    toast(state.data)
-                    updateRegistrationStatus(RegistrationStatus.INFO, requireActivity())
-                    val action = AuthNavigationDirections.actionGlobalInfoNavigation()
-                    findNavController().navigate(action)
+                    logD(state.data.toString())
+                    decideSection(state.data.registrationStatus)
                 }
 
                 is UiState.Failure -> {
                     binding.progressBar.hide()
-                    binding.verifyBtn.setText("Verify")
-                    toast(state.error)
+                    binding.verifyBtn.enable()
+                    binding.verifyBtn.setText(R.string.verify)
+                    binding.otpInputLayout.error = getString(R.string.error_otp)
+                    logD(state.error.toString())
                 }
             }.exhaustive
 
         }
+    }
+
+    private fun decideSection(status: String) {
+        updateRegistrationStatus(status, requireActivity())
+        when(status) {
+            RegistrationStatus.COMPLETED.value -> {
+                val action = AuthNavigationDirections.actionGlobalHomeNavigation2()
+                findNavController().navigate(action)
+            }
+            else -> {
+
+                val action = AuthNavigationDirections.actionGlobalInfoNavigation()
+                findNavController().navigate(action)
+            }
+        }.exhaustive
     }
 
 

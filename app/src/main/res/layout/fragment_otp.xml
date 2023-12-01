@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".passenger.ui.auth.EnterNumberFragment">
+    tools:context=".passenger.ui.auth.OtpFragment">
 
 
     <RelativeLayout
@@ -21,9 +21,9 @@
         <Button
             android:id="@+id/verifyBtn"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/verify"
-            android:textSize="18sp" />
+            android:layout_height="@dimen/button_height"
+            android:textSize="@dimen/button_text_size"
+            android:text="@string/verify" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
@@ -39,39 +39,66 @@
     </RelativeLayout>
 
     <TextView
-        android:id="@+id/otpTitle"
+        android:id="@+id/phone_verif_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="24dp"
-        android:text="@string/enter_otp"
-        android:textSize="24sp"
+        android:layout_marginTop="24dp"
+        android:padding="16dp"
+        android:text="@string/phone_verification"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/resend_tv"
+        android:id="@+id/otpTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="@string/enter_otp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline1"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/phone_verif_label" />
+
+
+    <TextView
+        android:id="@+id/resend_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:text="@string/resend_code_question"
+        app:layout_constraintStart_toStartOf="@id/button_container"
+
+        app:layout_constraintTop_toBottomOf="@+id/button_container" />
+
+    <TextView
+        android:id="@+id/resend_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:clickable="true"
         android:text="@string/resend_code"
+
         android:textColor="@color/md_theme_light_primary"
         android:textStyle="bold"
+        app:layout_constraintBaseline_toBaselineOf="@+id/resend_label"
+        app:layout_constraintStart_toEndOf="@id/resend_label" />
 
-        app:layout_constraintStart_toStartOf="@+id/button_container"
-        app:layout_constraintTop_toBottomOf="@+id/button_container" />
+
+
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/otpInputLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/otpTitle">

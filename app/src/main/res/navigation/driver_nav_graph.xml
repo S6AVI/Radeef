@@ -23,6 +23,11 @@
             app:destination="@id/infoNavigation"
             app:popUpTo="@id/authNavigation"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_global_homeNavigation2"
+            app:destination="@id/homeNavigation"
+            app:popUpTo="@id/authNavigation"
+            app:popUpToInclusive="true" />
     </navigation>
     <navigation android:id="@+id/infoNavigation"
         app:startDestination="@id/driverInfoFragment">

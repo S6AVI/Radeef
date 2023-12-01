@@ -7,10 +7,15 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.PassengerAuthNavigationDirections
 import com.saleem.radeef.R
+import com.saleem.radeef.data.firestore.Passenger
 import com.saleem.radeef.databinding.FragmentOtpBinding
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.disable
+import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.hideKeyboard
+import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,15 +35,17 @@ class OtpFragment : Fragment(R.layout.fragment_otp) {
         binding.verifyBtn.setOnClickListener {
             val code = binding.otpEditText.text.toString()
             if (code.isNotEmpty() && code.length == 6) {
-
+                hideKeyboard()
+                binding.otpInputLayout.error = ""
+                binding.otpInputLayout.isErrorEnabled = false
                 viewModel.signInWithPhoneAuthCredential(code)
+            } else {
+                binding.otpInputLayout.error = getString(R.string.error_otp_length)
             }
         }
-
         binding.resendTv.setOnClickListener {
             viewModel.resendCode(requireActivity())
         }
-
     }
 
     private fun observer() {
@@ -46,26 +53,38 @@ class OtpFragment : Fragment(R.layout.fragment_otp) {
             when (state) {
                 UiState.Loading -> {
                     binding.verifyBtn.setText("")
+                    binding.verifyBtn.disable()
                     binding.progressBar.show()
                 }
 
                 is UiState.Success -> {
                     binding.progressBar.hide()
-                    toast(state.data)
-                    val action =
-                        PassengerAuthNavigationDirections.actionGlobalPassengerInfoNavigation()
-                    findNavController().navigate(action)
+                    logD(state.data.toString())
+                    decideSection(state.data)
                 }
 
                 is UiState.Failure -> {
                     binding.progressBar.hide()
-                    binding.verifyBtn.setText("Verify")
-                    toast(state.error)
+                    binding.verifyBtn.enable()
+                    binding.verifyBtn.setText(R.string.verify)
+                    binding.otpInputLayout.error = getString(R.string.error_otp)
+                    logD(state.error.toString())
                 }
             }.exhaustive
 
         }
     }
 
+    private fun decideSection(passenger: Passenger) {
+        if (passenger.name.isNotEmpty()) {
+            val action =
+                PassengerAuthNavigationDirections.actionGlobalPassengerInfoNavigation()
+            findNavController().navigate(action)
+        } else {
+            val action =
+                PassengerAuthNavigationDirections.actionGlobalPassengerInfoNavigation()
+            findNavController().navigate(action)
+        }
+    }
 
 }

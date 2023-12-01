@@ -29,6 +29,21 @@
         <item name="colorPrimaryInverse">@color/md_theme_light_inversePrimary</item>
     </style>
 
+    <style name="ButtonStyle" parent="AppTheme">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">64dp</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="TitleStyle" parent="AppTheme">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.MaterialComponents.Headline4</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
 <!--    <resources>-->
 <!--        <style name="TextAppearance.MdcTypographyStyles.Headline1" parent="TextAppearance.MaterialComponents.Headline1">-->
 <!--            <item name="fontFamily">@font/roboto</item>-->

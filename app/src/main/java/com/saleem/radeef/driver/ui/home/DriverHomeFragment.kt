@@ -324,9 +324,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
 
-    /*
-    handle states section
-     */
     private fun displayDriverPlaces(state: DriverHomeUiState.DisplayDriverPlaces) {
         hideAllViews()
         map.clear()

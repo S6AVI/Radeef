@@ -18,7 +18,7 @@ data class Driver(
     val email: String = "",
     val phoneNumber: String = "",
     val sex: String = Sex.NOTSPECIFIED.value,
-    val nationality: String = Locale.getDefault().country,
+    val nationality: String = "",
     var driverID: String = "",
     val personalPhotoUrl: String = "",
     val cardPhotoUrl: String = "",

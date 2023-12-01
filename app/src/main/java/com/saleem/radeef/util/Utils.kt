@@ -97,6 +97,15 @@ fun updateRegistrationStatus(status: RegistrationStatus, activity: Activity) {
 
 }
 
+fun updateRegistrationStatus(status: String, activity: Activity) {
+    val preferences: SharedPreferences =
+        activity.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
+
+    preferences.edit().putString(CURRENT_SCREEN, status).apply()
+
+
+}
+
 fun isPassed(preferences: SharedPreferences, current: String): Boolean {
     Log.d(TAG, "pref , current: $current \n${preferences.getString(CURRENT_SCREEN, null)}")
     return preferences.getString(CURRENT_SCREEN, null) != current

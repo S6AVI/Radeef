@@ -10,10 +10,10 @@ interface AuthRepository {
 
     fun registerPassenger(passenger: Passenger, phone: String, activity: Activity, result: (UiState<String>) -> Unit)
 
-    fun updatePassengerInfo(passenger: Passenger, result: (UiState<String>) -> Unit)
+    fun updatePassengerInfo(passenger: Passenger, result: (UiState<Passenger>) -> Unit)
 
     fun logout(result: (UiState<String>) -> Unit)
-    fun signIn(code: String, result: (UiState<String>) -> Unit)
+    fun signIn(code: String, result: (UiState<Passenger>) -> Unit)
 
     fun updateName(name:String, result: (UiState<String>) -> Unit)
     abstract fun isRegistered(): Boolean

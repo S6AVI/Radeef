@@ -50,6 +50,7 @@
                 android:layout_marginEnd="32dp"
                 android:hint="Where to go?"
                 android:visibility="invisible"
+                tools:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">

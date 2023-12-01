@@ -117,22 +117,25 @@ class DriverRepositoryImpl(
     }
 
 
-    override fun updateDriverInfo(driver: Driver, result: (UiState<String>) -> Unit) {
+    override fun updateDriverInfo(driver: Driver, result: (UiState<Driver>) -> Unit) {
         val documentCollection = database.collection(FirestoreTables.DRIVERS)
         documentCollection
             .whereEqualTo("phoneNumber", driver.phoneNumber)
             .get()
             .addOnSuccessListener {
                 if (it.documents.isNotEmpty()) {
-                    result.invoke(
-                        UiState.Success("Driver is a registered user")
-                    )
+                    val retrievedDriver = it.documents[0].toObject(Driver::class.java)
+                    if (retrievedDriver != null) {
+                        result.invoke(
+                            UiState.Success(retrievedDriver)
+                        )
+                    }
                 } else {
                     documentCollection.document(driver.driverID)
                         .set(driver)
                         .addOnSuccessListener {
                             result.invoke(
-                                UiState.Success("Driver has been created")
+                                UiState.Success(driver)
                             )
                         }
                         .addOnFailureListener {
@@ -178,7 +181,7 @@ class DriverRepositoryImpl(
         result.invoke(UiState.Success("user signed out"))
     }
 
-    override fun signIn(code: String, result: (UiState<String>) -> Unit) {
+    override fun signIn(code: String, result: (UiState<Driver>) -> Unit) {
         val credential = PhoneAuthProvider.getCredential(verificationId, code)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->

@@ -22,8 +22,8 @@ class RegisterViewModel @ViewModelInject constructor(
     val register: LiveData<UiState<String>>
         get() = _register
 
-    private val _verify = MutableLiveData<UiState<String>>()
-    val verify: LiveData<UiState<String>>
+    private val _verify = MutableLiveData<UiState<Passenger>>()
+    val verify: LiveData<UiState<Passenger>>
         get() = _verify
 
     private val _name = MutableLiveData<UiState<String>>()
@@ -62,6 +62,7 @@ class RegisterViewModel @ViewModelInject constructor(
     }
 
     fun updateName(name: String) {
+        _name.value = UiState.Loading
         repository.updateName(name) { state ->
             _name.value = state
         }

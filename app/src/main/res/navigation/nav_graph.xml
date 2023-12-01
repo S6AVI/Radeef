@@ -30,6 +30,11 @@
             app:destination="@id/passengerInfoNavigation"
             app:popUpTo="@id/passengerAuthNavigation"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_global_passengerHomeNavigation2"
+            app:destination="@id/passengerHomeNavigation"
+            app:popUpTo="@id/passengerAuthNavigation"
+            app:popUpToInclusive="true" />
     </navigation>
     <navigation android:id="@+id/passengerInfoNavigation"
         app:startDestination="@id/enterNameFragment">

@@ -155,11 +155,16 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
 
 
     private fun loadImage(personalPhotoUrl: String) {
-        Glide.with(requireContext())
-            .load(personalPhotoUrl)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .into(binding.photoImageView)
+        if (personalPhotoUrl.isNotEmpty()) {
+            Glide.with(requireContext())
+                .load(personalPhotoUrl)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(binding.photoImageView)
+        } else {
+            binding.photoImageView.setImageResource(R.drawable.account)
+        }
+
     }
 
     private fun createDriver(uri: Uri): Driver {
@@ -229,10 +234,6 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
 
 
     private fun openImagePicker() {
-//        val intent = Intent(Intent.ACTION_GET_CONTENT)
-//        intent.type = "image/*"
-//        startActivityForResult(intent, PICK_IMAGE_REQUEST)
-
         ImagePicker.with(this)
             .crop()
             .galleryOnly()
@@ -242,13 +243,6 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
         
     }
 
-    private fun cropImage(uri: Uri) {
-        val destinationUri = Uri.fromFile(File(requireContext().cacheDir, "cropped_image.jpg"))
-
-        UCrop.of(uri, destinationUri)
-            .withAspectRatio(16f, 9f)
-            .start(requireContext(), this, CROP_IMAGE_REQUEST)
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

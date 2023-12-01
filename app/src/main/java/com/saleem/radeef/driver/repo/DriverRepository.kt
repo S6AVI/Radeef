@@ -16,10 +16,10 @@ interface DriverRepository {
 
     fun registerDriver(driver: Driver, phone: String, activity: Activity, result: (UiState<String>) -> Unit)
 
-    fun updateDriverInfo(driver: Driver, result: (UiState<String>) -> Unit)
+    fun updateDriverInfo(driver: Driver, result: (UiState<Driver>) -> Unit)
 
     fun logout(result: (UiState<String>) -> Unit)
-    fun signIn(code: String, result: (UiState<String>) -> Unit)
+    fun signIn(code: String, result: (UiState<Driver>) -> Unit)
 
     fun updateName(name:String, result: (UiState<String>) -> Unit)
 
