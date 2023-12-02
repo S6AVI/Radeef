@@ -56,7 +56,7 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
 
         binding.cameraIcon.setOnClickListener {
             openImagePicker()
-            toast("icon clicked")
+            logD("icon clicked")
         }
 
         binding.continueBt.setOnClickListener {
@@ -66,7 +66,7 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
                 binding.continueBt.disable()
                 viewModel.onContinueClicked(selectedImageUri!!, ImageFileNames.VEHICLE)
             } else {
-                toast("Missing required data")
+                logD("Missing required data")
             }
         }
 
@@ -219,8 +219,6 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
 
         val capacityAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, carCapacities)
         binding.capacityAutoComplete.setAdapter(capacityAdapter)
-
-
     }
 
     private fun fillFields(vehicle: Vehicle) {
@@ -230,8 +228,14 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
             modelAutoComplete.setText(vehicle.model)
 
             colorAutoComplete.setText(vehicle.color)
-            yearAutoComplete.setText(vehicle.year.toString())
-            capacityAutoComplete.setText(vehicle.numberOfSeats.toString())
+
+            if (vehicle.year != 0) {
+                yearAutoComplete.setText(vehicle.year.toString())
+            }
+            if (vehicle.numberOfSeats != 0) {
+                capacityAutoComplete.setText(vehicle.numberOfSeats.toString())
+            }
+
             setAdapters()
             selectedImageUri = vehicle.photoUrl.toUri()
         }
@@ -246,32 +250,80 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
         ImagePicker.with(this)
             .crop(16f, 9f)
             .galleryOnly()
-            .compress(1024)            //Final image size will be less than 1 MB(Optional)
+            .compress(1024)
             .maxResultSize(
                 800,
                 600
-            )    //Final image resolution will be less than 1080 x 1080(Optional)
+            )
             .start()
     }
 
     private fun loadImage(personalPhotoUrl: String) {
-        Glide.with(requireContext())
-            .load(personalPhotoUrl)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .into(binding.photoImageView)
+        if (personalPhotoUrl.isNotEmpty()) {
+            Glide.with(requireContext())
+                .load(personalPhotoUrl)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(binding.photoImageView)
+        } else {
+            binding.photoImageView.setImageResource(R.drawable.account)
+        }
     }
 
     private fun isValidData(): Boolean {
-        return (selectedImageUri != null && selectedImageUri.toString().isNotEmpty()) &&
-                (binding.makeAutoComplete.text.toString().isNotEmpty()) &&
-                (binding.modelAutoComplete.text.toString().isNotEmpty()) &&
-                (binding.colorAutoComplete.text.toString().isNotEmpty()) &&
-                (binding.yearAutoComplete.text.toString().isNotEmpty()) &&
-                (binding.capacityAutoComplete.text.toString().isNotEmpty()) &&
-                (binding.plateEt.text.toString().isValidPlateNumber())
+        var isValid = true
 
+        if (selectedImageUri == null || selectedImageUri.toString().isEmpty()) {
+            binding.uploadTv.setTextColor(resources.getColor(R.color.md_theme_light_error))
+            isValid = false
+        } else {
+            binding.uploadTv.setTextColor(resources.getColor(R.color.black))
+        }
 
+        if (binding.makeAutoComplete.text.toString().isEmpty()) {
+            binding.makeInputLayout.error = getString(R.string.make_is_required)
+            isValid = false
+        } else {
+            binding.makeInputLayout.isErrorEnabled = false
+        }
+
+        if (binding.modelAutoComplete.text.toString().isEmpty()) {
+            binding.modelInputLayout.error = getString(R.string.model_is_required)
+            isValid = false
+        } else {
+            binding.modelInputLayout.isErrorEnabled = false
+        }
+
+        if (binding.colorAutoComplete.text.toString().isEmpty()) {
+            binding.colorInputLayout.error = getString(R.string.color_is_required)
+            isValid = false
+        } else {
+            binding.colorInputLayout.isErrorEnabled = false
+        }
+
+        if (binding.yearAutoComplete.text.toString().isEmpty()) {
+            binding.yearInputLayout.error = getString(R.string.year_is_required)
+            isValid = false
+        } else {
+            binding.yearInputLayout.isErrorEnabled = false
+        }
+
+        if (binding.capacityAutoComplete.text.toString().isEmpty()) {
+            binding.capacityInputLayout.error = getString(R.string.capacity_is_required)
+            isValid = false
+        } else {
+            binding.capacityInputLayout.isErrorEnabled = false
+        }
+
+        val plate = binding.plateEt.text.toString()
+        if (plate.isEmpty() || !plate.isValidPlateNumber()) {
+            binding.plateInputLayout.error = getString(R.string.invalid_plate_number)
+            isValid = false
+        } else {
+            binding.plateInputLayout.isErrorEnabled = false
+        }
+
+        return isValid
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

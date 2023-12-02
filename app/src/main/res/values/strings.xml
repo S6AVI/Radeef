@@ -101,4 +101,22 @@
     <string name="error_otp">OTP code is not correct! try again.</string>
     <string name="error_otp_length">OTP code must consist of 6 digits</string>
     <string name="error_name">The name must be at least 4 characters in length</string>
+    <string name="error_id">ID number must be 10 digits in length</string>
+    <string name="error_gender">Gender must be selected from menu</string>
+    <string name="error_nationality">Nationality must be selected from menu</string>
+    <string name="error_email">Email format is not valid</string>
+    <string name="image_is_required">Image is required</string>
+    <string name="upload_you_license_card">Upload you license card</string>
+    <string name="issue_date_is_required">Issue date is required</string>
+    <string name="expiration_date_is_required">Expiration date is required</string>
+    <string name="blood_type_should_be_specified">blood type should be specified</string>
+    <string name="error_date_range">Date range is invalid</string>
+    <string name="expiration_date_cannot_be_past">Expiration date can\'t be past</string>
+    <string name="issue_date_cannot_be_future">Issue date can\'t be future</string>
+    <string name="make_is_required">Make is required</string>
+    <string name="color_is_required">Color is required</string>
+    <string name="year_is_required">Year is required</string>
+    <string name="capacity_is_required">Capacity is required</string>
+    <string name="invalid_plate_number">Invalid plate number. required format (AAA0000)</string>
+    <string name="model_is_required">Model is required</string>
 </resources>

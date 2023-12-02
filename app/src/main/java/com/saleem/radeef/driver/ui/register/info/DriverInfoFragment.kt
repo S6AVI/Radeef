@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.util.Patterns
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.core.net.toUri
@@ -40,6 +41,7 @@ import com.saleem.radeef.util.updateRegistrationStatus
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
+import kotlin.math.log
 
 @AndroidEntryPoint
 class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
@@ -48,35 +50,25 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
     private var selectedImageUri: Uri? = null
 
     private lateinit var preferences: SharedPreferences
-//        requireActivity().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
-
-
-//    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-//        uri?.let {
-//            imageView.setImageURI(uri)
-//            //viewModel.setSelectedImageUri(uri)
-//        }
-//    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        val currentPage = preferences.getString("currentStatus", RegistrationStatus.INFO.value)
-////        if (currentPage != RegistrationStatus.INFO.value) {
-////
-////        }
         binding = DriverInfoFragmentBinding.bind(view)
-
 
         setAdapters()
 
         binding.cameraIcon.setOnClickListener {
             openImagePicker()
-            toast("icon clicked")
+            logD("icon clicked")
         }
 
         binding.continueBt.setOnClickListener {
             //Log.d(TAG, isValidDate().toString())
-            if (isValidDate()) {
+            logD("continue button clicked")
+            hideErrors()
+            if (isValidData()) {
+                logD("no errors")
+                hideErrors()
                 binding.continueBt.disable()
                 viewModel.onContinueClicked(selectedImageUri!!, PERSONAL)
                 //toast("correct data")
@@ -152,7 +144,14 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
 
     }
 
-
+    private fun hideErrors() {
+        binding.nameInputLayout.isErrorEnabled = false
+        binding.numberIdInputLayout.isErrorEnabled = false
+        binding.genderInputLayout.isErrorEnabled = false
+        binding.nationalityInputLayout.isErrorEnabled = false
+        binding.emailInputLayout.isErrorEnabled = false
+        binding.photoErrorTextView.hide()
+    }
 
     private fun loadImage(personalPhotoUrl: String) {
         if (personalPhotoUrl.isNotEmpty()) {
@@ -179,24 +178,55 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
         )
     }
 
-    private fun isValidDate(): Boolean {
-        return  (selectedImageUri != null) &&
-                (binding.emailEt.toString().isNotEmpty())
-                && (binding.nameEt.text.toString().length > 5)
-                && (binding.idEt.text.toString().length == 10)
-                && (binding.genderAutoComplete.text.toString().isNotEmpty())
-                && (binding.nationalityAutoComplete.text.toString().isNotEmpty())
+    private fun isValidData(): Boolean {
+        logD("isValidData()")
+        var isValid = true  // Variable to track overall validity
 
-        // TO CHANGE THE FIRST CONDITION LATER //
-//        logD(
-//            binding.emailEt.text.toString() + "\n " +
-//                    binding.nameEt.text.toString() + "\n " +
-//                    binding.idEt.text.toString() + "\n " +
-//            binding.genderAutoComplete.text.toString() + "\n " +
-//            binding.nationalityAutoComplete.text.toString()
-//        )
+        if (selectedImageUri == null || selectedImageUri.toString().isEmpty()) {
+            binding.photoErrorTextView.show()
+            isValid = false
+        }
 
+        if (binding.nameEt.text.toString().length < 4) {
+            logD("name error")
+            binding.nameInputLayout.isErrorEnabled = true
+            binding.nameInputLayout.error = getString(R.string.error_name)
+            isValid = false
+        }
 
+        if (binding.idEt.text.toString().length != 10) {
+            logD("ID error")
+            binding.numberIdInputLayout.isErrorEnabled = true
+            binding.numberIdInputLayout.error = getString(R.string.error_id)
+            isValid = false
+        }
+
+        if (binding.genderAutoComplete.text.toString().isEmpty()) {
+            logD("gender error")
+            binding.genderInputLayout.error = getString(R.string.error_gender)
+            isValid = false
+        }
+
+        logD("after gender cond")
+        if (binding.nationalityAutoComplete.text.toString().isEmpty()) {
+            logD("nationality error")
+            binding.nationalityInputLayout.error = getString(R.string.error_nationality)
+            isValid = false
+        }
+
+        logD("after nat cond")
+        val email = binding.emailEt.text.toString()
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            logD("email error")
+            binding.emailInputLayout.isErrorEnabled = true
+            binding.emailInputLayout.error = getString(R.string.error_email)
+            isValid = false
+        }
+        logD("after email cond")
+
+        logD("isValid: $isValid")
+
+        return isValid
     }
 
     private fun String.isValidEmail(): Boolean {

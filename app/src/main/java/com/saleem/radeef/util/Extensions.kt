@@ -83,3 +83,12 @@ fun Context.hideKeyboard(view: View) {
     inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
 }
 
+fun String.parseDate(): Date? {
+    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    return try {
+        format.parse(this)
+    } catch (e: Exception) {
+        null
+    }
+}
+

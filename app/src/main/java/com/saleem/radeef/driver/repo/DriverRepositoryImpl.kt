@@ -18,6 +18,7 @@ import com.saleem.radeef.data.firestore.Passenger
 import com.saleem.radeef.data.firestore.driver.Driver
 import com.saleem.radeef.data.firestore.driver.DriverWithVehicle
 import com.saleem.radeef.data.firestore.driver.License
+import com.saleem.radeef.data.firestore.driver.RegistrationStatus
 import com.saleem.radeef.data.firestore.driver.UserStatus
 import com.saleem.radeef.data.firestore.driver.Vehicle
 import com.saleem.radeef.passenger.ui.map.TAG
@@ -505,31 +506,53 @@ class DriverRepositoryImpl(
     }
 
     override fun updateLicense(license: License, result: (UiState<String>) -> Unit) {
+        val driverId = auth.currentUser!!.uid
+        val batch = database.batch()
+        val driverRef = database.collection(FirestoreTables.DRIVERS).document(driverId)
 
-        //val driverWithId = driver.copy(driverID = auth.currentUser!!.uid, phoneNumber = auth.currentUser!!.phoneNumber!!)
-        Log.d(TAG, "inside updateLicense in repo")
+        val data = hashMapOf<String, Any>(
+            "registrationStatus" to RegistrationStatus.VEHICLE.value
+        )
+
+        batch.update(driverRef, data)
+
+        val licenseWithUid = license.copy(driverID = driverId)
         database.collection(FirestoreTables.LICENSE).document(license.licenseID)
-            .set(license)
+            .set(licenseWithUid)
             .addOnSuccessListener {
-                Log.d(TAG, "inside updateLicense in repo: Success")
-                result.invoke(UiState.Success("License updated successfully"))
+                batch.commit()
+                    .addOnSuccessListener {
+                        result.invoke(UiState.Success("License updated successfully"))
+                    }
+                    .addOnFailureListener { exception ->
+                        result.invoke(UiState.Failure(exception.message))
+                    }
             }
             .addOnFailureListener { exception ->
-                Log.d(TAG, "inside updateLicense in repo: Failure")
                 result.invoke(UiState.Failure(exception.message))
             }
     }
 
     override fun updateVehicle(vehicle: Vehicle, result: (UiState<String>) -> Unit) {
-        Log.d(TAG, "inside updateVehicle in repo")
-        database.collection(FirestoreTables.VEHICLES).document(vehicle.vehicleID)
-            .set(vehicle)
+        val driverId = auth.currentUser!!.uid
+        val batch = database.batch()
+        val driverRef = database.collection(FirestoreTables.DRIVERS).document(driverId)
+
+        val driverData = hashMapOf<String, Any>(
+            "registrationStatus" to RegistrationStatus.COMPLETED.value
+        )
+
+        batch.update(driverRef, driverData)
+
+        val vehicleWithUid = vehicle.copy(driverID = driverId)
+        val vehicleRef = database.collection(FirestoreTables.VEHICLES).document(vehicle.vehicleID)
+        batch.set(vehicleRef, vehicleWithUid)
+
+        batch.commit()
             .addOnSuccessListener {
-                Log.d(TAG, "inside updateVehicle in repo: Success")
                 result.invoke(UiState.Success("Vehicle updated successfully"))
             }
             .addOnFailureListener { exception ->
-                Log.d(TAG, "inside updateVehicle in repo: Failure")
                 result.invoke(UiState.Failure(exception.message))
             }
     }

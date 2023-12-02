@@ -22,11 +22,8 @@
 
     <TextView
         android:id="@+id/name_label_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/TitleStyle"
         android:text="@string/license_info"
-        android:textSize="24sp"
-        android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -44,20 +41,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/name_label_tv">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/photoImageView"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@drawable/account" />
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/photoImageView"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:src="@drawable/account" />
 
-    <ImageView
-        android:id="@+id/cameraIcon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:src="@drawable/camera_ic"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp" />
+        <ImageView
+            android:id="@+id/cameraIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/circle_background"
+            android:padding="4dp"
+            android:src="@drawable/camera_ic"
+            app:tint="@color/md_theme_light_onPrimary" />
+
+
+
+
 
     </FrameLayout>
 
@@ -66,17 +69,19 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="8dp"
-        android:text="Upload you license card"
+        android:text="@string/upload_you_license_card"
         android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/photoContainer" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/issDateInputLayout"
+        style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -85,6 +90,7 @@
         android:padding="8dp"
         app:endIconMode="custom"
         app:endIconDrawable="@drawable/ic_calender"
+        app:errorIconDrawable="@drawable/ic_calender"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -104,6 +110,7 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/expDateInputLayout"
+        style="@style/ThemeOverlay.Material3.TextInputEditText.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -111,6 +118,7 @@
         android:layout_marginEnd="8dp"
         android:padding="8dp"
         app:endIconMode="custom"
+        app:errorIconDrawable="@drawable/ic_calender"
         app:endIconDrawable="@drawable/ic_calender"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -167,10 +175,8 @@
 
         <Button
             android:id="@+id/continue_bt"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/continue_label"
-            android:textSize="18sp" />
+            style="@style/ButtonStyle"
+            android:text="@string/continue_label" />
 
         <ProgressBar
             android:id="@+id/progress_bar"

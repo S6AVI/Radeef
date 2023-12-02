@@ -30,6 +30,7 @@ import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.isPassed
 import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.parseDate
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import com.saleem.radeef.util.updateRegistrationStatus
@@ -81,23 +82,37 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
 
         binding.cameraIcon.setOnClickListener {
             openImagePicker()
-            toast("icon clicked")
+            logD("icon clicked")
         }
 
         binding.continueBt.setOnClickListener {
             logD("isValidData: ${isValidData()}")
+            hideErrors()
             if (isValidData()) {
                 logD("passed isValidData()")
-                binding.continueBt.disable()
                 viewModel.onContinueClicked(selectedImageUri!!, ImageFileNames.LICENSE)
+                hideErrors()
             } else {
-                toast("Missing required data")
+                logD("Missing required data")
             }
         }
 
         binding.issDateInputLayout.setEndIconOnClickListener {
-            // Create and show the DatePickerDialog
-            showDatePickerDialog(selectedIssueDate) { date ->
+            logD("iss date clicked")
+            val startDate = Calendar.getInstance()
+            startDate.add(Calendar.YEAR, -10)
+            showDatePickerDialog(selectedIssueDate, startDate) { date ->
+                selectedIssueDate = date
+                val formattedDate = formatDate(date) // Format the date as needed
+                binding.issEt.setText(formattedDate)
+            }
+        }
+
+        binding.issDateInputLayout.setErrorIconOnClickListener {
+            logD("iss date clicked")
+            val startDate = Calendar.getInstance()
+            startDate.add(Calendar.YEAR, -10)
+            showDatePickerDialog(selectedIssueDate, startDate) { date ->
                 selectedIssueDate = date
                 val formattedDate = formatDate(date) // Format the date as needed
                 binding.issEt.setText(formattedDate)
@@ -105,12 +120,26 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
         }
 
         binding.expDateInputLayout.setEndIconOnClickListener {
-            showDatePickerDialog(selectedExpDate) { date ->
+            val startDate = Calendar.getInstance()
+            startDate.add(Calendar.YEAR, -7)
+            showDatePickerDialog(selectedExpDate, startDate) { date ->
                 selectedExpDate = date
                 val formattedDate = formatDate(date) // Format the date as needed
                 binding.expEt.setText(formattedDate)
             }
         }
+
+        binding.expDateInputLayout.setErrorIconOnClickListener {
+            val startDate = Calendar.getInstance()
+            startDate.add(Calendar.YEAR, +1)
+            showDatePickerDialog(selectedExpDate, startDate) { date ->
+                selectedExpDate = date
+                val formattedDate = formatDate(date) // Format the date as needed
+                binding.expEt.setText(formattedDate)
+            }
+        }
+
+
 
         viewModel.license.observe(viewLifecycleOwner) { state ->
             when (state) {
@@ -148,7 +177,7 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
                     logD("LicenseFragment: uploadImage: Success: ${state.data}")
                     //logD("createLicense: ${createLicense(state.data)}")
                     val license = createLicense(state.data)
-                    logD("create license: ${license.toString()}")
+                    logD("create license: $license")
                     viewModel.updateLicenseInfo(license = license)
                     //logD(state.data.toString())
 
@@ -164,21 +193,26 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
             }
         }
 
-        viewModel.updateLicense.observe(viewLifecycleOwner) {state ->
+        viewModel.updateLicense.observe(viewLifecycleOwner) { state ->
             when (state) {
                 UiState.Loading -> {
                     binding.progressBar.show()
+                    binding.continueBt.disable()
                 }
+
                 is UiState.Success -> {
                     binding.progressBar.hide()
                     logD(state.data)
                     updateRegistrationStatus(RegistrationStatus.VEHICLE, requireActivity())
-                    val action = DriverLicenseFragmentDirections.actionDriverLicenseFragmentToDriverVehicleFragment()
+                    val action =
+                        DriverLicenseFragmentDirections.actionDriverLicenseFragmentToDriverVehicleFragment()
                     findNavController().navigate(action)
                 }
+
                 is UiState.Failure -> {
                     binding.progressBar.hide()
-                    toast(state.error.toString())
+                    binding.continueBt.enable()
+                    logD(state.error.toString())
                 }
 
             }
@@ -186,16 +220,23 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
 
     }
 
+    private fun hideErrors() {
+        binding.issDateInputLayout.isErrorEnabled = false
+        binding.expDateInputLayout.isErrorEnabled = false
+        binding.bloodTypeInputLayout.isErrorEnabled = false
+        binding.uploadTv.setTextColor(resources.getColor(R.color.black))
+    }
+
     private fun createLicense(uri: Uri): License {
         logD("LicenseFragment: createLicense: viewModel.LicenseData: ${viewModel.licenseData}")
         val licenseTemp = viewModel.licenseData!!
         val licenseWithFields =
-        licenseTemp.copy(
-            photoUrl = uri.toString(),
-            issDate = selectedIssueDate!!,
-            expDate = selectedExpDate!!,
-            bloodType = binding.bloodAutoComplete.text.toString()
-        )
+            licenseTemp.copy(
+                photoUrl = uri.toString(),
+                issDate = selectedIssueDate!!,
+                expDate = selectedExpDate!!,
+                bloodType = binding.bloodAutoComplete.text.toString()
+            )
         logD("LicenseFragment: createLicense: licenseWithFields: $licenseWithFields")
         return licenseWithFields
     }
@@ -206,13 +247,56 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
         binding.bloodAutoComplete.setAdapter(bloodAdapter)
     }
 
-
     private fun isValidData(): Boolean {
-        return (selectedImageUri != null && selectedImageUri.toString().isNotEmpty()) &&
-                (binding.issEt.text.toString().isNotEmpty()) &&
-                (binding.expEt.text.toString().isNotEmpty()) &&
-                (isValidDateRange(binding.issEt.text.toString(),binding.expEt.text.toString()))
+        var isValid = true
 
+        if (selectedImageUri == null || selectedImageUri.toString().isEmpty()) {
+            binding.uploadTv.setTextColor(resources.getColor(R.color.md_theme_light_error))
+            isValid = false
+        }
+        if (binding.issEt.text.toString().isEmpty()) {
+            binding.issDateInputLayout.error = getString(R.string.issue_date_is_required)
+            isValid = false
+            //binding.issDateInputLayout.isErrorEnabled = false
+        } else {
+            val issueDate = binding.issEt.text.toString().parseDate()
+            val currentDate = Date()
+
+            if (issueDate != null && issueDate.after(currentDate)) {
+                binding.issDateInputLayout.error = getString(R.string.issue_date_cannot_be_future)
+                isValid = false
+                binding.issDateInputLayout.isErrorEnabled = false
+            }
+        }
+
+        if (binding.expEt.text.toString().isEmpty()) {
+            binding.expDateInputLayout.error = getString(R.string.expiration_date_is_required)
+            isValid = false
+        } else {
+            val expirationDate =
+                binding.expEt.text.toString().parseDate() // Parse the expiration date string to Date object
+            val currentDate = Calendar.getInstance().time // Get the current date
+
+            if (expirationDate != null && expirationDate.before(currentDate)) {
+                binding.expDateInputLayout.error =
+                    getString(R.string.expiration_date_cannot_be_past)
+                isValid = false
+            }
+        }
+
+        if (binding.issEt.text.toString().isNotEmpty() && binding.expEt.text.toString().isNotEmpty()) {
+            if (!isValidDateRange(binding.issEt.text.toString(), binding.expEt.text.toString())) {
+                binding.issDateInputLayout.error = getString(R.string.error_date_range)
+                binding.expDateInputLayout.error = getString(R.string.error_date_range)
+                isValid = false
+            }
+        }
+
+        if (binding.bloodAutoComplete.text.toString().isEmpty()) {
+            binding.bloodTypeInputLayout.error = getString(R.string.blood_type_should_be_specified)
+        }
+
+        return isValid
     }
 
 
@@ -235,24 +319,26 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
         ImagePicker.with(this)
             .crop(16f, 9f)
             .galleryOnly()
-            .compress(1024)            //Final image size will be less than 1 MB(Optional)
+            .compress(1024)
             .maxResultSize(
                 800,
                 600
-            )    //Final image resolution will be less than 1080 x 1080(Optional)
+            )
             .start()
-
     }
 
     private fun loadImage(personalPhotoUrl: String) {
-        Glide.with(requireContext())
-            .load(personalPhotoUrl)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .into(binding.photoImageView)
+        if (personalPhotoUrl.isNotEmpty()) {
+            Glide.with(requireContext())
+                .load(personalPhotoUrl)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(binding.photoImageView)
+        } else {
+            binding.photoImageView.setImageResource(R.drawable.account)
+        }
+
     }
-
-
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -272,7 +358,11 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
         }
     }
 
-    private fun showDatePickerDialog(selectedDate: Date?, onDateSet: (Date) -> Unit) {
+    private fun showDatePickerDialog(
+        selectedDate: Date?,
+        start: Calendar,
+        onDateSet: (Date) -> Unit
+    ) {
         val calendar = Calendar.getInstance()
         if (selectedDate != null) {
             calendar.time = selectedDate
@@ -295,6 +385,9 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
             currentMonth,
             currentDay
         )
+
+        datePickerDialog.datePicker.minDate =
+            start.timeInMillis // Set the minimum date as the start date
         datePickerDialog.show()
     }
 
