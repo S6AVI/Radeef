@@ -8,7 +8,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentRidesBinding
-import com.saleem.radeef.driver.ui.drawer.rides.DriverRideAdapter
+import com.saleem.radeef.driver.ui.rides.DriverRideAdapter
 import com.saleem.radeef.ui.rides.DriverRideViewModel
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.exhaustive

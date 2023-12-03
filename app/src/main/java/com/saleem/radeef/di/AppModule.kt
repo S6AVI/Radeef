@@ -9,8 +9,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.maps.GeoApiContext
-import com.saleem.radeef.R
-import com.saleem.radeef.driver.repo.CarsApi
+import com.saleem.radeef.api.CarsApi
 import com.saleem.radeef.util.FirebaseStorageConstants
 import com.saleem.radeef.util.GOOGLE_MAPS_KEY
 //import com.saleem.radeef.data.relations.RadeefDatabase

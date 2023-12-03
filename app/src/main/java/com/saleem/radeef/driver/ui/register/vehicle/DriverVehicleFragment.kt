@@ -18,11 +18,9 @@ import com.github.dhaval2404.imagepicker.ImagePicker
 import com.saleem.radeef.InfoNavigationDirections
 //import com.github.drjacky.imagepicker.ImagePicker
 import com.saleem.radeef.R
-import com.saleem.radeef.data.firestore.driver.Driver
-import com.saleem.radeef.data.firestore.driver.RegistrationStatus
-import com.saleem.radeef.data.firestore.driver.Vehicle
+import com.saleem.radeef.util.RegistrationStatus
+import com.saleem.radeef.data.model.Vehicle
 import com.saleem.radeef.databinding.DriverVehicleFragmentBinding
-import com.saleem.radeef.driver.ui.register.license.DriverLicenseFragmentDirections
 import com.saleem.radeef.util.ImageFileNames
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.carCapacities

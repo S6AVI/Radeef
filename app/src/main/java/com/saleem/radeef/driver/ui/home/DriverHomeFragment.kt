@@ -27,7 +27,7 @@ import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.DriverFragmentHomeBinding
-import com.saleem.radeef.passenger.ui.map.TAG
+import com.saleem.radeef.passenger.ui.home.TAG
 import com.saleem.radeef.util.toast
 import com.vmadalin.easypermissions.EasyPermissions
 import configureMapSettings
@@ -44,7 +44,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
-import com.saleem.radeef.driver.DriverHomeUiState
+import com.saleem.radeef.driver.ui.DriverHomeUiState
 import com.saleem.radeef.util.MIN_UPDATE_DISTANCE_METERS
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.calculateFee
@@ -279,18 +279,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                     findNavController().navigate(action)
                 }
 
-                R.id.nav_item_wallet -> {
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverWalletFragment()
-                    findNavController().navigate(action)
-                }
-
-                R.id.nav_item_payment -> {
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverPaymentFragment()
-                    findNavController().navigate(action)
-
-                }
 
                 R.id.nav_item_rides -> {
                     val action =
@@ -304,12 +292,6 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                     findNavController().navigate(action)
                 }
 
-                R.id.nav_item_Settings -> {
-                    //val action = HomeFragmentDirections.actionHomeFragmentToSettingsFragment2()
-                    val action =
-                        DriverHomeFragmentDirections.actionDriverHomeFragmentToDriverSettingsFragment()
-                    findNavController().navigate(action)
-                }
             }
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             true

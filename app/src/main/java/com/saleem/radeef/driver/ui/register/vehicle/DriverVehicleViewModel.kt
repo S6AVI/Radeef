@@ -6,10 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.saleem.radeef.data.firestore.driver.Driver
-import com.saleem.radeef.data.firestore.driver.Vehicle
-import com.saleem.radeef.driver.repo.CarsRepository
-import com.saleem.radeef.driver.repo.DriverRepository
+import com.saleem.radeef.data.model.Vehicle
+import com.saleem.radeef.api.CarsRepository
+import com.saleem.radeef.data.repository.DriverRepository
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
 import kotlinx.coroutines.launch

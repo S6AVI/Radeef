@@ -4,12 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.saleem.radeef.data.firestore.driver.RegistrationStatus
-import com.saleem.radeef.passenger.ui.map.TAG
+import com.saleem.radeef.passenger.ui.home.TAG
 import com.saleem.radeef.util.Constants.CURRENT_SCREEN
 import java.util.Calendar
 import java.util.Locale
-import kotlin.math.log
 
 // turn a statement into an expression
 val <T> T.exhaustive: T

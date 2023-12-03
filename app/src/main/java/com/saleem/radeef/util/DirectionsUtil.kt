@@ -1,26 +1,5 @@
 package com.saleem.radeef.util
 
-import android.util.Log
-import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolylineOptions
-import com.google.maps.DirectionsApi
-import com.google.maps.GeoApiContext
-import com.google.maps.android.PolyUtil
-import com.google.maps.model.TravelMode
-import com.google.maps.model.Unit
-import com.saleem.radeef.R
-import com.saleem.radeef.passenger.ui.map.TAG
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.lang.Exception
-
 
 //fun calculateDistance(start: LatLng, end: LatLng, context: GeoApiContext): Double {
 //

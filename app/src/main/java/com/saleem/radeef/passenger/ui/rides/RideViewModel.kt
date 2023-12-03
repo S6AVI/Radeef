@@ -4,7 +4,7 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.saleem.radeef.data.firestore.Ride
+import com.saleem.radeef.data.model.Ride
 import com.saleem.radeef.data.repository.RideRepository
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD

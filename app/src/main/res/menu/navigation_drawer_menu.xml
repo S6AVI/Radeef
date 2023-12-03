@@ -11,16 +11,6 @@
         />
 
     <item
-        android:id="@+id/nav_item_wallet"
-        android:title="My Pocket"
-        android:icon="@drawable/wallet"/>
-
-    <item
-        android:id="@+id/nav_item_payment"
-        android:title="Payment"
-        android:icon="@drawable/credit_card"/>
-
-    <item
         android:id="@+id/nav_item_rides"
         android:title="@string/rides_history"
         android:icon="@drawable/map"/>
@@ -29,11 +19,6 @@
         android:id="@+id/nav_item_help"
         android:title="Help"
         android:icon="@drawable/help"/>
-
-    <item
-        android:id="@+id/nav_item_Settings"
-        android:title="Settings"
-        android:icon="@drawable/settings"/>
 
 
 

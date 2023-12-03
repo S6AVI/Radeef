@@ -10,11 +10,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
-import com.saleem.radeef.passenger.ui.map.TAG
+import com.saleem.radeef.passenger.ui.home.TAG
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.abs
 
 fun View.hide(){
     visibility = View.GONE

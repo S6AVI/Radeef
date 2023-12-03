@@ -1,7 +1,7 @@
 package com.saleem.radeef.data.repository
 
 import com.google.android.gms.maps.model.LatLng
-import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.data.model.Passenger
 import com.saleem.radeef.util.UiState
 
 interface CloudRepository {

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.widget.ArrayAdapter
@@ -20,13 +19,12 @@ import com.github.dhaval2404.imagepicker.ImagePicker
 import com.saleem.radeef.InfoNavigationDirections
 //import com.github.drjacky.imagepicker.ImagePicker
 import com.saleem.radeef.R
-import com.saleem.radeef.data.firestore.driver.Driver
-import com.saleem.radeef.data.firestore.driver.RegistrationStatus
+import com.saleem.radeef.data.model.Driver
+import com.saleem.radeef.util.RegistrationStatus
 import com.saleem.radeef.databinding.DriverInfoFragmentBinding
-import com.saleem.radeef.passenger.ui.map.TAG
 import com.saleem.radeef.util.Constants
-import com.saleem.radeef.util.Constants.CROP_IMAGE_REQUEST
 import com.saleem.radeef.util.ImageFileNames.PERSONAL
+import com.saleem.radeef.util.Sex
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.enable
@@ -38,10 +36,7 @@ import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import com.saleem.radeef.util.updateRegistrationStatus
-import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.File
-import kotlin.math.log
 
 @AndroidEntryPoint
 class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
@@ -239,7 +234,7 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
             emailEt.setText(driver.email)
             idEt.setText(driver.identityNumber)
             genderAutoComplete.setText(
-                if (driver.sex == "none") {
+                if (driver.sex == Sex.NONE.value) {
                   ""
                 } else {
                     driver.sex

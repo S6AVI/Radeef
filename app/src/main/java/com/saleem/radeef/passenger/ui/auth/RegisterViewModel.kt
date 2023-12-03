@@ -6,7 +6,7 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.data.model.Passenger
 
 import com.saleem.radeef.data.repository.AuthRepository
 import com.saleem.radeef.util.UiState

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".driver.ui.drawer.rides.DriverRidesFragment">
+    tools:context=".driver.ui.rides.DriverRidesFragment">
 
 
     <ImageButton

@@ -7,10 +7,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.maps.model.LatLng
-import com.saleem.radeef.data.firestore.Ride
+import com.saleem.radeef.data.model.Ride
 import com.saleem.radeef.databinding.ItemPassengerRequestBinding
-import com.saleem.radeef.util.calculateFee
 import com.saleem.radeef.util.formatCost
 import com.saleem.radeef.util.formatDistance
 import com.saleem.radeef.util.logD

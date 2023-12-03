@@ -1,7 +1,7 @@
 package com.saleem.radeef.data.repository
 
-import com.saleem.radeef.data.firestore.Ride
-import com.saleem.radeef.data.firestore.driver.Driver
+import com.saleem.radeef.data.model.Ride
+import com.saleem.radeef.data.model.Driver
 import com.saleem.radeef.driver.ui.home.RideWithDistance
 import com.saleem.radeef.util.UiState
 

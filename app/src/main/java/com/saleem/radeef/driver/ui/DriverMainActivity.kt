@@ -7,11 +7,8 @@ import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import com.saleem.radeef.AuthNavigationDirections
 import com.saleem.radeef.R
-import com.saleem.radeef.data.firestore.driver.RegistrationStatus
-import com.saleem.radeef.driver.ui.register.info.DriverInfoFragmentDirections
-import com.saleem.radeef.driver.ui.register.license.DriverLicenseFragmentDirections
+import com.saleem.radeef.util.RegistrationStatus
 import com.saleem.radeef.util.logD
 import dagger.hilt.android.AndroidEntryPoint
 

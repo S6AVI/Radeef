@@ -13,15 +13,15 @@ import com.google.maps.GeoApiContext
 import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
 import com.saleem.radeef.R
-import com.saleem.radeef.data.RadeefLocation
-import com.saleem.radeef.data.firestore.Ride
-import com.saleem.radeef.data.firestore.RideStatus
-import com.saleem.radeef.data.firestore.driver.Driver
-import com.saleem.radeef.data.firestore.driver.UserStatus
+import com.saleem.radeef.data.model.RadeefLocation
+import com.saleem.radeef.data.model.Ride
+import com.saleem.radeef.util.RideStatus
+import com.saleem.radeef.data.model.Driver
+import com.saleem.radeef.util.DriverStatus
 import com.saleem.radeef.data.repository.CloudRepository
 import com.saleem.radeef.data.repository.RideRepository
-import com.saleem.radeef.driver.DriverHomeUiState
-import com.saleem.radeef.driver.repo.DriverRepository
+import com.saleem.radeef.driver.ui.DriverHomeUiState
+import com.saleem.radeef.data.repository.DriverRepository
 import com.saleem.radeef.util.MAX_DISTANCE_METERS_THRESHOLD
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.UiState
@@ -82,7 +82,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
         var searchingStateSet = false
 
         when (status) {
-            UserStatus.INACTIVE.value -> {
+            DriverStatus.INACTIVE.value -> {
                 logD("location: ${data.destinationLatLng}")
                 if (data.destinationLatLng.isDefault()) {
                     logD("location: set places")
@@ -100,7 +100,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 }
             }
 
-            UserStatus.SEARCHING.value -> {
+            DriverStatus.SEARCHING.value -> {
                 ridesRepo.getCurrentRide { result ->
                     if (result is UiState.Success) {
                         logD("inside viewModel - searching state of driver - ride: ${result.data}")
@@ -138,7 +138,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 }
             }
 
-            UserStatus.IN_RIDE.value -> {
+            DriverStatus.IN_RIDE.value -> {
                 ridesRepo.getCurrentRide { result ->
                     if (result is UiState.Success) {
                         logD("inside viewModel - in_ride state of driver - ride: ${result.data}")
@@ -182,7 +182,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 }
             }
 
-            UserStatus.CONTINUE.value -> {
+            DriverStatus.CONTINUE.value -> {
                 viewModelScope.launch {
                     handleContinueStatus()
                 }
@@ -301,10 +301,10 @@ class DriverHomeViewModel @ViewModelInject constructor(
 
             //driverData = driverData!!.copy(status = UserStatus.SEARCHING.value)
             repository.updateDriver(
-                driverData!!.copy(status = UserStatus.SEARCHING.value)
+                driverData!!.copy(status = DriverStatus.SEARCHING.value)
             ) { result ->
                 if (result is UiState.Success) {
-                    driverData = driverData!!.copy(status = UserStatus.SEARCHING.value)
+                    driverData = driverData!!.copy(status = DriverStatus.SEARCHING.value)
                     _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
                 } else {
                     logD("error")
@@ -527,7 +527,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
         _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
             repository.updateDriver(
-                driverData!!.copy(status = UserStatus.INACTIVE.value)
+                driverData!!.copy(status = DriverStatus.INACTIVE.value)
             ) { result ->
                 if (result is UiState.Success) {
                     logD("stop: status: ${driverData!!.status}")
@@ -542,7 +542,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
         _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
             repository.updateDriver(
-                driverData!!.copy(status = UserStatus.CONTINUE.value)
+                driverData!!.copy(status = DriverStatus.CONTINUE.value)
             ) { result ->
                 if (result is UiState.Success) {
                     logD("continue: status: ${driverData!!.status}")
@@ -564,7 +564,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
     fun onDoneButtonClicked() {
         viewModelScope.launch {
             repository.updateDriver(
-                driverData!!.copy(status = UserStatus.INACTIVE.value)
+                driverData!!.copy(status = DriverStatus.INACTIVE.value)
             ) { result ->
                 if (result is UiState.Success) {
                     logD("inactive: status: ${driverData!!.status}")

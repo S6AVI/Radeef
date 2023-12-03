@@ -1,7 +1,5 @@
 package com.saleem.radeef.driver.ui.home
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,9 +25,9 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.saleem.radeef.R
-import com.saleem.radeef.data.RadeefLocation
+import com.saleem.radeef.data.model.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
-import com.saleem.radeef.passenger.ui.map.SearchResultAdapter
+import com.saleem.radeef.passenger.ui.home.SearchResultAdapter
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.hide

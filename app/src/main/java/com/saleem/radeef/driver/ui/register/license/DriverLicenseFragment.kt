@@ -18,10 +18,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.github.dhaval2404.imagepicker.ImagePicker
 //import com.github.drjacky.imagepicker.ImagePicker
 import com.saleem.radeef.R
-import com.saleem.radeef.data.firestore.driver.License
-import com.saleem.radeef.data.firestore.driver.RegistrationStatus
+import com.saleem.radeef.data.model.License
+import com.saleem.radeef.util.RegistrationStatus
 import com.saleem.radeef.databinding.DriverLicenseFragmentBinding
-import com.saleem.radeef.driver.ui.register.info.DriverInfoFragmentDirections
 import com.saleem.radeef.util.ImageFileNames
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.bloodTypes

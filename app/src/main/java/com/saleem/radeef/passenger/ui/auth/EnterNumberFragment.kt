@@ -7,7 +7,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.PassengerAuthNavigationDirections
 import com.saleem.radeef.R
-import com.saleem.radeef.data.firestore.Passenger
+import com.saleem.radeef.data.model.Passenger
 import com.saleem.radeef.databinding.FragementEnterNumberBinding
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph.xml"
+    app:startDestination="@id/passengerAuthNavigation">
+    <navigation android:id="@+id/passengerAuthNavigation"
+        app:startDestination="@id/enterNumberFragment">
+        <fragment
+            android:id="@+id/enterNumberFragment"
+            android:name="com.saleem.radeef.passenger.ui.auth.EnterNumberFragment"
+            android:label="fragment_enter_number"
+            tools:layout="@layout/fragement_enter_number">
+            <action
+                android:id="@+id/action_enterNumberFragment_to_otpFragment"
+                app:destination="@id/otpFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/otpFragment"
+            android:name="com.saleem.radeef.passenger.ui.auth.OtpFragment"
+            android:label="fragment_otp"
+            tools:layout="@layout/fragment_otp">
+
+            <argument
+                android:name="phone"
+                app:argType="string" />
+        </fragment>
+        <action
+            android:id="@+id/action_global_passengerInfoNavigation"
+            app:destination="@id/passengerInfoNavigation"
+            app:popUpTo="@id/passengerAuthNavigation"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_global_passengerHomeNavigation2"
+            app:destination="@id/passengerHomeNavigation"
+            app:popUpTo="@id/passengerAuthNavigation"
+            app:popUpToInclusive="true" />
+    </navigation>
+    <navigation android:id="@+id/passengerInfoNavigation"
+        app:startDestination="@id/enterNameFragment">
+        <fragment
+            android:id="@+id/enterNameFragment"
+            android:name="com.saleem.radeef.passenger.ui.auth.EnterNameFragment"
+            android:label="fragment_enter_name"
+            tools:layout="@layout/fragment_enter_name"/>
+        <action
+            android:id="@+id/action_global_passengerHomeNavigation"
+            app:destination="@id/passengerHomeNavigation"
+            app:popUpTo="@id/passengerInfoNavigation"
+            app:popUpToInclusive="true" />
+    </navigation>
+    <navigation android:id="@+id/passengerHomeNavigation"
+        app:startDestination="@id/passengerRequestPermissionFragment">
+        <fragment
+            android:id="@+id/homeFragment"
+            android:name="com.saleem.radeef.passenger.ui.home.PassengerHomeFragment"
+            android:label="fragment_home"
+            tools:layout="@layout/fragment_home">
+            <action
+                android:id="@+id/action_homeFragment_to_helpFragment2"
+                app:destination="@id/helpFragment2" />
+            <action
+                android:id="@+id/action_homeFragment_to_profileFragment2"
+                app:destination="@id/profileFragment2" />
+            <action
+                android:id="@+id/action_homeFragment_to_ridesFragment"
+                app:destination="@id/ridesFragment" />
+            <action
+                android:id="@+id/action_homeFragment_to_searchFragment"
+                app:destination="@id/searchFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/helpFragment2"
+            android:name="com.saleem.radeef.passenger.ui.help.HelpFragment"
+            android:label="fragment_help"
+            tools:layout="@layout/fragment_help" />
+        <fragment
+            android:id="@+id/ridesFragment"
+            android:name="com.saleem.radeef.passenger.ui.rides.RidesFragment"
+            android:label="fragment_rides"
+            tools:layout="@layout/fragment_rides" />
+        <fragment
+            android:id="@+id/searchFragment"
+            android:name="com.saleem.radeef.passenger.ui.home.SearchFragment"
+            android:label="fragment_search"
+            tools:layout="@layout/fragment_search">
+            <action
+                android:id="@+id/action_searchFragment_to_homeFragment"
+                app:destination="@id/homeFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/profileFragment2"
+            android:name="com.saleem.radeef.passenger.ui.profile.ProfileFragment"
+            android:label="fragment_profile"
+            tools:layout="@layout/fragment_profile" />
+        <fragment
+            android:id="@+id/passengerRequestPermissionFragment"
+            android:name="com.saleem.radeef.passenger.ui.home.PassengerRequestPermissionFragment"
+            android:label="PassengerRequestPermissionFragment" >
+            <action
+                android:id="@+id/action_passengerRequestPermissionFragment_to_homeFragment"
+                app:destination="@id/homeFragment" />
+        </fragment>
+    </navigation>
+</navigation>

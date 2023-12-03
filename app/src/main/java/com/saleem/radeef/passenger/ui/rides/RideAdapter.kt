@@ -5,8 +5,7 @@ import android.location.Geocoder
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.saleem.radeef.data.firestore.Ride
-import com.saleem.radeef.databinding.ItemRideBinding
+import com.saleem.radeef.data.model.Ride
 import com.saleem.radeef.databinding.ItemRidePassengerBinding
 import com.saleem.radeef.util.formatCost
 import com.saleem.radeef.util.formatDate

@@ -9,7 +9,7 @@ import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.PassengerInfoNavigationDirections
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
-import com.saleem.radeef.passenger.ui.map.TAG
+import com.saleem.radeef.passenger.ui.home.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.enable
@@ -18,7 +18,6 @@ import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.hideKeyboard
 import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
-import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
