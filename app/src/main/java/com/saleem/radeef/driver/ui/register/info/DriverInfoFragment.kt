@@ -17,14 +17,13 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.saleem.radeef.InfoNavigationDirections
-//import com.github.drjacky.imagepicker.ImagePicker
 import com.saleem.radeef.R
 import com.saleem.radeef.data.model.Driver
 import com.saleem.radeef.util.RegistrationStatus
 import com.saleem.radeef.databinding.DriverInfoFragmentBinding
 import com.saleem.radeef.util.Constants
 import com.saleem.radeef.util.ImageFileNames.PERSONAL
-import com.saleem.radeef.util.Sex
+import com.saleem.radeef.util.Gender
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.enable
@@ -39,7 +38,7 @@ import com.saleem.radeef.util.updateRegistrationStatus
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
+class DriverInfoFragment : Fragment(R.layout.driver_info_fragment) {
     private lateinit var binding: DriverInfoFragmentBinding
     val viewModel: DriverInfoViewModel by viewModels()
     private var selectedImageUri: Uri? = null
@@ -54,23 +53,15 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
 
         binding.cameraIcon.setOnClickListener {
             openImagePicker()
-            logD("icon clicked")
         }
 
         binding.continueBt.setOnClickListener {
-            //Log.d(TAG, isValidDate().toString())
-            logD("continue button clicked")
             hideErrors()
             if (isValidData()) {
-                logD("no errors")
                 hideErrors()
                 binding.continueBt.disable()
                 viewModel.onContinueClicked(selectedImageUri!!, PERSONAL)
-                //toast("correct data")
-            } else {
-                toast("Missing required data")
             }
-
         }
 
         viewModel.driver.observe(viewLifecycleOwner) {state ->
@@ -97,7 +88,7 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
             when (state) {
                 UiState.Loading -> {
                     binding.progressBar.show()
-                    binding.continueBt.setText("")
+                    binding.continueBt.text = ""
                 }
                 is UiState.Success -> {
                    // binding.progressBar.hide()
@@ -109,7 +100,7 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
                 is UiState.Failure -> {
                     binding.progressBar.hide()
                     binding.continueBt.enable()
-                    binding.continueBt.setText(getString(R.string.continue_label))
+                    binding.continueBt.text = getString(R.string.continue_label)
                     toast(state.error.toString())
                 }
 
@@ -135,8 +126,6 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
 
             }
         }
-
-
     }
 
     private fun hideErrors() {
@@ -174,8 +163,8 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
     }
 
     private fun isValidData(): Boolean {
-        logD("isValidData()")
-        var isValid = true  // Variable to track overall validity
+
+        var isValid = true
 
         if (selectedImageUri == null || selectedImageUri.toString().isEmpty()) {
             binding.photoErrorTextView.show()
@@ -183,58 +172,52 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
         }
 
         if (binding.nameEt.text.toString().length < 4) {
-            logD("name error")
+
             binding.nameInputLayout.isErrorEnabled = true
             binding.nameInputLayout.error = getString(R.string.error_name)
             isValid = false
         }
 
         if (binding.idEt.text.toString().length != 10) {
-            logD("ID error")
+
             binding.numberIdInputLayout.isErrorEnabled = true
             binding.numberIdInputLayout.error = getString(R.string.error_id)
             isValid = false
         }
 
         if (binding.genderAutoComplete.text.toString().isEmpty()) {
-            logD("gender error")
+
             binding.genderInputLayout.error = getString(R.string.error_gender)
             isValid = false
         }
 
-        logD("after gender cond")
+
         if (binding.nationalityAutoComplete.text.toString().isEmpty()) {
-            logD("nationality error")
+
             binding.nationalityInputLayout.error = getString(R.string.error_nationality)
             isValid = false
         }
 
-        logD("after nat cond")
+
         val email = binding.emailEt.text.toString()
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            logD("email error")
+
             binding.emailInputLayout.isErrorEnabled = true
             binding.emailInputLayout.error = getString(R.string.error_email)
             isValid = false
         }
-        logD("after email cond")
-
-        logD("isValid: $isValid")
 
         return isValid
     }
 
-    private fun String.isValidEmail(): Boolean {
-        val emailRegex = Regex("^\\w+([.-]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,3})+\$")
-        return emailRegex.matches(this)
-    }
+
     private fun fillFields(driver: Driver) {
         binding.apply {
             nameEt.setText(driver.name)
             emailEt.setText(driver.email)
             idEt.setText(driver.identityNumber)
             genderAutoComplete.setText(
-                if (driver.sex == Sex.NONE.value) {
+                if (driver.sex == Gender.NONE.value) {
                   ""
                 } else {
                     driver.sex
@@ -278,8 +261,6 @@ class DriverInfoFragment() : Fragment(R.layout.driver_info_fragment) {
             binding.photoImageView.setImageURI(uri)
         } else if (resultCode == ImagePicker.RESULT_ERROR) {
            toast(ImagePicker.RESULT_ERROR.toString())
-        } else {
-            toast("Task canceled")
         }
     }
 

@@ -41,22 +41,10 @@ class DriverRideAdapter(val context: Context) :
     inner class RideViewHolder(val binding: ItemRideBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Ride) {
-            val geocoder = Geocoder(context, Locale.getDefault())
-//            val pickup = geocoder.getFromLocation(
-//                item.pickupLocation.latitude,
-//                item.pickupLocation.longitude,
-//                1
-//            )?.firstOrNull()?.getAddressLine(0) ?: ""
-//
-//            val destination = geocoder.getFromLocation(
-//                item.destination.latitude,
-//                item.destination.longitude,
-//                1
-//            )?.firstOrNull()?.getAddressLine(0) ?: ""
 
             val coroutineScope = CoroutineScope(Dispatchers.Main)
-            var pickup = ""
-            var destination = ""
+            var pickup: String
+            var destination: String
             coroutineScope.launch {
                 pickup =
                     getPickupAddress(
@@ -77,18 +65,15 @@ class DriverRideAdapter(val context: Context) :
                     statusTv.text = item.status
                 }
             }
-
-
         }
-
-        private suspend fun getPickupAddress(latitude: Double, longitude: Double): String {
-            try {
+        private fun getPickupAddress(latitude: Double, longitude: Double): String {
+            return try {
                 val geocoder = Geocoder(context, Locale.getDefault())
                 val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-                return addresses?.firstOrNull()?.featureName ?: ""
+                addresses?.firstOrNull()?.featureName ?: ""
             } catch (e: Exception) {
                 logD("DriverRideAdapter - getPickupAddress - error: ${e.message}")
-                return ""
+                ""
             }
         }
     }

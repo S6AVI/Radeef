@@ -13,7 +13,7 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.model.Driver
 import com.saleem.radeef.databinding.DriverFragmentProfileBinding
 
-import com.saleem.radeef.passenger.ui.home.TAG
+import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.genders
 import com.saleem.radeef.util.hide
@@ -44,15 +44,9 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
         binding.base.emailIl.isErrorEnabled = binding.base.emailEt.text.toString().isNotEmpty() &&
                 binding.base.emailEt.text.toString().isValidEmail()
 
-        //binding.base.saveBtn.isEnabled = isDataValid()
 
         binding.base.saveBtn.setOnClickListener {
             if (isDataValid()) {
-                val name = binding.base.nameEt.text.toString()
-                val email = binding.base.emailEt.text.toString()
-
-                Log.d(TAG, "name:$name\nemail:$email")
-
                 val driver = createDriver()
                 viewModel.updateDriverInfo(
                     driver
@@ -64,59 +58,27 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
         viewModel.update.observe(viewLifecycleOwner) { state ->
             when (state) {
                 UiState.Loading -> {
-                    binding.base.saveBtn.setText("")
+                    binding.base.saveBtn.text = ""
                     binding.base.progressBar.show()
 
                 }
 
                 is UiState.Success -> {
                     binding.base.progressBar.hide()
-                    binding.base.saveBtn.setText(getString(R.string.save_changes))
+                    binding.base.saveBtn.text = getString(R.string.save_changes)
 
                     toast(state.data)
                 }
 
                 is UiState.Failure -> {
                     binding.base.progressBar.hide()
-                    binding.base.saveBtn.setText(getString(R.string.save_changes))
+                    binding.base.saveBtn.text = getString(R.string.save_changes)
                     Log.d(TAG, state.error.toString())
                 }
             }
         }
-
-//        binding.base.nameEt.setText(viewModel.fetchPassengerName())
-//
-//        binding.base.nameEt.addTextChangedListener {
-//            viewModel.passengerName = it.toString()
-//        }
-
-        //binding.base.nameEt.setText(viewModel.fetchPassengerName())
-
-        //viewModel.fetchPassengerName()
 
         viewModel.getDriver()
-
-        viewModel.name.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                UiState.Loading -> {
-                    binding.base.constLayout.hide()
-                    binding.base.loadProgressBar.show()
-
-                }
-
-                is UiState.Failure -> {
-                    binding.base.loadProgressBar.hide()
-                    binding.base.constLayout.show()
-                    Log.d(TAG, state.error.toString())
-                }
-
-                is UiState.Success -> {
-                    binding.base.loadProgressBar.hide()
-                    binding.base.constLayout.show()
-                    binding.base.nameEt.setText(state.data)
-                }
-            }
-        }
 
         viewModel.driver.observe(viewLifecycleOwner) { state ->
             when (state) {
@@ -142,7 +104,6 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
             }
         }
     }
-
     private fun loadImage(personalPhotoUrl: String) {
         Glide.with(requireContext())
             .load(personalPhotoUrl)
@@ -174,7 +135,6 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
             email = binding.base.emailEt.text.toString()
         )
     }
-
 
     override fun onResume() {
         super.onResume()

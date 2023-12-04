@@ -27,7 +27,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.saleem.radeef.R
 import com.saleem.radeef.data.model.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
-import com.saleem.radeef.passenger.ui.home.SearchResultAdapter
+import com.saleem.radeef.util.SearchResultAdapter
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.hide

@@ -42,9 +42,12 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
             if (phoneNumber.isNotEmpty() && phoneNumber.length == 9) {
                 hideKeyboard()
                 binding.textInputLayout.isErrorEnabled = false
-                phoneNumber = "+${binding.countryCodePicker.selectedCountryCode}$phoneNumber"
+                val countryCode = binding.countryCodePicker.selectedCountryCode
+                phoneNumber = getString(R.string.phone_number_format, countryCode, phoneNumber)
+
+                phoneNumber = "+${countryCode}$phoneNumber"
                 viewModel.register(
-                    createDriver(),
+                    Driver(phoneNumber = phoneNumber),
                     phoneNumber,
                     requireActivity()
                 )
@@ -60,16 +63,14 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
         viewModel.register.observe(viewLifecycleOwner) { state ->
             when (state) {
                 UiState.Loading -> {
-                    binding.registerButton.setText("")
+                    binding.registerButton.text = ""
                     binding.registerButton.disable()
                     binding.progressBar.show()
                 }
 
                 is UiState.Success -> {
                     binding.progressBar.hide()
-                    binding.registerButton.setText("Continue")
-                    //binding.registerButton.setText("Continue")
-                    toast(state.data)
+                    binding.registerButton.text = getString(R.string.continue_label)
                     val action =
                         DriverEnterNumberFragmentDirections.actionDriverEnterNumberFragmentToDriverOtpFragment()
                     findNavController().navigate(action)
@@ -92,13 +93,6 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
         val action = AuthNavigationDirections.actionGlobalInfoNavigation()
         findNavController().navigate(action)
     }
-
-    private fun createDriver(): Driver {
-        return Driver(
-            phoneNumber = phoneNumber
-        )
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (viewModel.isRegistered()) {

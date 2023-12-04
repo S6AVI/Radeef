@@ -21,7 +21,7 @@ import com.saleem.radeef.data.model.License
 import com.saleem.radeef.util.RegistrationStatus
 import com.saleem.radeef.data.model.Vehicle
 import com.saleem.radeef.data.repository.DriverRepository
-import com.saleem.radeef.passenger.ui.home.TAG
+import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.FirebaseStorageConstants.DRIVER_DIRECTORY
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
@@ -218,9 +218,6 @@ class DriverRepositoryImpl(
             }
     }
 
-    override fun updateName(name: String, result: (UiState<String>) -> Unit) {
-        TODO("Not yet implemented")
-    }
 
     override fun isRegistered(): Boolean {
         return auth.currentUser != null
@@ -254,13 +251,7 @@ class DriverRepositoryImpl(
         PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
-    override fun hasName(callback: (Boolean) -> Unit) {
-        TODO("Not yet implemented")
-    }
 
-    override fun getName(result: (UiState<String>) -> Unit) {
-        TODO("Not yet implemented")
-    }
 
     override fun getDriver(result: (UiState<Driver>) -> Unit) {
         val driverId = auth.currentUser?.uid
@@ -644,5 +635,9 @@ class DriverRepositoryImpl(
             }.addOnFailureListener {
                 result(UiState.Failure(it.message))
             }
+    }
+
+    fun alreadyUploaded(uri: Uri): Boolean {
+        return uri.toString().contains("radeef-bc315.appspot.com")
     }
 }

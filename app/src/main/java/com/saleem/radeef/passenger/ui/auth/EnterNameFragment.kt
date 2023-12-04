@@ -1,7 +1,6 @@
 package com.saleem.radeef.passenger.ui.auth
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -9,7 +8,6 @@ import androidx.navigation.fragment.findNavController
 import com.saleem.radeef.PassengerInfoNavigationDirections
 import com.saleem.radeef.R
 import com.saleem.radeef.databinding.FragmentEnterNameBinding
-import com.saleem.radeef.passenger.ui.home.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.enable
@@ -18,6 +16,7 @@ import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.hideKeyboard
 import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
+import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -54,7 +53,6 @@ class EnterNameFragment : Fragment(R.layout.fragment_enter_name) {
 
                 is UiState.Success -> {
                     binding.progressBar.hide()
-                    logD(state.data)
                     navigateToHome()
                 }
 
@@ -63,6 +61,7 @@ class EnterNameFragment : Fragment(R.layout.fragment_enter_name) {
                     binding.continueBt.enable()
                     binding.continueBt.setText(R.string.continue_label)
                     logD(state.error.toString())
+                    toast(state.error.toString())
                 }
             }.exhaustive
         }
@@ -70,9 +69,7 @@ class EnterNameFragment : Fragment(R.layout.fragment_enter_name) {
 
     private fun checkIfAlreadyHasName() {
         viewModel.alreadyHasName { result ->
-            Log.d(TAG, "hasName() -> $result")
             if (result) {
-                Log.d(TAG, "hasName() -> true: skip fragment")
                 navigateToHome()
             } else {
                 binding.root.show()

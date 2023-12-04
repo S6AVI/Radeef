@@ -1,10 +1,8 @@
-import android.location.Geocoder
 import android.view.View
 import android.widget.RelativeLayout
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
-import android.content.Context
 
 fun configureMapSettings(map: GoogleMap) {
     map.uiSettings.apply {
@@ -42,11 +40,4 @@ fun configureLocationButton(mapView: View?) {
         rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE)
         rlp.setMargins(0, 0, 30, 30)
     }
-}
-
-private fun getLatLngFromAddress(address: String, context: Context): LatLng {
-    val geocoder = Geocoder(context)
-    val results = geocoder.getFromLocationName(address, 1)
-    val location = results?.get(0)!!
-    return LatLng(location.latitude, location.longitude)
 }

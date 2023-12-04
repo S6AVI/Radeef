@@ -14,7 +14,7 @@ import com.saleem.radeef.util.logD
 import kotlinx.coroutines.launch
 
 class DriverVehicleViewModel @ViewModelInject constructor(
-    val driverRepository: DriverRepository,
+    private val driverRepository: DriverRepository,
     private val carsRepository: CarsRepository
 ) : ViewModel() {
 
@@ -32,7 +32,6 @@ class DriverVehicleViewModel @ViewModelInject constructor(
             try {
                 val makes = carsRepository.getAllMakes()
                 _makesData.value = makes
-                logD("Successful fetch of makes.")
             } catch (e: Exception) {
                 logD(e.message.toString())
             }
@@ -70,13 +69,9 @@ class DriverVehicleViewModel @ViewModelInject constructor(
         _vehicle.value = UiState.Loading
         driverRepository.getVehicle {state ->
             _vehicle.value = state
-            logD("ViewModel: in getLicense")
             if (state is UiState.Success) {
                 fetchMakes()
-                logD("ViewModel: in getLicense: success: ${state.data}")
                 vehicleData = state.data
-            } else {
-                logD("some problem in getLicense")
             }
         }
     }
@@ -96,7 +91,5 @@ class DriverVehicleViewModel @ViewModelInject constructor(
             _updateVehicle.value = it
         }
     }
-
-
 
 }

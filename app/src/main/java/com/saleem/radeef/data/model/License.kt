@@ -9,6 +9,9 @@ import java.util.Date
 import java.util.Locale
 
 
+/*
+data class for License collection
+ */
 @Parcelize
 data class License(
 
@@ -24,12 +27,17 @@ data class License(
 
     val driverID: String = ""
 ) : Parcelable {
+
+    /*
+    custom getters to format Data as String
+     */
     val formattedIssDate: String
         get() = if (issDate == DEFAULT_DATE) "" else formatDate(issDate)
 
     val formattedExpDate: String
         get() = if (expDate == DEFAULT_DATE) "" else formatDate(expDate)
 
+    // Date --> String
     private fun formatDate(date: Date): String {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return dateFormat.format(date)

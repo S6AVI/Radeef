@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.saleem.radeef.data.model.Passenger
 import com.saleem.radeef.data.repository.CloudRepository
-import com.saleem.radeef.passenger.ui.home.TAG
+import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.toGeoPoint

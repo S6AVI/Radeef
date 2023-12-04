@@ -15,6 +15,7 @@ import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.exhaustive
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.hideKeyboard
+import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,8 +32,6 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
 
         binding = FragementEnterNumberBinding.bind(view)
 
-
-
         observer()
 
 
@@ -43,15 +42,18 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
                 hideKeyboard()
                 binding.textInputLayout.error = ""
                 binding.textInputLayout.isErrorEnabled = false
-                phoneNumber = "+${binding.countryCodePicker.selectedCountryCode}$phoneNumber"
+
+                val countryCode = binding.countryCodePicker.selectedCountryCode
+                phoneNumber = getString(R.string.phone_number_format, countryCode, phoneNumber)
+                logD(phoneNumber)
+                phoneNumber = "+${countryCode}$phoneNumber"
                 viewModel.register(
-                    createPassenger(),
+                    Passenger(phoneNumber = phoneNumber),
                     phoneNumber,
                     requireActivity()
                 )
             } else {
                 binding.textInputLayout.error = getString(R.string.error_phone)
-                //binding.textInputLayout.isErrorEnabled = true
             }
 
         }
@@ -59,17 +61,16 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
     }
 
     private fun observer() {
+
         viewModel.register.observe(viewLifecycleOwner) { state ->
                 when(state) {
                     UiState.Loading -> {
-                        binding.registerButton.setText("")
+                        binding.registerButton.text = ""
                         binding.registerButton.disable()
                         binding.progressBar.show()
                     }
                     is UiState.Success -> {
                         binding.progressBar.hide()
-                        //binding.registerButton.setText("Continue")
-                        toast(state.data)
                         val action = EnterNumberFragmentDirections.actionEnterNumberFragmentToOtpFragment(
                                 phoneNumber
                             )
@@ -79,19 +80,13 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
                         binding.progressBar.hide()
                         binding.registerButton.enable()
                         binding.registerButton.setText(R.string.send_code)
+                        logD(state.error.toString())
                         toast(state.error)
                     }
                 }.exhaustive
 
         }
     }
-
-    private fun createPassenger(): Passenger {
-        return Passenger(
-            phoneNumber = phoneNumber
-        )
-    }
-
 
     override fun onStart() {
         super.onStart()

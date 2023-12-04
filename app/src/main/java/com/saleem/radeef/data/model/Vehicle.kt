@@ -1,12 +1,12 @@
 package com.saleem.radeef.data.model
 
 import android.os.Parcelable
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
-import java.util.Date
 
 
+/*
+data class for Vehicle collection
+ */
 @Parcelize
 data class Vehicle(
 
@@ -16,9 +16,6 @@ data class Vehicle(
     val make: String = "",
     val model: String = "",
     val plateNumber: String = "",
-    val weight: Int = 2,
-    val serialNumber: String = "",
-
     val photoUrl: String = "",
 
     val vehicleID: String = "",

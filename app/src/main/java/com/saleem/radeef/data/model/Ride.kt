@@ -9,6 +9,9 @@ import kotlinx.parcelize.RawValue
 import java.util.Date
 
 
+/*
+data class for Ride collection
+ */
 data class Ride(
     val passengerPickupLocation: @RawValue GeoPoint = GeoPoint(0.0, 0.0),
     val passengerDestination: @RawValue GeoPoint = GeoPoint(0.0, 0.0),
@@ -37,6 +40,11 @@ data class Ride(
 
     val distance: Double = 0.0
 ) {
+
+
+    /*
+    custom getters to cast GeoPoint into LatLng
+     */
 
     val passengerPickupLatLng: LatLng
         get() = LatLng(passengerPickupLocation.latitude, passengerPickupLocation.longitude)

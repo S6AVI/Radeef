@@ -28,14 +28,14 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.model.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
 import com.saleem.radeef.driver.ui.home.DriverHomeViewModel
+import com.saleem.radeef.util.SearchResultAdapter
+import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.lang.Math.cos
-
-val TAG = "savii"
 
 @AndroidEntryPoint
 class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.OnItemClickListener {

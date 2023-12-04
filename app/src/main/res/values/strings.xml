@@ -93,6 +93,8 @@
     <string name="cancel_label">CANCEL</string>
 
     <string name="vehicle_make_model">%1$s | %2$s</string>
+
+    <string name="phone_number_format">+%1$s%2$s</string>
     <string name="confrim_lable">CONFIRM</string>
     <string name="phone_verification">Phone Verification</string>
     <string name="send_code">SEND CODE</string>
@@ -119,4 +121,5 @@
     <string name="capacity_is_required">Capacity is required</string>
     <string name="invalid_plate_number">Invalid plate number. required format (AAA0000)</string>
     <string name="model_is_required">Model is required</string>
+
 </resources>

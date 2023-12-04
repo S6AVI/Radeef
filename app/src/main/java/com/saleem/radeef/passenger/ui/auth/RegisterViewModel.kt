@@ -1,7 +1,6 @@
 package com.saleem.radeef.passenger.ui.auth
 
 import android.app.Activity
-import android.util.Log
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,7 +9,6 @@ import com.saleem.radeef.data.model.Passenger
 
 import com.saleem.radeef.data.repository.AuthRepository
 import com.saleem.radeef.util.UiState
-import com.saleem.radeef.util.logD
 
 
 class RegisterViewModel @ViewModelInject constructor(
@@ -41,7 +39,6 @@ class RegisterViewModel @ViewModelInject constructor(
                 _register.value =
                     UiState.Failure("Phone number: $phone is already associated with a driver!")
             } else {
-                logD("registerPassenger: $phone")
                 repository.registerPassenger(
                     passenger = passenger,
                     phone = phone,
@@ -72,21 +69,14 @@ class RegisterViewModel @ViewModelInject constructor(
 
     fun resendCode(activity: Activity) {
         repository.resendCode(activity) {
-
         }
     }
 
     fun signOut() {
-        Log.d("savii", "inside viewModel")
         repository.logout {
             _logout.value = it
         }
     }
-
-    fun hasName(callback: (Boolean) -> Unit) = repository.hasName(callback)
-
-
-    private var hasName: Boolean? = null
 
     fun alreadyHasName(callback: (Boolean) -> Unit) {
         repository.hasName(callback)

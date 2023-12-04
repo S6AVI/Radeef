@@ -1,7 +1,7 @@
 package com.saleem.radeef.util
 
 
-enum class Sex(val value: String) {
+enum class Gender(val value: String) {
     MALE("MALE"),
     FEMALE("FEMALE"),
     NONE("none")

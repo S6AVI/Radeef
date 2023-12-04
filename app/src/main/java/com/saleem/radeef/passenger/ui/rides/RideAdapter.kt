@@ -44,8 +44,8 @@ class RideAdapter(val context: Context) : RecyclerView.Adapter<RideAdapter.Drive
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Ride) {
             val coroutineScope = CoroutineScope(Dispatchers.Main)
-            var pickup = ""
-            var destination = ""
+            var pickup: String
+            var destination: String
             coroutineScope.launch {
                 pickup =
                     getPickupAddress(
@@ -80,8 +80,6 @@ class RideAdapter(val context: Context) : RecyclerView.Adapter<RideAdapter.Drive
                 ""
             }
         }
-
-
     }
     private fun filterList(list: MutableList<Ride>): MutableList<Ride> {
         return list.filter { ride -> ride.driverId != "" }.toMutableList()

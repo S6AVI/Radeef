@@ -11,7 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.saleem.radeef.data.model.Passenger
 import com.saleem.radeef.data.model.Driver
 import com.saleem.radeef.data.repository.AuthRepository
-import com.saleem.radeef.passenger.ui.home.TAG
+import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD

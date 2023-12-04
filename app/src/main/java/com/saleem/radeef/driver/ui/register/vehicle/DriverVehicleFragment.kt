@@ -16,7 +16,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.saleem.radeef.InfoNavigationDirections
-//import com.github.drjacky.imagepicker.ImagePicker
 import com.saleem.radeef.R
 import com.saleem.radeef.util.RegistrationStatus
 import com.saleem.radeef.data.model.Vehicle
@@ -38,7 +37,7 @@ import com.saleem.radeef.util.updateRegistrationStatus
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
+class DriverVehicleFragment : Fragment(R.layout.driver_vehicle_fragment) {
     private lateinit var binding: DriverVehicleFragmentBinding
     val viewModel: DriverVehicleViewModel by viewModels()
     private lateinit var preferences: SharedPreferences
@@ -54,17 +53,13 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
 
         binding.cameraIcon.setOnClickListener {
             openImagePicker()
-            logD("icon clicked")
         }
 
         binding.continueBt.setOnClickListener {
-            logD("isValidData: ${isValidData()}")
             if (isValidData()) {
-                logD("passed isValidData()")
+
                 binding.continueBt.disable()
                 viewModel.onContinueClicked(selectedImageUri!!, ImageFileNames.VEHICLE)
-            } else {
-                logD("Missing required data")
             }
         }
 
@@ -79,7 +74,6 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
                 }
 
                 is UiState.Success -> {
-                    logD("${state.data}")
                     loadImage(state.data.photoUrl)
                     fillFields(state.data)
                     binding.waitProgressBar.hide()
@@ -97,16 +91,12 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
         }
 
         viewModel.makesData.observe(viewLifecycleOwner) {
-            //val filtered = it.filter { it.startsWith("") }
             val makesAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, it.sorted())
             binding.makeAutoComplete.setAdapter(makesAdapter)
-            logD("done!")
-            logD(it.toString())
         }
 
         binding.makeAutoComplete.setOnItemClickListener { parent, _, position, _ ->
             val item = parent.getItemAtPosition(position).toString()
-            logD(item)
             binding.modelAutoComplete.setText("")
             viewModel.fetchModels(item)
         }
@@ -126,8 +116,6 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
                     binding.progressBar.hide()
                     binding.modelInputLayout.show()
                     binding.baseLayout.show()
-                    logD(state.data.toString())
-
                 }
 
                 is UiState.Failure -> {
@@ -144,24 +132,21 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
             when (state) {
                 UiState.Loading -> {
                     binding.progressBar.show()
-                    binding.continueBt.setText("")
+                    binding.continueBt.text = ""
                 }
 
                 is UiState.Success -> {
                     binding.progressBar.hide()
-                    logD("VehicleFragment: uploadImage: Success: ${state.data}")
-                    //logD("createvehicle: ${createvehicle(state.data)}")
+
                     val vehicle = createVehicle(state.data)
-                    logD("create vehicle: ${vehicle.toString()}")
                     viewModel.updateVehicleInfo(vehicle = vehicle)
-                    //logD(state.data.toString())
 
                 }
 
                 is UiState.Failure -> {
                     binding.progressBar.hide()
                     binding.continueBt.enable()
-                    binding.continueBt.setText(getString(R.string.continue_label))
+                    binding.continueBt.text = getString(R.string.continue_label)
                     toast(state.error.toString())
                 }
 
@@ -175,7 +160,6 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
                 }
                 is UiState.Success -> {
                     binding.progressBar.hide()
-                    logD(state.data)
                     updateRegistrationStatus(RegistrationStatus.COMPLETED, requireActivity())
                     val action = InfoNavigationDirections.actionGlobalHomeNavigation()
                     findNavController().navigate(action)
@@ -190,21 +174,17 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
     }
 
     private fun createVehicle(uri: Uri): Vehicle {
-        logD("VehicleFragment: createVehicle: viewModel.VehicleData: ${viewModel.vehicleData}")
         val vehicleTemp = viewModel.vehicleData!!
-        val vehicleWithFields =
-            vehicleTemp.copy(
-                photoUrl = uri.toString(),
-                plateNumber = binding.plateEt.text.toString(),
-                make = binding.makeAutoComplete.text.toString(),
-                model = binding.modelAutoComplete.text.toString(),
-                color = binding.colorAutoComplete.text.toString(),
-                year = binding.yearAutoComplete.text.toString().toInt(),
-                numberOfSeats = binding.capacityAutoComplete.text.toString().toInt()
+        return vehicleTemp.copy(
+            photoUrl = uri.toString(),
+            plateNumber = binding.plateEt.text.toString(),
+            make = binding.makeAutoComplete.text.toString(),
+            model = binding.modelAutoComplete.text.toString(),
+            color = binding.colorAutoComplete.text.toString(),
+            year = binding.yearAutoComplete.text.toString().toInt(),
+            numberOfSeats = binding.capacityAutoComplete.text.toString().toInt()
 
-            )
-        logD("VehicleFragment: createVehicle: vehicleWithFields: $vehicleWithFields")
-        return vehicleWithFields
+        )
     }
 
 
@@ -327,17 +307,20 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (resultCode == Activity.RESULT_OK) {
-            //Image Uri will not be null for RESULT_OK
-            val uri: Uri = data?.data!!
+        when (resultCode) {
+            Activity.RESULT_OK -> {
+                //Image Uri will not be null for RESULT_OK
+                val uri: Uri = data?.data!!
 
-            // Use Uri object instead of File to avoid storage permissions
-            selectedImageUri = uri
-            binding.photoImageView.setImageURI(uri)
-        } else if (resultCode == ImagePicker.RESULT_ERROR) {
-            toast(ImagePicker.RESULT_ERROR.toString())
-        } else {
-            toast("Task canceled")
+                // Use Uri object instead of File to avoid storage permissions
+                selectedImageUri = uri
+                binding.photoImageView.setImageURI(uri)
+            }
+            ImagePicker.RESULT_ERROR -> {
+                toast(ImagePicker.RESULT_ERROR.toString())
+            }
+            else -> {
+            }
         }
     }
 
@@ -348,7 +331,6 @@ class DriverVehicleFragment() : Fragment(R.layout.driver_vehicle_fragment) {
             val action = InfoNavigationDirections.actionGlobalHomeNavigation()
             findNavController().navigate(action)
         }
-        logD("leaving onAttach in Vehicle")
     }
 
 }

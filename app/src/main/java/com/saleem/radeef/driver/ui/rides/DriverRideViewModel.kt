@@ -1,4 +1,4 @@
-package com.saleem.radeef.ui.rides
+package com.saleem.radeef.driver.ui.rides
 
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
@@ -16,8 +16,6 @@ class DriverRideViewModel @ViewModelInject constructor(
     private val _rides = MutableLiveData<UiState<List<Ride>>>()
     val rides: LiveData<UiState<List<Ride>>>
         get() = _rides
-
-
 
     fun getRides() {
         _rides.value = UiState.Loading

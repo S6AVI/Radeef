@@ -32,9 +32,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth {
-        val auth = FirebaseAuth.getInstance()
-        //auth.firebaseAuthSettings.setAppVerificationDisabledForTesting(true)
-        return auth
+        return FirebaseAuth.getInstance()
     }
 
     @Provides
@@ -64,26 +62,4 @@ object AppModule {
                 .apiKey(apiKey)
                 .build()
     }
-
-
-//    @Provides
-//    @Singleton
-//    fun provideDatabase(
-//        app: Application
-//    ) = Room.databaseBuilder(
-//        app,
-//        RadeefDatabase::class.java,
-//        "radeef_database"
-//    )
-//        .fallbackToDestructiveMigration()
-//        .build()
-//
-//    @Provides
-//    fun provideRadeefDao(db: RadeefDatabase) = db.radeefDao()
-
-
-    //@ApplicationScope
-    @Provides
-    @Singleton
-    fun provideApplicationScope() = CoroutineScope(SupervisorJob())
 }

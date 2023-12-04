@@ -5,20 +5,22 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 import com.saleem.radeef.util.DriverStatus
 import com.saleem.radeef.util.RegistrationStatus
-import com.saleem.radeef.util.Sex
+import com.saleem.radeef.util.Gender
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 
+/*
+data class for Driver collection
+ */
 @Parcelize
 data class Driver(
 
     val email: String = "",
     val phoneNumber: String = "",
-    val sex: String = Sex.NONE.value,
+    val sex: String = Gender.NONE.value,
     val nationality: String = "",
     var driverID: String = "",
     val personalPhotoUrl: String = "",
-    val cardPhotoUrl: String = "",
     val name: String = "",
 
     val identityNumber: String = "",
@@ -29,12 +31,12 @@ data class Driver(
     val pickup: @RawValue GeoPoint =  GeoPoint(0.0, 0.0),
     val destination: @RawValue GeoPoint = GeoPoint(0.0, 0.0),
 
-    val pickup_title: String = "",
-    val destination_title: String = ""
-
-) : Parcelable
+    ) : Parcelable
 {
 
+    /*
+    custom getters to cast GeoPoint into LatLng
+     */
     val pickupLatLng: LatLng
         get()  = LatLng(pickup.latitude, pickup.longitude)
 

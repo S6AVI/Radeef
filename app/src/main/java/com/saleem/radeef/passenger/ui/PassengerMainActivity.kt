@@ -3,7 +3,6 @@ package com.saleem.radeef.passenger.ui
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -27,18 +26,15 @@ class PassengerMainActivity : AppCompatActivity() {
 
         // Set up the back button behavior
 
-        val callback = object : OnBackPressedCallback(true /* enabled by default */) {
+        val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Close the current activity and exit the app
                 finish()
             }
         }
-        navController.addOnDestinationChangedListener { controller, destination, arguments ->
+        navController.addOnDestinationChangedListener { _, destination, _ ->
             callback.isEnabled = destination.id == R.id.homeFragment
         }
         onBackPressedDispatcher.addCallback(this, callback)
     }
-
-
 
 }

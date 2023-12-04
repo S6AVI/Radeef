@@ -1,4 +1,4 @@
-package com.saleem.radeef.passenger.ui.home
+package com.saleem.radeef.util
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

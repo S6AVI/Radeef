@@ -46,6 +46,7 @@ import com.saleem.radeef.passenger.ui.PassengerHomeUiState
 import com.saleem.radeef.util.MIN_UPDATE_DISTANCE_METERS
 import com.saleem.radeef.util.Permissions.hasLocationPermission
 import com.saleem.radeef.util.Permissions.requestLocationPermission
+import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.formatCost
 import com.saleem.radeef.util.formatDistance

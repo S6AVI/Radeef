@@ -16,7 +16,6 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.github.dhaval2404.imagepicker.ImagePicker
-//import com.github.drjacky.imagepicker.ImagePicker
 import com.saleem.radeef.R
 import com.saleem.radeef.data.model.License
 import com.saleem.radeef.util.RegistrationStatus
@@ -40,7 +39,8 @@ import java.util.Date
 import java.util.Locale
 
 @AndroidEntryPoint
-class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
+class DriverLicenseFragment : Fragment(R.layout.driver_license_fragment) {
+
     private lateinit var binding: DriverLicenseFragmentBinding
     val viewModel: DriverLicenseViewModel by viewModels()
     private lateinit var preferences: SharedPreferences
@@ -49,25 +49,6 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
     private var selectedIssueDate: Date? = null
     private var selectedExpDate: Date? = null
 
-    val calendar = Calendar.getInstance()
-    val currentYear = calendar.get(Calendar.YEAR)
-    val currentMonth = calendar.get(Calendar.MONTH)
-    val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
-
-
-    private val datePickerListener =
-        DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
-            // Handle the selected date here
-            val selectedDate = Calendar.getInstance()
-            selectedDate.set(year, month, dayOfMonth)
-
-            // Convert the selectedDate to your desired date format, e.g., using SimpleDateFormat
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val formattedDate = dateFormat.format(selectedDate.time)
-
-            // Set the formatted date to your TextInputEditText or any other view as needed
-            binding.issEt.setText(formattedDate)
-        }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -81,23 +62,19 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
 
         binding.cameraIcon.setOnClickListener {
             openImagePicker()
-            logD("icon clicked")
+
         }
 
         binding.continueBt.setOnClickListener {
-            logD("isValidData: ${isValidData()}")
+
             hideErrors()
             if (isValidData()) {
-                logD("passed isValidData()")
                 viewModel.onContinueClicked(selectedImageUri!!, ImageFileNames.LICENSE)
                 hideErrors()
-            } else {
-                logD("Missing required data")
             }
         }
 
         binding.issDateInputLayout.setEndIconOnClickListener {
-            logD("iss date clicked")
             val startDate = Calendar.getInstance()
             startDate.add(Calendar.YEAR, -10)
             showDatePickerDialog(selectedIssueDate, startDate) { date ->
@@ -108,7 +85,7 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
         }
 
         binding.issDateInputLayout.setErrorIconOnClickListener {
-            logD("iss date clicked")
+
             val startDate = Calendar.getInstance()
             startDate.add(Calendar.YEAR, -10)
             showDatePickerDialog(selectedIssueDate, startDate) { date ->
@@ -168,24 +145,20 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
             when (state) {
                 UiState.Loading -> {
                     binding.progressBar.show()
-                    binding.continueBt.setText("")
+                    binding.continueBt.text = ""
                 }
 
                 is UiState.Success -> {
                     binding.progressBar.hide()
-                    logD("LicenseFragment: uploadImage: Success: ${state.data}")
-                    //logD("createLicense: ${createLicense(state.data)}")
-                    val license = createLicense(state.data)
-                    logD("create license: $license")
-                    viewModel.updateLicenseInfo(license = license)
-                    //logD(state.data.toString())
 
+                    val license = createLicense(state.data)
+                    viewModel.updateLicenseInfo(license = license)
                 }
 
                 is UiState.Failure -> {
                     binding.progressBar.hide()
                     binding.continueBt.enable()
-                    binding.continueBt.setText(getString(R.string.continue_label))
+                    binding.continueBt.text = getString(R.string.continue_label)
                     toast(state.error.toString())
                 }
 
@@ -301,8 +274,8 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
 
     private fun fillFields(license: License) {
         binding.apply {
-            issEt.setText(license.formattedIssDate.toString())
-            expEt.setText(license.formattedExpDate.toString())
+            issEt.setText(license.formattedIssDate)
+            expEt.setText(license.formattedExpDate)
             bloodAutoComplete.setText(license.bloodType)
             setAdapters()
             selectedImageUri = license.photoUrl.toUri()
@@ -343,17 +316,20 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (resultCode == Activity.RESULT_OK) {
-            //Image Uri will not be null for RESULT_OK
-            val uri: Uri = data?.data!!
+        when (resultCode) {
+            Activity.RESULT_OK -> {
+                //Image Uri will not be null for RESULT_OK
+                val uri: Uri = data?.data!!
 
-            // Use Uri object instead of File to avoid storage permissions
-            selectedImageUri = uri
-            binding.photoImageView.setImageURI(uri)
-        } else if (resultCode == ImagePicker.RESULT_ERROR) {
-            toast(ImagePicker.RESULT_ERROR.toString())
-        } else {
-            toast("Task canceled")
+                // Use Uri object instead of File to avoid storage permissions
+                selectedImageUri = uri
+                binding.photoImageView.setImageURI(uri)
+            }
+            ImagePicker.RESULT_ERROR -> {
+                toast(ImagePicker.RESULT_ERROR.toString())
+            }
+            else -> {
+            }
         }
     }
 
@@ -391,7 +367,6 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
     }
 
     private fun formatDate(date: Date): String {
-        // Format the date using SimpleDateFormat or any other date formatting method
         return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
     }
 
@@ -412,7 +387,6 @@ class DriverLicenseFragment() : Fragment(R.layout.driver_license_fragment) {
                 DriverLicenseFragmentDirections.actionDriverLicenseFragmentToDriverVehicleFragment()
             findNavController().navigate(action)
         }
-        logD("leaving onAttach")
     }
 
 }

@@ -4,11 +4,14 @@ import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 import com.saleem.radeef.util.PassengerStatus
-import com.saleem.radeef.util.Sex
+import com.saleem.radeef.util.Gender
 
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 
+/*
+data class for Passenger collection
+ */
 @Parcelize
 data class Passenger(
 
@@ -16,7 +19,7 @@ data class Passenger(
     val name: String = "",
     var passengerID: String = "",
     val email: String = "",
-    val gender: String = Sex.NONE.value,
+    val gender: String = Gender.NONE.value,
     val personalPhotoUrl: String = "",
     val status: String = PassengerStatus.INACTIVE.value,
 
@@ -25,6 +28,10 @@ data class Passenger(
 
     ) : Parcelable
 {
+
+    /*
+    custom getters to cast GeoPoint into LatLng
+     */
     val pickupLatLng: LatLng
         get()  = LatLng(pickup.latitude, pickup.longitude)
 

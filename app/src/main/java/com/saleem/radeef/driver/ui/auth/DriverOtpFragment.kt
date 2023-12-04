@@ -29,7 +29,8 @@ class DriverOtpFragment : Fragment(R.layout.fragment_otp) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentOtpBinding.bind(view)
-        val phone = arguments?.getString("phone")
+
+
         observer()
 
         binding.verifyBtn.setOnClickListener {
@@ -56,7 +57,7 @@ class DriverOtpFragment : Fragment(R.layout.fragment_otp) {
         viewModel.verify.observe(viewLifecycleOwner) { state ->
             when (state) {
                 UiState.Loading -> {
-                    binding.verifyBtn.setText("")
+                    binding.verifyBtn.text = ""
                     binding.verifyBtn.disable()
                     binding.progressBar.show()
                 }

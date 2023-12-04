@@ -17,6 +17,7 @@ import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.hideKeyboard
 import com.saleem.radeef.util.logD
 import com.saleem.radeef.util.show
+import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,8 +29,8 @@ class OtpFragment : Fragment(R.layout.fragment_otp) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentOtpBinding.bind(view)
-        val phone = arguments?.getString("phone")
         observer()
+
 
         binding.verifyBtn.setOnClickListener {
             val code = binding.otpEditText.text.toString()
@@ -38,6 +39,7 @@ class OtpFragment : Fragment(R.layout.fragment_otp) {
                 binding.otpInputLayout.error = ""
                 binding.otpInputLayout.isErrorEnabled = false
                 viewModel.signInWithPhoneAuthCredential(code)
+
             } else {
                 binding.otpInputLayout.error = getString(R.string.error_otp_length)
             }
@@ -51,7 +53,7 @@ class OtpFragment : Fragment(R.layout.fragment_otp) {
         viewModel.verify.observe(viewLifecycleOwner) { state ->
             when (state) {
                 UiState.Loading -> {
-                    binding.verifyBtn.setText("")
+                    binding.verifyBtn.text = ""
                     binding.verifyBtn.disable()
                     binding.progressBar.show()
                 }
@@ -68,6 +70,7 @@ class OtpFragment : Fragment(R.layout.fragment_otp) {
                     binding.verifyBtn.setText(R.string.verify)
                     binding.otpInputLayout.error = getString(R.string.error_otp)
                     logD(state.error.toString())
+                    toast(state.error.toString())
                 }
             }.exhaustive
 

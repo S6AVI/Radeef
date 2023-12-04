@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
-import com.saleem.radeef.passenger.ui.home.TAG
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -91,3 +90,7 @@ fun String.parseDate(): Date? {
     }
 }
 
+fun String.isValidEmail(): Boolean {
+    val emailRegex = Regex("^\\w+([.-]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,3})+\$")
+    return emailRegex.matches(this)
+}

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.firebase.appcheck.ktx.appCheck
@@ -14,7 +13,6 @@ import com.google.firebase.ktx.initialize
 import com.saleem.radeef.databinding.ActivityMainBinding
 import com.saleem.radeef.driver.ui.DriverMainActivity
 import com.saleem.radeef.passenger.ui.PassengerMainActivity
-import com.saleem.radeef.passenger.ui.home.TAG
 import com.saleem.radeef.util.Constants.USER_TYPE
 import com.saleem.radeef.util.UserType
 import com.saleem.radeef.util.logD
@@ -31,18 +29,19 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        //setTheme(R.style.AppTheme)
+        setTheme(R.style.AppTheme)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         val rootView = binding.root
         setContentView(rootView)
 
-        logD("before init app check")
+
+        // app check api
         Firebase.initialize(context = this)
         Firebase.appCheck.installAppCheckProviderFactory(
             PlayIntegrityAppCheckProviderFactory.getInstance(),
         )
-        logD("after init app check")
+
 
         // handle the two possible types
         if (isTypeSpecified()) {
@@ -79,7 +78,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun redirectToScreen() {
         val userType = preferences.getString(USER_TYPE, null)
-        Log.d(TAG, "user type: $userType")
+        logD("user type: $userType")
 
         userType?.let {
             val intent = when (userType) {

@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.saleem.radeef.data.model.License
 import com.saleem.radeef.data.repository.DriverRepository
 import com.saleem.radeef.util.UiState
-import com.saleem.radeef.util.logD
 import kotlinx.coroutines.launch
 
 class DriverLicenseViewModel @ViewModelInject constructor(
@@ -37,14 +36,11 @@ class DriverLicenseViewModel @ViewModelInject constructor(
 
     private fun getLicense() {
         _license.value = UiState.Loading
-        repository.getLicense {state ->
+        repository.getLicense { state ->
             _license.value = state
-            logD("ViewModel: in getLicense")
+
             if (state is UiState.Success) {
-                logD("ViewModel: in getLicense: success: ${state.data}")
                 licenseData = state.data
-            } else {
-                logD("some problem in getLicense")
             }
         }
 
@@ -54,7 +50,6 @@ class DriverLicenseViewModel @ViewModelInject constructor(
         _uploadImage.value = UiState.Loading
         viewModelScope.launch {
             repository.uploadImage(imageUri, name) {
-                logD("after uploadImage in ViewModel: $imageUri\n$name")
                 _uploadImage.value = it
             }
         }
@@ -63,11 +58,8 @@ class DriverLicenseViewModel @ViewModelInject constructor(
     fun updateLicenseInfo(license: License) {
         _updateLicense.value = UiState.Loading
         repository.updateLicense(license) {
-            logD("after updateLicense in ViewModel: $license")
             _updateLicense.value = it
         }
     }
-
-
 
 }
