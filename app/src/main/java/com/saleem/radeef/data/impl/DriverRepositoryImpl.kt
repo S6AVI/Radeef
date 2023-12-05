@@ -2,7 +2,6 @@ package com.saleem.radeef.data.impl
 
 import android.app.Activity
 import android.net.Uri
-import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
@@ -10,28 +9,23 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.storage.StorageReference
-import com.saleem.radeef.data.model.RadeefLocation
-import com.saleem.radeef.data.model.Passenger
-
 import com.saleem.radeef.data.model.Driver
 import com.saleem.radeef.data.model.DriverWithVehicle
 import com.saleem.radeef.data.model.License
-import com.saleem.radeef.util.RegistrationStatus
+import com.saleem.radeef.data.model.Passenger
 import com.saleem.radeef.data.model.Vehicle
 import com.saleem.radeef.data.repository.DriverRepository
-import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.FirebaseStorageConstants.DRIVER_DIRECTORY
 import com.saleem.radeef.util.FirestoreTables
+import com.saleem.radeef.util.RegistrationStatus
 import com.saleem.radeef.util.UiState
-import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.alreadyUploaded
+import com.saleem.radeef.util.renameImageFile
 import com.saleem.radeef.util.toGeoPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 class DriverRepositoryImpl(
@@ -47,6 +41,7 @@ class DriverRepositoryImpl(
     private lateinit var token: PhoneAuthProvider.ForceResendingToken
 
 
+    // start authenticating; send OTP code to user
     override fun registerDriver(
         driver: Driver,
         phone: String,
@@ -59,10 +54,8 @@ class DriverRepositoryImpl(
             .setPhoneNumber(phone)
             .setTimeout(60L, TimeUnit.SECONDS)
             .setActivity(activity)
-            //.setCallbacks(callbacks) // OnVerificationStateChangedCallbacks
             .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    Log.d(TAG, "registerDriver: onverifcomp: line 41")
                     auth.signInWithCredential(credential)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
@@ -80,7 +73,6 @@ class DriverRepositoryImpl(
                                     }
                                 }
                             } else {
-                                logD("Authentication failed, ${task.exception?.message ?: "unknown error"}")
                                 result.invoke(
                                     UiState.Failure(
                                         "Authentication failed, ${task.exception?.message ?: "unknown error"}"
@@ -98,7 +90,7 @@ class DriverRepositoryImpl(
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {
-                    logD("Verification failed, ${e.message ?: "unknown error"}")
+
                     result.invoke(UiState.Failure("Verification failed, ${e.message ?: "unknown error"}"))
                 }
 
@@ -118,6 +110,7 @@ class DriverRepositoryImpl(
     }
 
 
+    // update driver info; create a document if it's a new driver
     override fun updateDriverInfo(driver: Driver, result: (UiState<Driver>) -> Unit) {
         val documentCollection = database.collection(FirestoreTables.DRIVERS)
         documentCollection
@@ -139,10 +132,10 @@ class DriverRepositoryImpl(
                                 UiState.Success(driver)
                             )
                         }
-                        .addOnFailureListener {
+                        .addOnFailureListener { error ->
                             result.invoke(
                                 UiState.Failure(
-                                    it.localizedMessage
+                                    error.localizedMessage
                                 )
                             )
                         }
@@ -157,6 +150,8 @@ class DriverRepositoryImpl(
             }
     }
 
+
+    // check if phone number is associated already with a passenger
     override fun isPhoneNumberAssociatedWithPassenger(phone: String, callback: (Boolean) -> Unit) {
         val passengersCollection = database.collection(FirestoreTables.PASSENGERS)
 
@@ -165,24 +160,22 @@ class DriverRepositoryImpl(
         query.get().addOnSuccessListener { querySnapshot ->
             val passengers = querySnapshot.toObjects(Passenger::class.java)
             if (passengers.isNotEmpty()) {
-                // Phone number is associated with a passenger
                 callback(true)
             } else {
-                // Phone number is not associated with any passenger
                 callback(false)
             }
-        }.addOnFailureListener { exception ->
-            // Handle any errors that occurred while retrieving data
+        }.addOnFailureListener {
             callback(false)
         }
     }
 
+    // logout
     override fun logout(result: (UiState<String>) -> Unit) {
         auth.signOut()
         result.invoke(UiState.Success("user signed out"))
     }
 
-    override fun signIn(code: String, result: (UiState<Driver>) -> Unit) {
+    override fun verifyCode(code: String, result: (UiState<Driver>) -> Unit) {
         val credential = PhoneAuthProvider.getCredential(verificationId, code)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
@@ -197,7 +190,6 @@ class DriverRepositoryImpl(
                             is UiState.Failure -> {
                                 result.invoke(UiState.Failure(state.error))
                             }
-
                             else -> {}
                         }
                     }
@@ -219,10 +211,12 @@ class DriverRepositoryImpl(
     }
 
 
+    // check if driver is already registered
     override fun isRegistered(): Boolean {
         return auth.currentUser != null
     }
 
+    // resend code again
     override fun resendCode(activity: Activity, result: (UiState<String>) -> Unit) {
         val options = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(driver.phoneNumber)
@@ -230,7 +224,6 @@ class DriverRepositoryImpl(
             .setActivity(activity)
             .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    // This method will be called if the user has already been verified
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {
@@ -252,7 +245,7 @@ class DriverRepositoryImpl(
     }
 
 
-
+    // get driver and listen for changes
     override fun getDriver(result: (UiState<Driver>) -> Unit) {
         val driverId = auth.currentUser?.uid
 
@@ -260,9 +253,8 @@ class DriverRepositoryImpl(
             val driverDocumentRef = database.collection(FirestoreTables.DRIVERS)
                 .document(driverId)
 
-            val registration = driverDocumentRef.addSnapshotListener { snapshot, error ->
+            driverDocumentRef.addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    // Handle error
                     result.invoke(UiState.Failure(error.message.toString()))
                     return@addSnapshotListener
                 }
@@ -272,20 +264,19 @@ class DriverRepositoryImpl(
                     if (driver != null) {
                         result.invoke(UiState.Success(driver))
                     } else {
-                        // Handle error: unable to parse driver data
                         result.invoke(UiState.Failure("Failed to parse driver data"))
                     }
                 } else {
-                    // Handle error: driver document not found
                     result.invoke(UiState.Failure("Driver document not found"))
                 }
             }
-
         } else {
             result.invoke(UiState.Failure("Driver ID is null"))
         }
     }
 
+
+    // store driver locations
     override fun updateDriverCurrentLocation(pickup: LatLng, result: (UiState<Boolean>) -> Unit) {
         val data = mapOf(
             "pickup" to pickup.toGeoPoint()
@@ -300,6 +291,7 @@ class DriverRepositoryImpl(
             }
     }
 
+    // update destination
     override fun updateDriverDestination(destination: LatLng, result: (UiState<Boolean>) -> Unit) {
         val data = mapOf(
             "destination" to destination.toGeoPoint()
@@ -314,12 +306,13 @@ class DriverRepositoryImpl(
             }
     }
 
+    // update driver data
     override fun updateDriver(driver: Driver, result: (UiState<String>) -> Unit) {
         val driverWithId = driver.copy(
             driverID = auth.currentUser!!.uid,
             phoneNumber = auth.currentUser!!.phoneNumber!!
         )
-        val driverDocument =
+
             database.collection(FirestoreTables.DRIVERS).document(driverWithId.driverID)
                 .set(driverWithId)
                 .addOnSuccessListener {
@@ -330,6 +323,8 @@ class DriverRepositoryImpl(
                 }
     }
 
+
+    // get driver; for passenger
     override fun getDriver(id: String, result: (UiState<DriverWithVehicle?>) -> Unit) {
         val driverDocumentRef = database.collection(FirestoreTables.DRIVERS).document(id)
 
@@ -360,8 +355,8 @@ class DriverRepositoryImpl(
                                 result.invoke(UiState.Success(driverWithVehicle))
                             }
                         }
-                        .addOnFailureListener { exception ->
-                            result.invoke(UiState.Failure("Failed to fetch vehicle data: ${exception.localizedMessage}"))
+                        .addOnFailureListener { e ->
+                            result.invoke(UiState.Failure("Failed to fetch vehicle data: ${e.localizedMessage}"))
                         }
                 } else {
                     result.invoke(UiState.Failure("Driver is null"))
@@ -372,6 +367,8 @@ class DriverRepositoryImpl(
         }
     }
 
+
+    // get driver when ride is done
     override fun getDriverWhenArrived(id: String, result: (UiState<DriverWithVehicle?>) -> Unit) {
         val driverDocumentRef = database.collection(FirestoreTables.DRIVERS).document(id)
 
@@ -414,30 +411,18 @@ class DriverRepositoryImpl(
     }
 
 
-    override fun getVehicle(result: (UiState<Vehicle>) -> Unit) {
-        database.collection(FirestoreTables.VEHICLES)
-            .whereEqualTo("driverID", auth.currentUser?.uid)
-            .limit(1)
-            .get()
-            .addOnSuccessListener {
-                if (!it.isEmpty) {
-                    val documentSnapshot = it.documents[0]
-                    val vehicle = documentSnapshot.toObject(Vehicle::class.java)!!
+    // create, get license and update it
+    private fun createEmptyLicense(result: (UiState<License>) -> Unit) {
+        val newLicense = License(driverID = auth.currentUser?.uid!!)
 
-                    result.invoke(
-                        UiState.Success(vehicle.copy(vehicleID = documentSnapshot.id))
-                    )
-                } else {
-                    createEmptyVehicle(result)
-                }
-
+        database.collection(FirestoreTables.LICENSE)
+            .add(newLicense)
+            .addOnSuccessListener { documentReference ->
+                val licenseWithId = newLicense.copy(licenseID = documentReference.id)
+                result.invoke(UiState.Success(licenseWithId))
             }
             .addOnFailureListener { exception ->
-                result.invoke(
-                    UiState.Failure(
-                        exception.message.toString()
-                    )
-                )
+                result.invoke(UiState.Failure(exception.message.toString()))
             }
     }
 
@@ -465,34 +450,6 @@ class DriverRepositoryImpl(
                         exception.message.toString()
                     )
                 )
-            }
-    }
-
-    override fun createEmptyLicense(result: (UiState<License>) -> Unit) {
-        val newLicense = License(driverID = auth.currentUser?.uid!!)
-
-        database.collection(FirestoreTables.LICENSE)
-            .add(newLicense)
-            .addOnSuccessListener { documentReference ->
-                val licenseWithId = newLicense.copy(licenseID = documentReference.id)
-                result.invoke(UiState.Success(licenseWithId))
-            }
-            .addOnFailureListener { exception ->
-                result.invoke(UiState.Failure(exception.message.toString()))
-            }
-    }
-
-    private fun createEmptyVehicle(result: (UiState<Vehicle>) -> Unit) {
-        val newVehicle = Vehicle(driverID = auth.currentUser?.uid!!)
-
-        database.collection(FirestoreTables.VEHICLES)
-            .add(newVehicle)
-            .addOnSuccessListener { documentReference ->
-                val vehicleWithId = newVehicle.copy(vehicleID = documentReference.id)
-                result.invoke(UiState.Success(vehicleWithId))
-            }
-            .addOnFailureListener { exception ->
-                result.invoke(UiState.Failure(exception.message.toString()))
             }
     }
 
@@ -524,6 +481,48 @@ class DriverRepositoryImpl(
             }
     }
 
+
+    // create, get vehicle and update it
+    private fun createEmptyVehicle(result: (UiState<Vehicle>) -> Unit) {
+        val newVehicle = Vehicle(driverID = auth.currentUser?.uid!!)
+
+        database.collection(FirestoreTables.VEHICLES)
+            .add(newVehicle)
+            .addOnSuccessListener { documentReference ->
+                val vehicleWithId = newVehicle.copy(vehicleID = documentReference.id)
+                result.invoke(UiState.Success(vehicleWithId))
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(UiState.Failure(exception.message.toString()))
+            }
+    }
+
+    override fun getVehicle(result: (UiState<Vehicle>) -> Unit) {
+        database.collection(FirestoreTables.VEHICLES)
+            .whereEqualTo("driverID", auth.currentUser?.uid)
+            .limit(1)
+            .get()
+            .addOnSuccessListener {
+                if (!it.isEmpty) {
+                    val documentSnapshot = it.documents[0]
+                    val vehicle = documentSnapshot.toObject(Vehicle::class.java)!!
+
+                    result.invoke(
+                        UiState.Success(vehicle.copy(vehicleID = documentSnapshot.id))
+                    )
+                } else {
+                    createEmptyVehicle(result)
+                }
+
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(
+                    UiState.Failure(
+                        exception.message.toString()
+                    )
+                )
+            }
+    }
     override fun updateVehicle(vehicle: Vehicle, result: (UiState<String>) -> Unit) {
         val driverId = auth.currentUser!!.uid
         val batch = database.batch()
@@ -549,40 +548,14 @@ class DriverRepositoryImpl(
     }
 
 
-    override suspend fun uploadLicenseFile(fileUrl: Uri, onResult: (UiState<Uri>) -> Unit) {
-        try {
-            val uri: Uri = withContext(Dispatchers.IO) {
-                storageReference
-                    .putFile(fileUrl)
-                    .await()
-                    .storage
-                    .downloadUrl
-                    .await()
-            }
-            onResult.invoke(UiState.Success(uri))
-
-        } catch (e: FirebaseFirestoreException) {
-            onResult.invoke(UiState.Failure(e.message))
-        } catch (e: Exception) {
-            onResult.invoke(UiState.Failure(e.message))
-        }
-    }
-
+    // upload image file to Cloud Storage; given file name
     override suspend fun uploadImage(fileUrl: Uri, name: String, onResult: (UiState<Uri>) -> Unit) {
         try {
-            Log.d(TAG, "before upload")
-
             if (alreadyUploaded(fileUrl)) {
-                Log.d(TAG, "alreadyUploaded(fileUrl) in repo: ${alreadyUploaded(fileUrl)}")
                 onResult.invoke(UiState.Success(fileUrl))
                 return
             }
             val currentUserUid = auth.currentUser!!.uid
-//            storageReference
-//                .child("$DRIVER_DIRECTORY/$currentUserUid")
-//                .putFile(fileUrl)
-//                .await()
-//            Log.d(TAG, "put file")
 
             val renamedImage = renameImageFile(fileUrl)
             val uri: Uri = withContext(Dispatchers.IO) {
@@ -594,50 +567,10 @@ class DriverRepositoryImpl(
                     .downloadUrl
                     .await()
             }
-            Log.d(TAG, "after upload")
             onResult.invoke(UiState.Success(uri))
 
-        } catch (e: FirebaseException) {
-            Log.d(TAG, e.message.toString())
-            onResult.invoke(UiState.Failure(e.message))
         } catch (e: Exception) {
-            Log.d(TAG, e.message.toString())
             onResult.invoke(UiState.Failure(e.message))
         }
-    }
-
-    private fun renameImageFile(fileUrl: Uri): Uri {
-        val originalFile = File(fileUrl.path!!)
-        val renamedFile = File.createTempFile("image_", ".jpg")
-
-        originalFile.copyTo(renamedFile, true)
-        return Uri.fromFile(renamedFile)
-    }
-
-    override fun updateDriverLocations(
-        pickup: RadeefLocation,
-        destination: RadeefLocation,
-        result: (UiState<Boolean>) -> Unit
-    ) {
-        val data = mapOf(
-            "pickup" to pickup.toGeoPoint(),
-            "pickup_title" to pickup.title,
-            "destination" to destination.toGeoPoint(),
-            "destination_title" to destination.title,
-            // "status" to UserStatus.SEARCHING.value
-        )
-        logD(data.toString())
-
-        database.collection(FirestoreTables.DRIVERS).document(auth.currentUser!!.uid)
-            .update(data)
-            .addOnSuccessListener {
-                result(UiState.Success(true))
-            }.addOnFailureListener {
-                result(UiState.Failure(it.message))
-            }
-    }
-
-    fun alreadyUploaded(uri: Uri): Boolean {
-        return uri.toString().contains("radeef-bc315.appspot.com")
     }
 }

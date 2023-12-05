@@ -1,36 +1,33 @@
 package com.saleem.radeef.data.impl
 
-import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.saleem.radeef.data.model.Driver
 import com.saleem.radeef.data.model.HiddenRides
 import com.saleem.radeef.data.model.Ride
-import com.saleem.radeef.util.RideStatus
-import com.saleem.radeef.data.model.Driver
 import com.saleem.radeef.data.repository.RideRepository
+import com.saleem.radeef.util.RideWithDistance
 import com.saleem.radeef.util.DriverStatus
-import com.saleem.radeef.driver.ui.home.RideWithDistance
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.PassengerStatus
+import com.saleem.radeef.util.RideStatus
 import com.saleem.radeef.util.UiState
-import com.saleem.radeef.util.logD
 
 class RideRepositoryImpl(
     val database: FirebaseFirestore,
     val auth: FirebaseAuth
 ) : RideRepository {
 
+    // get completed and cancelled rides
     override fun getPassengerRides(result: (UiState<List<Ride>>) -> Unit) {
         database.collection(FirestoreTables.RIDES)
             .whereEqualTo("passengerID", auth.currentUser?.uid)
             .whereIn("status", listOf("ARRIVED", "CANCELED"))
             .get()
             .addOnSuccessListener {
-                Log.d("savii", "success in getRides(), Passenger collection")
                 val rides = arrayListOf<Ride>()
                 for (document in it) {
-
                     val ride = document.toObject(Ride::class.java)
                     ride.rideID = document.id
                     rides.add(ride)
@@ -40,7 +37,6 @@ class RideRepositoryImpl(
                 )
             }
             .addOnFailureListener {
-                Log.d("savii", "failure in getRides()")
                 result.invoke(
                     UiState.Failure(
                         it.localizedMessage
@@ -55,7 +51,6 @@ class RideRepositoryImpl(
             .whereIn("status", listOf("ARRIVED", "CANCELED")) // Add this line to filter by status
             .get()
             .addOnSuccessListener { querySnapshot ->
-                Log.d("savii", "success in getRides()")
                 val rides = arrayListOf<Ride>()
                 for (document in querySnapshot) {
                     val ride = document.toObject(Ride::class.java)
@@ -65,11 +60,35 @@ class RideRepositoryImpl(
                 result.invoke(UiState.Success(rides))
             }
             .addOnFailureListener { exception ->
-                Log.d("savii", "failure in getRides()")
                 result.invoke(UiState.Failure(exception.localizedMessage))
             }
     }
 
+    // create a new ride
+    override fun addRide(ride: Ride, result: (UiState<String>) -> Unit) {
+        val batch = database.batch()
+
+        val rideDocumentRef = database.collection(FirestoreTables.RIDES).document()
+        ride.rideID = rideDocumentRef.id
+
+
+        val passengerDocumentRef =
+            database.collection(FirestoreTables.PASSENGERS).document(ride.passengerID)
+        val updatedPassengerData = mapOf("status" to PassengerStatus.SEARCHING.value)
+
+        batch.update(passengerDocumentRef, updatedPassengerData)
+        batch.set(rideDocumentRef, ride)
+
+        batch.commit()
+            .addOnSuccessListener {
+                result.invoke(UiState.Success("Ride has been created"))
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(UiState.Failure(exception.localizedMessage))
+            }
+    }
+
+    // get all rides in SEARCHING state, and listen to changes
     override fun getAllRidesRequests(result: (UiState<List<Ride>>) -> Unit) {
         val driverId = auth.currentUser!!.uid
         val ridesCollection = database.collection(FirestoreTables.RIDES)
@@ -85,7 +104,6 @@ class RideRepositoryImpl(
             }
 
             val allRides = allRidesSnapshot?.documents?.mapNotNull { document ->
-                logD("document: ${document.data}")
                 val ride = document.toObject(Ride::class.java)
                 ride?.rideID = document.id
                 ride
@@ -112,29 +130,9 @@ class RideRepositoryImpl(
         }
     }
 
-    override fun addRide(ride: Ride, result: (UiState<String>) -> Unit) {
-        val batch = database.batch()
-
-        val rideDocumentRef = database.collection(FirestoreTables.RIDES).document()
-        ride.rideID = rideDocumentRef.id
 
 
-        val passengerDocumentRef =
-            database.collection(FirestoreTables.PASSENGERS).document(ride.passengerID)
-        val updatedPassengerData = mapOf("status" to PassengerStatus.SEARCHING.value)
-
-        batch.update(passengerDocumentRef, updatedPassengerData)
-        batch.set(rideDocumentRef, ride)
-
-        batch.commit()
-            .addOnSuccessListener {
-                result.invoke(UiState.Success("Ride has been created"))
-            }
-            .addOnFailureListener { exception ->
-                result.invoke(UiState.Failure(exception.localizedMessage))
-            }
-    }
-
+    // hide ride; add it to Hidden_rides collection
     override fun hideRide(rideId: String, result: (UiState<String>) -> Unit) {
         val driverId = auth.currentUser!!.uid
         val hiddenRide = HiddenRides(rideId = rideId, driverId = driverId)
@@ -169,7 +167,8 @@ class RideRepositoryImpl(
             }
     }
 
-    override fun updateRideState(
+    // update status of a ride; if driver accepts it
+    override fun updateRideStatus(
         rideWithDistance: RideWithDistance,
         driver: Driver,
         status: String,
@@ -178,7 +177,6 @@ class RideRepositoryImpl(
         val rideRef =
             database.collection(FirestoreTables.RIDES).document(rideWithDistance.ride.rideID)
 
-        logD("inside updateRideState - cost: ${rideWithDistance.ride.chargeAmount}")
         val updates = hashMapOf<String, Any>(
             "status" to status,
             "driverId" to driver.driverID,
@@ -196,26 +194,7 @@ class RideRepositoryImpl(
             }
     }
 
-//    override fun getCurrentRide(result: (UiState<Ride?>) -> Unit) {
-////        val defaultTime = Timestamp(Date())
-////        logD("default date: $defaultTime")
-//        database.collection(FirestoreTables.RIDES)
-//            .whereEqualTo("driverId", auth.currentUser!!.uid)
-//            //.whereEqualTo("status", RideStatus.WAITING_FOR_CONFIRMATION)
-//            //.orderBy("startTime", Query.Direction.DESCENDING)
-//            .limit(1)
-//            .addSnapshotListener(MetadataChanges.INCLUDE) { value, error ->
-//                if (error != null) {
-//                    result.invoke(UiState.Failure(error.localizedMessage))
-//                    return@addSnapshotListener
-//                }
-//                val ride = value?.documents?.firstOrNull()?.toObject(Ride::class.java)
-//                logD("get current ride: $ride")
-//                ride?.rideID = value?.documents?.firstOrNull()!!.id
-//                result.invoke(UiState.Success(ride))
-//            }
-//    }
-
+    // get current ride of a driver
     override fun getCurrentRide(result: (UiState<Ride?>) -> Unit) {
         database.collection(FirestoreTables.RIDES)
             .whereEqualTo("driverId", auth.currentUser!!.uid)
@@ -237,8 +216,10 @@ class RideRepositoryImpl(
             }
     }
 
+
+    // hide ride when in WAITING state
     override fun cancelWaitingRide(ride: Ride, result: (UiState<String>) -> Unit) {
-        logD("rideId: ${ride.rideID}")
+
         val document = database.collection(FirestoreTables.RIDES)
             .document(ride.rideID)
 
@@ -256,7 +237,6 @@ class RideRepositoryImpl(
             batch.update(document, updates)
 
             val hiddenRideDocument = hiddenRidesCollection.document()
-            logD("driver: ${ride.driverId}\nride: ${ride.rideID}")
             val hiddenRideData = hashMapOf(
                 "driverId" to ride.driverId,
                 "rideId" to ride.rideID
@@ -264,13 +244,15 @@ class RideRepositoryImpl(
             batch.set(hiddenRideDocument, hiddenRideData)
         }
             .addOnSuccessListener {
-                result.invoke(UiState.Success("Ride state updated successfully"))
+                result.invoke(UiState.Success("Ride updated successfully"))
             }
             .addOnFailureListener { exception ->
                 result.invoke(UiState.Failure(exception.localizedMessage))
             }
     }
 
+
+    // cancel ride of driver
     override fun cancelRide(ride: Ride, result: (UiState<String>) -> Unit) {
         val rideDocument = database.collection(FirestoreTables.RIDES)
             .document(ride.rideID)
@@ -295,6 +277,7 @@ class RideRepositoryImpl(
             }
     }
 
+    // cancel ride of passenger
     override fun cancelPassengerRide(ride: Ride, result: (UiState<String>) -> Unit) {
         val rideDocument = database.collection(FirestoreTables.RIDES)
             .document(ride.rideID)
@@ -320,6 +303,7 @@ class RideRepositoryImpl(
             }
     }
 
+    // change status of ride from WAITING to PICKUP; and update necessary fields
     override fun confirmRide(ride: Ride, result: (UiState<String>) -> Unit) {
         val batch = database.batch()
 
@@ -345,12 +329,14 @@ class RideRepositoryImpl(
             }
     }
 
+
+    // update current status of a ride
     override fun updateCurrentRideState(
         ride: Ride,
         status: String,
         result: (UiState<String>) -> Unit
     ) {
-        logD("update current ride status: ${ride.status}, $status")
+
         val rideDocument = database.collection(FirestoreTables.RIDES)
             .document(ride.rideID)
 
@@ -368,6 +354,7 @@ class RideRepositoryImpl(
 
     }
 
+    // get current ride of a passenger
     override fun getPassengerCurrentRide(result: (UiState<Ride?>) -> Unit) {
         database.collection(FirestoreTables.RIDES)
             .whereEqualTo("passengerID", auth.currentUser!!.uid)

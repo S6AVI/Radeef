@@ -47,7 +47,7 @@ class DriverAuthViewModel @ViewModelInject constructor(
 
     fun signInWithPhoneAuthCredential(code: String) {
         _verify.value = UiState.Loading
-        repository.signIn(code) { state ->
+        repository.verifyCode(code) { state ->
             _verify.value = state
         }
     }

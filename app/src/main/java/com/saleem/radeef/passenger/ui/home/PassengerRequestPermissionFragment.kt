@@ -29,8 +29,6 @@ class PassengerRequestPermissionFragment: Fragment(R.layout.driver_request_fragm
         }
     }
 
-
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -53,16 +51,16 @@ class PassengerRequestPermissionFragment: Fragment(R.layout.driver_request_fragm
         navigateToHome()
     }
 
-    private fun navigateToHome() {
-        val action = PassengerRequestPermissionFragmentDirections.actionPassengerRequestPermissionFragmentToHomeFragment()
-        findNavController().navigate(action)
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (hasLocationPermission(requireContext())) {
             navigateToHome()
         }
+    }
+
+    private fun navigateToHome() {
+        val action = PassengerRequestPermissionFragmentDirections.actionPassengerRequestPermissionFragmentToHomeFragment()
+        findNavController().navigate(action)
     }
 
 }

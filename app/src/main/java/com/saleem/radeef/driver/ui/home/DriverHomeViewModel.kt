@@ -24,6 +24,7 @@ import com.saleem.radeef.driver.ui.DriverHomeUiState
 import com.saleem.radeef.data.repository.DriverRepository
 import com.saleem.radeef.util.MAX_DISTANCE_METERS_THRESHOLD
 import com.saleem.radeef.util.Permissions
+import com.saleem.radeef.util.RideWithDistance
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.isDefault
 import com.saleem.radeef.util.logD
@@ -416,7 +417,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
         _currentHomeState.value = DriverHomeUiState.Loading
 
         viewModelScope.launch {
-            ridesRepo.updateRideState(
+            ridesRepo.updateRideStatus(
                 rideWithDistance = rideWithDistance.copy(
                     ride = rideWithDistance.ride.copy(
                         chargeAmount = cost,

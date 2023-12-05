@@ -121,5 +121,6 @@
     <string name="capacity_is_required">Capacity is required</string>
     <string name="invalid_plate_number">Invalid plate number. required format (AAA0000)</string>
     <string name="model_is_required">Model is required</string>
+    <string name="change_places">change places</string>
 
 </resources>

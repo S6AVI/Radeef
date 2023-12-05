@@ -53,7 +53,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
     val homeEvent = homeEventChannel.receiveAsFlow()
 
 
-    var passengerData: Passenger? = null
+    private var passengerData: Passenger? = null
 
     var currentLocation: RadeefLocation? = null
 
@@ -63,7 +63,6 @@ class PassengerHomeViewModel @ViewModelInject constructor(
 
 
     init {
-        logD("viewModel init is called")
         getPassenger()
     }
 
@@ -72,18 +71,13 @@ class PassengerHomeViewModel @ViewModelInject constructor(
         repository.getPassenger { state ->
 
             if (state is UiState.Success) {
-                logD("MapViewModel: in getPassenger: success: ${state.data}")
                 passengerData = state.data
 
                 val currentPassengerStatus = passengerData?.status
 
-
                 if (currentPassengerStatus != null) {
                     setHomeUiState(currentPassengerStatus)
                 }
-
-            } else {
-                logD("some problem in getPassenger")
             }
             _passenger.value = state
         }
@@ -93,21 +87,17 @@ class PassengerHomeViewModel @ViewModelInject constructor(
     fun updatePassengerLocations() {
 
         viewModelScope.launch {
-            //updateResultChannel.send(UiState.Loading)
             homeEventChannel.send(DriverHomeViewModel.HomeEvent.UpdateResult(UiState.Loading))
-            logD("pickup: ${pickup?.title}\ndestination: ${destination?.title}")
+
             if (pickup != null && destination != null) {
                 repository.updatePassengerLocations(
                     pickup = pickup!!.latLng!!,
                     destination = destination!!.latLng!!
                 ) { result ->
-                    logD("viewModel: update destination - 78: $result")
                     viewModelScope.launch {
                         homeEventChannel.send(DriverHomeViewModel.HomeEvent.UpdateResult(result))
                     }
                 }
-            } else {
-                logD("something is null")
             }
         }
     }
@@ -118,19 +108,16 @@ class PassengerHomeViewModel @ViewModelInject constructor(
 
 
     private fun setHomeUiState(status: String) {
-        logD("in home ui state setter - first line")
 
         val data = passengerData!!
 
         when (status) {
             PassengerStatus.INACTIVE.value -> {
-                logD("location: ${data.destinationLatLng}")
 
                 if (data.destinationLatLng.isDefault()) {
-                    logD("location: set places")
+
                     _currentHomeState.value = PassengerHomeUiState.SettingPlaces
                 } else {
-                    logD("location: display places")
                     viewModelScope.launch {
                         handleDisplayPlacesState(data)
                     }
@@ -143,38 +130,32 @@ class PassengerHomeViewModel @ViewModelInject constructor(
                     if (result is UiState.Success) {
                         if (result.data != null) {
                             val ride = result.data
-                            logD("ride status: ${ride.status}")
                             when (ride.status) {
                                 RideStatus.SEARCHING_FOR_DRIVER.value -> {
                                     viewModelScope.launch {
-                                        logD("ride status: SEARCHING")
                                         handleSearchingState(ride)
                                     }
                                 }
 
                                 RideStatus.WAITING_FOR_CONFIRMATION.value -> {
                                     viewModelScope.launch {
-                                        logD("ride status: wait")
                                         handleWaitingForConfirmationStatus(ride)
                                     }
                                 }
 
                                 RideStatus.PASSENGER_PICK_UP.value -> {
                                     viewModelScope.launch {
-                                        logD("ride status: pickup")
                                         handleInRideStates(ride)
                                     }
                                 }
 
                                 RideStatus.EN_ROUTE.value -> {
                                     viewModelScope.launch {
-                                        logD("ride status: en_route")
                                         handleInRideStates(ride)
                                     }
                                 }
 
                                 RideStatus.ARRIVED.value -> {
-                                    logD("arrived!")
                                     handleArrivedState(ride)
                                 }
 
@@ -219,12 +200,10 @@ class PassengerHomeViewModel @ViewModelInject constructor(
                     viewModelScope.launch {
                         when (ride.status) {
                             RideStatus.PASSENGER_PICK_UP.value -> {
-                                logD("handle in_ride states: ${ride.status}")
                                 handlePassengerPickup(ride, data)
                             }
 
                             RideStatus.EN_ROUTE.value -> {
-                                logD("handle in_ride states: ${ride.status}")
                                 handleEnRoute(ride, data)
                             }
                         }
@@ -307,36 +286,10 @@ class PassengerHomeViewModel @ViewModelInject constructor(
         )
     }
 
-
-    fun onSearchButtonClicked(state: PassengerHomeUiState.DisplayPassengerPlaces) {
-        _currentHomeState.value = PassengerHomeUiState.Loading
-        val ride = createNewRide(state)
-        viewModelScope.launch {
-            ridesRepo.addRide(ride) { result ->
-                if (result is UiState.Success) {
-
-                }
-            }
-        }
-    }
-
-    private fun createNewRide(state: PassengerHomeUiState.DisplayPassengerPlaces): Ride {
-        return Ride(
-            passengerPickupLocation = state.pickupLatLng.toGeoPoint(),
-            passengerDestination = state.destinationLatLng.toGeoPoint(),
-            startTime = Date(),
-            passengerID = passengerData!!.passengerID,
-            passengerName = passengerData!!.name,
-            status = RideStatus.SEARCHING_FOR_DRIVER.value,
-        )
-    }
-
     private suspend fun getDrivingDistanceInMeters(
         origin: LatLng,
         destination: LatLng
     ): Double? {
-        logD("origin: $origin")
-        logD("dest: $destination")
         return withContext(Dispatchers.IO) {
             val request = DirectionsApi.newRequest(geoContext)
                 .mode(TravelMode.DRIVING)
@@ -351,44 +304,52 @@ class PassengerHomeViewModel @ViewModelInject constructor(
                 val result = request.await()
                 val route = result.routes[0]
                 val leg = route.legs[0]
-                logD("time: ${leg.duration.humanReadable}")
-                logD("distance: ${leg.distance.inMeters.toInt()}")
                 leg.distance.inMeters.toDouble()
             } catch (e: Exception) {
-                // Handle API exception
-                e.printStackTrace()
-                logD("error in calc distance: ${e.message}")
+                logD("error in getDrivingDistanceInMeters: ${e.message}")
                 null
             }
+        }
+    }
+
+    fun onSearchButtonClicked(state: PassengerHomeUiState.DisplayPassengerPlaces) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
+        val ride = createNewRide(state)
+        viewModelScope.launch {
+            ridesRepo.addRide(ride) {}
         }
     }
 
     fun onCancelButtonClicked(ride: Ride) {
         _currentHomeState.value = PassengerHomeUiState.Loading
         viewModelScope.launch {
-            ridesRepo.cancelPassengerRide(ride) {
-
-            }
+            ridesRepo.cancelPassengerRide(ride) {}
         }
     }
 
     fun onConfirmButtonClicked(ride: Ride) {
         _currentHomeState.value = PassengerHomeUiState.Loading
         viewModelScope.launch {
-            ridesRepo.confirmRide(ride) {
-
-            }
+            ridesRepo.confirmRide(ride) {}
         }
     }
 
     fun onDoneButtonClicked() {
         _currentHomeState.value = PassengerHomeUiState.Loading
         viewModelScope.launch {
-            repository.updatePassengerState(PassengerStatus.INACTIVE.value) {
-
-            }
+            repository.updatePassengerStatus(PassengerStatus.INACTIVE.value) {}
         }
     }
 
+    private fun createNewRide(state: PassengerHomeUiState.DisplayPassengerPlaces): Ride {
+        return Ride(
+            passengerPickupLocation = state.pickupLatLng.toGeoPoint(),
+            passengerDestination = state.destinationLatLng.toGeoPoint(),
+            startTime = Date(),
+            passengerID = passengerData!!.passengerID,
+            passengerName = passengerData!!.name,
+            status = RideStatus.SEARCHING_FOR_DRIVER.value,
+        )
+    }
 
 }

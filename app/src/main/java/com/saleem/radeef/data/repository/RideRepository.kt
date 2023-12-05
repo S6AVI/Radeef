@@ -2,7 +2,7 @@ package com.saleem.radeef.data.repository
 
 import com.saleem.radeef.data.model.Ride
 import com.saleem.radeef.data.model.Driver
-import com.saleem.radeef.driver.ui.home.RideWithDistance
+import com.saleem.radeef.util.RideWithDistance
 import com.saleem.radeef.util.UiState
 
 interface RideRepository {
@@ -22,7 +22,7 @@ interface RideRepository {
     fun hideRide(rideId: String ,result: (UiState<String>) -> Unit)
 
     // update status of a ride; if driver accepts it
-    fun updateRideState(rideWithDistance: RideWithDistance, driver: Driver, status: String, result: (UiState<String>) -> Unit)
+    fun updateRideStatus(rideWithDistance: RideWithDistance, driver: Driver, status: String, result: (UiState<String>) -> Unit)
 
     // get current ride of a driver
     fun getCurrentRide(result: (UiState<Ride?>) -> Unit)
@@ -36,7 +36,7 @@ interface RideRepository {
     // update current status of a ride
     fun updateCurrentRideState(ride: Ride, status: String, result: (UiState<String>) -> Unit)
 
-    // get current ride of a driver
+    // get current ride of a passenger
     fun getPassengerCurrentRide(result: (UiState<Ride?>) -> Unit)
 
     // cancel ride of passenger

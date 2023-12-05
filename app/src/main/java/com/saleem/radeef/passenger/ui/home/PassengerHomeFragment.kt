@@ -6,7 +6,6 @@ import android.location.Geocoder
 import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -33,7 +32,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
@@ -46,7 +44,6 @@ import com.saleem.radeef.passenger.ui.PassengerHomeUiState
 import com.saleem.radeef.util.MIN_UPDATE_DISTANCE_METERS
 import com.saleem.radeef.util.Permissions.hasLocationPermission
 import com.saleem.radeef.util.Permissions.requestLocationPermission
-import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.formatCost
 import com.saleem.radeef.util.formatDistance
@@ -65,7 +62,6 @@ import kotlinx.coroutines.withContext
 import saudiArabiaBounds
 import setCameraBoundsAndZoom
 import java.util.Locale
-import kotlin.Exception
 
 
 class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallback,
@@ -73,11 +69,8 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
     private lateinit var map: GoogleMap
     lateinit var binding: FragmentHomeBinding
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    private lateinit var currentLocation: LatLng
     val viewModel: PassengerHomeViewModel by activityViewModels()
-    private lateinit var polyline: Polyline
-
-    lateinit var header: View
+    private lateinit var header: View
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -92,6 +85,22 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
         setNavigationDrawer()
         observer()
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
+
+
+        setCurrentLocation()
+
+        map.isMyLocationEnabled = true
+
+        configureLocationButton(view)
+        configureMapSettings(map)
+        setCameraBoundsAndZoom(map, saudiArabiaBounds)
+
+        map.setOnMyLocationButtonClickListener(this)
     }
 
     private fun observer() {
@@ -109,12 +118,9 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
                     val nameTf = header.findViewById<TextView>(R.id.name_label)
                     nameTf.text = state.data.name
-
-                    logD(state.data.toString())
                 }
 
                 is UiState.Failure -> {
-                    // Handle failure state if needed
                     toast(state.error.toString())
                 }
             }
@@ -123,21 +129,19 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         observeCurrentHomeState()
 
 
-        binding.pickupEt.setOnFocusChangeListener { v, hasFocus ->
+        binding.pickupEt.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 val action =
                     PassengerHomeFragmentDirections.actionHomeFragmentToSearchFragment()
                 findNavController().navigate(action)
             }
         }
-
-
     }
 
     private fun observeCurrentHomeState() {
 
         viewModel.currentHomeState.observe(viewLifecycleOwner) { state ->
-            logD("in currentHomeState observer")
+
             when (state) {
 
                 PassengerHomeUiState.SettingPlaces -> {
@@ -146,7 +150,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                 }
 
                 is PassengerHomeUiState.DisplayPassengerPlaces -> {
-                    logD("setting places: display passengers places")
                     displayPlaces(state)
                 }
 
@@ -158,7 +161,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                     displayDriverOffer(state)
                 }
 
-
                 is PassengerHomeUiState.EnRoute -> {
                     enRoute(state)
                 }
@@ -167,7 +169,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                     arrived(state)
                 }
 
-                PassengerHomeUiState.Error -> TODO()
+                PassengerHomeUiState.Error -> {}
                 PassengerHomeUiState.Loading -> {
                     hideAllViews()
                     binding.loadingView.viewLoadingLayout.show()
@@ -180,13 +182,15 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         }
     }
 
+    /*
+        state handlers
+     */
     private fun arrived(state: PassengerHomeUiState.Arrived) {
         hideAllViews()
         map.clear()
         val ride = state.ride
         val driver = state.driver
-        val vehicle = state.vehicle
-        logD("in arrived state!")
+
         binding.passengerArrivedView.apply {
             loadImage(driver.personalPhotoUrl, driverImageView)
             driverNameTextView.text = driver.name
@@ -252,18 +256,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
     }
 
-    private fun setMarker(pickupLatLng: LatLng) {
-        map.addMarker(
-            MarkerOptions().apply {
-                position(pickupLatLng)
-                val markerBitmap =
-                    requireContext().getDrawable(R.drawable.ic_car_marker)
-                        ?.toBitmap()
-                markerBitmap?.let {
-                    icon(BitmapDescriptorFactory.fromBitmap(it))
-                }
-            })
-    }
+
 
     private fun displayDriverOffer(state: PassengerHomeUiState.DisplayDriverOffer) {
         binding.loadingView.viewLoadingLayout.show()
@@ -273,8 +266,8 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         drawLine(ride.passengerPickupLatLng, ride.passengerDestLatLng)
         binding.displayOfferView.apply {
             loadImage(driver.personalPhotoUrl, driverImageView)
-            hideButton.setText(getString(R.string.cancel_label))
-            acceptButton.setText(getString(R.string.confrim_lable))
+            hideButton.text = getString(R.string.cancel_label)
+            acceptButton.text = getString(R.string.confrim_lable)
             nameTextView.text = driver.name
             carTextView.text = getString(R.string.vehicle_make_model, vehicle.make, vehicle.model)
             plateTextView.text = vehicle.plateNumber
@@ -285,15 +278,13 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
             hideAllViews()
             displayOfferLayout.show()
         }
-        logD("ride:${state.ride}\ndriver:${state.driver}\n${state.vehicle}")
 
         binding.displayOfferView.acceptButton.setOnClickListener {
             viewModel.onConfirmButtonClicked(ride)
-            logD("confirm button clicked")
         }
         binding.displayOfferView.hideButton.setOnClickListener {
             viewModel.onCancelButtonClicked(ride)
-            logD("cancel button clicked")
+
         }
     }
 
@@ -309,7 +300,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         }
 
         binding.passengerWaitView.cancelButton.setOnClickListener {
-            toast("cancel button clicked")
             viewModel.onCancelButtonClicked(ride)
         }
     }
@@ -326,7 +316,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         }
         binding.pathDetailsView.pathDetailsLayout.show()
 
-        binding.pathDetailsView.changeDestinationTextView.setText("change places")
+        binding.pathDetailsView.changeDestinationTextView.text = getString(R.string.change_places)
         binding.pathDetailsView.changeDestinationTextView.setOnClickListener {
             val action =
                 PassengerHomeFragmentDirections.actionHomeFragmentToSearchFragment()
@@ -334,7 +324,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         }
 
         binding.pathDetailsView.searchButton.setOnClickListener {
-            logD("search button clicked!")
             viewModel.onSearchButtonClicked(state)
         }
     }
@@ -369,21 +358,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
         }
     }
 
-    @SuppressLint("MissingPermission")
-    override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
 
-
-        setCurrentLocation()
-
-        map.isMyLocationEnabled = true
-
-        configureLocationButton(view)
-        configureMapSettings(map)
-        setCameraBoundsAndZoom(map, saudiArabiaBounds)
-
-        map.setOnMyLocationButtonClickListener(this)
-    }
 
     @SuppressLint("MissingPermission")
     private fun setCurrentLocation() {
@@ -400,20 +375,14 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
             override fun onLocationResult(locationResult: LocationResult) {
                 val lastLocation = locationResult.lastLocation
                 if (lastLocation != null) {
-                    val latitude = lastLocation.latitude
-                    val longitude = lastLocation.longitude
 
-                    //viewModel.updateLocation(lastLocation.toLatLng())
                     val newLocation = lastLocation.toLatLng()
 
                     viewModel.setPassengerCurrentLocation(
                         newLocation,
                         getAddressFromLatLng(newLocation)
                     )
-                    logD("New current location: $latitude, $longitude")
                     map.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 14f))
-                } else {
-                    toast("last location is null")
                 }
             }
         }
@@ -458,7 +427,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
                 val route = result.routes[0]
 
-                // Get the polyline data from the route
                 val encodedPolyline = route.overviewPolyline.encodedPath
 
                 val decodedPolyline = PolyUtil.decode(encodedPolyline)
@@ -467,21 +435,12 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                 for (point in decodedPolyline) {
                     boundsBuilder.include(point)
                 }
-                val bounds = boundsBuilder.build()
 
                 val polylineOptions = PolylineOptions()
                     .addAll(decodedPolyline)
                     .color(lineColor)
                     .width(10f)
 
-                // Add the polyline to the map
-                val polyline = map.addPolyline(polylineOptions)
-
-//                val startMarkerOptions = MarkerOptions()
-//                    .position(decodedPolyline.first())
-//                    .title("Start")
-//
-//                map.addMarker(startMarkerOptions)
 
                 val endMarkerOptions = MarkerOptions()
                     .position(decodedPolyline.last())
@@ -489,48 +448,23 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                 map.addMarker(endMarkerOptions)
 
             } catch (e: Exception) {
-                Log.d(TAG, "draw line: some error occurred")
-                Log.d(TAG, e.toString())
+                logD(e.toString())
             }
         }
     }
 
 
-    private fun getLatLngFromAddress(address: String): LatLng {
-        try {
-            val geocoder = Geocoder(requireContext())
-            val results = geocoder.getFromLocationName(address, 1)
-            val location = results?.get(0)!!
-            return LatLng(location.latitude, location.longitude)
-        } catch (e: Exception) {
-            toast("an error has occurred in getLatLngFromAddress: ${e.message}")
-        }
-        return LatLng(.0, .0)
-    }
-
     private fun getAddressFromLatLng(latlng: LatLng): String {
-        try {
+        return try {
             val geocoder = Geocoder(requireContext(), Locale.getDefault())
-            logD("getAddressFromLatLng: $latlng")
             val addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
-            return addresses?.firstOrNull()?.featureName ?: ""
+            addresses?.firstOrNull()?.featureName ?: ""
         } catch (e: Exception) {
             logD("get address error: ${e.message}")
-            return ""
+            ""
         }
     }
 
-
-    @SuppressLint("MissingPermission")
-    private fun setCurrent() {
-        fusedLocationProviderClient.lastLocation.addOnCompleteListener {
-            val lastLocation = LatLng(
-                it.result.latitude,
-                it.result.longitude
-            )
-            currentLocation = lastLocation
-        }
-    }
 
     override fun onMyLocationButtonClick(): Boolean {
         return false
@@ -568,7 +502,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
     }
 
     private fun makePhoneCall(phoneNumber: String) {
-        logD("make a phone call")
         val intent = Intent(Intent.ACTION_DIAL)
         intent.data = Uri.parse("tel:$phoneNumber")
         startActivity(intent)
@@ -585,5 +518,18 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
             loadingView.viewLoadingLayout.hide()
             pickupIl.hide()
         }
+    }
+
+    private fun setMarker(pickupLatLng: LatLng) {
+        map.addMarker(
+            MarkerOptions().apply {
+                position(pickupLatLng)
+                val markerBitmap =
+                    requireContext().getDrawable(R.drawable.ic_car_marker)
+                        ?.toBitmap()
+                markerBitmap?.let {
+                    icon(BitmapDescriptorFactory.fromBitmap(it))
+                }
+            })
     }
 }

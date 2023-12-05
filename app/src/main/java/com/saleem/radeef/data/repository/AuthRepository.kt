@@ -18,7 +18,7 @@ interface AuthRepository {
     fun logout(result: (UiState<String>) -> Unit)
 
     // check if code matches; and sign in user to the app
-    fun signIn(code: String, result: (UiState<Passenger>) -> Unit)
+    fun verifyCode(code: String, result: (UiState<Passenger>) -> Unit)
 
     // store name of passenger
     fun updateName(name:String, result: (UiState<String>) -> Unit)
@@ -32,11 +32,7 @@ interface AuthRepository {
     // check if passenger has name already (registered)
      fun hasName(callback: (Boolean) -> Unit)
 
-     // fetch name of passenger
-     fun getName(result: (UiState<String>) -> Unit)
-
-
-     // get passenger; listen for changes
+     // get passenger; for profile
      fun getPassenger(result: (UiState<Passenger>) -> Unit)
 
     // check if phone number is associated already with a driver

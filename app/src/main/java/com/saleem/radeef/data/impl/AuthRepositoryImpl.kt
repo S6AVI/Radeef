@@ -1,17 +1,15 @@
 package com.saleem.radeef.data.impl
 
 import android.app.Activity
-import android.util.Log
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
-import com.saleem.radeef.data.model.Passenger
 import com.saleem.radeef.data.model.Driver
+import com.saleem.radeef.data.model.Passenger
 import com.saleem.radeef.data.repository.AuthRepository
-import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.FirestoreTables
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
@@ -24,10 +22,11 @@ class AuthRepositoryImpl(
     private lateinit var verificationId: String
     private lateinit var passenger: Passenger
     private lateinit var token: PhoneAuthProvider.ForceResendingToken
-//    override val currentUser: FirebaseUser?
-//        get() =
 
-    private fun getUserId() = auth.currentUser?.uid
+
+
+
+    // check if phone number is associated already with a driver
     override fun isPhoneNumberAssociatedWithDriver(phone: String, callback: (Boolean) -> Unit) {
         val driversCollection = database.collection(FirestoreTables.DRIVERS)
 
@@ -36,18 +35,16 @@ class AuthRepositoryImpl(
         query.get().addOnSuccessListener { querySnapshot ->
             val drivers = querySnapshot.toObjects(Driver::class.java)
             if (drivers.isNotEmpty()) {
-                // Phone number is associated with a driver
                 callback(true)
             } else {
-                // Phone number is not associated with any driver
                 callback(false)
             }
-        }.addOnFailureListener { exception ->
-            // Handle any errors that occurred while retrieving data
+        }.addOnFailureListener {
             callback(false)
         }
     }
 
+    // start authenticating; send OTP code to user
     override fun registerPassenger(
         passenger: Passenger,
         phone: String,
@@ -59,16 +56,12 @@ class AuthRepositoryImpl(
             .setPhoneNumber(phone)
             .setTimeout(60L, TimeUnit.SECONDS)
             .setActivity(activity)
-            //.setCallbacks(callbacks) // OnVerificationStateChangedCallbacks
             .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    //signIn(passenger, credential, result)
-                    Log.d(TAG, "registerPassenger: onverifcomp: line 41")
                     auth.signInWithCredential(credential)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 passenger.passengerID = task.result.user?.uid ?: ""
-                                logD("passenger ID: ${passenger.passengerID}")
                                 updatePassengerInfo(passenger) { state ->
                                     when (state) {
                                         is UiState.Success -> {
@@ -82,7 +75,6 @@ class AuthRepositoryImpl(
                                     }
                                 }
                             } else {
-                                logD("Authentication failed, ${task.exception?.message ?: "unknown error"}")
                                 result.invoke(
                                     UiState.Failure(
                                         "Authentication failed, ${task.exception?.message ?: "unknown error"}"
@@ -111,7 +103,6 @@ class AuthRepositoryImpl(
                     this@AuthRepositoryImpl.passenger = passenger
                     this@AuthRepositoryImpl.verificationId = verificationId
                     this@AuthRepositoryImpl.token = token
-                    logD("verification code sent!")
                     result.invoke(UiState.Success("Verification code sent"))
                 }
             })
@@ -120,6 +111,7 @@ class AuthRepositoryImpl(
         PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
+    // update passenger info; create a document if it's a new passenger (for auth)
     override fun updatePassengerInfo(passenger: Passenger, result: (UiState<Passenger>) -> Unit) {
         val documentCollection = database.collection(FirestoreTables.PASSENGERS)
         documentCollection
@@ -127,7 +119,6 @@ class AuthRepositoryImpl(
             .get()
             .addOnSuccessListener {
                 if (it.documents.isNotEmpty()) {
-                    logD("document: ${it.documents.get(0)}")
                     val retrievedPassenger = it.documents[0].toObject(Passenger::class.java)
                     if (retrievedPassenger != null) {
                         result.invoke(
@@ -136,7 +127,6 @@ class AuthRepositoryImpl(
                     }
 
                 } else {
-                    logD("passenger: $passenger")
                     documentCollection.document(passenger.passengerID)
                         .set(passenger)
                         .addOnSuccessListener {
@@ -144,10 +134,10 @@ class AuthRepositoryImpl(
                                 UiState.Success(passenger)
                             )
                         }
-                        .addOnFailureListener {
+                        .addOnFailureListener { error ->
                             result.invoke(
                                 UiState.Failure(
-                                    it.localizedMessage
+                                    error.localizedMessage
                                 )
                             )
                         }
@@ -163,13 +153,13 @@ class AuthRepositoryImpl(
     }
 
 
-    override fun signIn(code: String, result: (UiState<Passenger>) -> Unit) {
+    // check if code matches; and sign in user to the app
+    override fun verifyCode(code: String, result: (UiState<Passenger>) -> Unit) {
         val credential = PhoneAuthProvider.getCredential(verificationId, code)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     passenger.passengerID = task.result?.user?.uid ?: ""
-                    logD("signIn: ${passenger.passengerID}")
                     updatePassengerInfo(passenger) { state ->
                         when (state) {
                             is UiState.Success -> {
@@ -200,6 +190,8 @@ class AuthRepositoryImpl(
             }
     }
 
+
+    // store name of passenger
     override fun updateName(name: String, result: (UiState<String>) -> Unit) {
         val id = auth.currentUser?.uid
         if (id != null) {
@@ -217,6 +209,7 @@ class AuthRepositoryImpl(
         }
     }
 
+    // resend code again
     override fun resendCode(activity: Activity, result: (UiState<String>) -> Unit) {
         val options = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(passenger.phoneNumber)
@@ -224,7 +217,7 @@ class AuthRepositoryImpl(
             .setActivity(activity)
             .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    // This method will be called if the user has already been verified
+
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {
@@ -245,16 +238,19 @@ class AuthRepositoryImpl(
         PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
+
+    // check if driver is already registered
     override fun isRegistered(): Boolean {
         return auth.currentUser != null
     }
 
+    // check if passenger has name already (registered)
     override fun hasName(callback: (Boolean) -> Unit) {
         val id = getUserId()
         if (id == null) {
             callback.invoke(false)
         } else {
-            val db = database.collection(FirestoreTables.PASSENGERS).document(id)
+            database.collection(FirestoreTables.PASSENGERS).document(id)
                 .get()
                 .addOnSuccessListener { document ->
                     if (document != null && document.exists()) {
@@ -264,70 +260,48 @@ class AuthRepositoryImpl(
                         callback.invoke(false)
                     }
                 }
-                .addOnFailureListener { exception ->
-                    // Handle any exceptions that occurred while retrieving the document
+                .addOnFailureListener {
                     callback.invoke(false)
                 }
         }
     }
 
 
+    // logout
     override fun logout(result: (UiState<String>) -> Unit) {
         auth.signOut()
         result.invoke(UiState.Success("user signed out"))
     }
 
 
-    override fun getName(result: (UiState<String>) -> Unit) {
-        var name: String = ""
-        database.collection(FirestoreTables.PASSENGERS)
-            .whereEqualTo("passengerID", auth.currentUser?.uid)
-            .limit(1)
-            .get()
-            .addOnSuccessListener {
-                if (!it.isEmpty) {
-                    val documentSnapshot = it.documents[0]
-                    name = documentSnapshot.getString("name") ?: ""
-                    result.invoke(
-                        UiState.Success(name)
-                    )
-                } else {
-
-                }
-
-            }
-            .addOnFailureListener { exception ->
-                result.invoke(
-                    UiState.Failure(
-                        exception.message.toString()
-                    )
-                )
-            }
-    }
-
+    // get passenger; for profile
     override fun getPassenger(result: (UiState<Passenger>) -> Unit) {
-        database.collection(FirestoreTables.PASSENGERS)
-            .whereEqualTo("passengerID", auth.currentUser?.uid)
-            .limit(1)
-            .get()
-            .addOnSuccessListener {
-                if (!it.isEmpty) {
-                    val documentSnapshot = it.documents[0]
-                    val passenger = documentSnapshot.toObject(Passenger::class.java)!!
-                    result.invoke(
-                        UiState.Success(passenger)
-                    )
-                } else {
-
+        val id = getUserId()
+        if (id != null) {
+            database.collection(FirestoreTables.PASSENGERS).document(id)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        val passenger = documentSnapshot.toObject(Passenger::class.java)
+                        if (passenger != null) {
+                            result.invoke(UiState.Success(passenger))
+                        } else {
+                            result.invoke(UiState.Failure("Failed to retrieve passenger data"))
+                        }
+                    } else {
+                        result.invoke(UiState.Failure("Passenger document does not exist"))
+                    }
                 }
-
-            }
-            .addOnFailureListener { exception ->
-                result.invoke(
-                    UiState.Failure(
-                        exception.message.toString()
-                    )
-                )
-            }
+                .addOnFailureListener { exception ->
+                    result.invoke(UiState.Failure(exception.message.toString()))
+                }
+        } else {
+            result.invoke(UiState.Failure("User ID is null"))
+        }
     }
+
+
+
+    // helper
+    private fun getUserId() = auth.currentUser?.uid
 }

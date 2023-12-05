@@ -3,7 +3,10 @@ package com.saleem.radeef.util
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
+import com.saleem.radeef.data.model.Ride
 import com.saleem.radeef.util.Constants.CURRENT_SCREEN
+import java.io.File
 import java.util.Calendar
 import java.util.Locale
 
@@ -102,5 +105,19 @@ fun isPassed(preferences: SharedPreferences, current: String): Boolean {
 fun calculateFee(distance: Double): Double {
  return FEE_BASE + (distance * FEE_RATE)
 }
+fun renameImageFile(fileUrl: Uri): Uri {
+    val originalFile = File(fileUrl.path!!)
+    val renamedFile = File.createTempFile("image_", ".jpg")
+
+    originalFile.copyTo(renamedFile, true)
+    return Uri.fromFile(renamedFile)
+}
 
 
+
+fun alreadyUploaded(uri: Uri): Boolean {
+    return uri.toString().contains("radeef-bc315.appspot.com")
+}
+
+
+data class RideWithDistance(val ride: Ride, val distance: Double)

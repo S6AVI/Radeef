@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -28,14 +27,15 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.model.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
 import com.saleem.radeef.driver.ui.home.DriverHomeViewModel
+import com.saleem.radeef.util.DELAY
 import com.saleem.radeef.util.SearchResultAdapter
-import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.lang.Math.cos
+import kotlin.math.cos
 
 @AndroidEntryPoint
 class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.OnItemClickListener {
@@ -45,7 +45,7 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
     private lateinit var token: AutocompleteSessionToken
     private lateinit var handler: Handler
     private lateinit var runnable: Runnable
-    private val DELAY = 1000L
+
     val viewModel: PassengerHomeViewModel by activityViewModels()
 
 
@@ -53,8 +53,6 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentSearchBinding.bind(view)
-
-
 
         currentLocation = viewModel.currentLocation!!.latLng!!
 
@@ -64,8 +62,6 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
 
         placesClient = Places.createClient(requireContext())
 
-        // Create a new token for the autocomplete session. Pass this to FindAutocompletePredictionsRequest,
-        // and once again when the user makes a selection (for example when calling fetchPlace()).
         token = AutocompleteSessionToken.newInstance()
 
 
@@ -79,8 +75,6 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
             }
             findPredictions(query)
         }
-        Log.d(TAG, handler.toString())
-
 
         binding.pickupEt.addTextChangedListener(object : TextWatcher {
 
@@ -105,8 +99,6 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 handler.removeCallbacks(runnable)
                 handler.postDelayed(runnable, DELAY)
-                //Log.d(TAG, "postDelayed called with delay: $DELAY")
-                //findPredictions(s.toString())
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -116,7 +108,7 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
 
 
         binding.myLocation.setOnClickListener {
-            binding.pickupEt.setText("Current Location")
+            binding.pickupEt.setText(getString(R.string.current_location))
             viewModel.pickup = RadeefLocation(currentLocation, title = viewModel.currentLocation!!.title)
         }
 
@@ -127,10 +119,8 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         binding.backBtn.setOnClickListener {
             findNavController().popBackStack()
         }
-        observer()
 
-//            val action = SearchFragmentDirections.actionSearchFragmentToHomeFragment()
-//            findNavController().navigate(action)
+        observer()
 
     }
 
@@ -142,19 +132,14 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
 
     private fun findPredictions(query: String) {
 
-        Log.d(TAG, "findAutocompletePredictions called with query: $query")
 
         val bounds = getBounds()
         val request =
             FindAutocompletePredictionsRequest.builder()
-                // Call either setLocationBias() OR setLocationRestriction().
-                //.setLocationRestriction(bounds)
-                //setOrigin(LatLng(-33.8749937, 151.2041382))
                 .setOrigin(currentLocation)
                 .setCountries("SA")
                 .setLocationBias(bounds)
                 .setSessionToken(token)
-                //.setQuery(binding.pickupInput.text.toString())
                 .setQuery(query)
                 .build()
 
@@ -166,24 +151,18 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
                 val adapter = SearchResultAdapter(this, result)
                 binding.resultsRecyclerView.adapter = adapter
 
-                for (prediction in response.autocompletePredictions) {
-                    //if (prediction.distanceMeters == null)
-                    Log.i(TAG, prediction.getFullText(null).toString())
-                    val distance = prediction.distanceMeters?.div(1000.0) ?: 0.0
-                    Log.i(TAG, String.format("%.1f km", distance))
-                    //Log.i(TAG, prediction.getPrimaryText(null).toString())
-                }
             }.addOnFailureListener { exception: Exception? ->
                 if (exception is ApiException) {
-                    Log.e(TAG, "Place not found: ${exception.statusCode}")
+                   logD("error: ${exception.message}")
                 }
             }
     }
 
     private fun getBounds(): LocationBias {
 
-        val radiusInMeters = 100000 // 100 km in meters
-        val bounds = RectangularBounds.newInstance(
+        val radiusInMeters = 100000
+
+        return RectangularBounds.newInstance(
             LatLng(
                 currentLocation.latitude - 1 / 111.0 * radiusInMeters,
                 currentLocation.longitude - 1 / (111.0 * cos(currentLocation.latitude)) * radiusInMeters
@@ -193,8 +172,6 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
                 currentLocation.longitude + 1 / (111.0 * cos(currentLocation.latitude)) * radiusInMeters
             )
         )
-
-        return bounds
     }
 
     override fun onItemClick(item: AutocompletePrediction) {
@@ -202,7 +179,7 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         if (binding.pickupEt.hasFocus()) {
             binding.pickupEt.setText(address)
             fetchPickupLatLng(placeId = item.placeId, address.toString())
-            Log.d(TAG, "in viewmodel ${viewModel.pickup.toString()}")
+
         } else if (binding.destinationEt.hasFocus()) {
             binding.destinationEt.setText(address)
             fetchDestinationLatLng(placeId = item.placeId, address.toString())
@@ -216,19 +193,16 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
                     is DriverHomeViewModel.HomeEvent.UpdateResult -> {
                         when (event.state) {
                             UiState.Loading -> {
-                                logD("loading for results in Passenger SearchFragment - 139")
-                                // Handle loading state if needed
+
                             }
 
                             is UiState.Success -> {
                                 if (event.state.data) {
-                                    logD("Passenger SearchFragment - 142: success: ${event.state.data}")
                                     findNavController().popBackStack()
                                 }
                             }
                             is UiState.Failure -> {
-                                logD("Passenger SearchFragment - 148: failure: ${event.state.error}")
-                                //toast(state.error.toString())
+                                toast("an error has occurred: ${event.state.error}")
                             }
                         }
                     }
@@ -246,7 +220,7 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
             if (pickupLatLng != null) {
                 viewModel.pickup = RadeefLocation(pickupLatLng, address)
             } else {
-                // Handle error or show a message that the destination details couldn't be retrieved
+                logD("error in fetchPickupLatLng")
             }
         }
     }
@@ -257,7 +231,7 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
             if (destinationLatLng != null) {
                 viewModel.destination = RadeefLocation(destinationLatLng, address)
             } else {
-                // Handle error or show a message that the destination details couldn't be retrieved
+                logD("error in fetchPickupLatLng")
             }
         }
     }
@@ -266,13 +240,10 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         try {
             val placeFields = listOf(Place.Field.LAT_LNG)
 
-            // Build the fetch place request
             val request = FetchPlaceRequest.newInstance(placeId, placeFields)
 
-            // Fetch the place details
             val placeResponse = placesClient.fetchPlace(request).await()
 
-            // Retrieve the LatLng from the place response
             val place = placeResponse.place
             return place.latLng
         } catch (e: Exception) {

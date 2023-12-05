@@ -7,11 +7,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.saleem.radeef.data.model.Ride
 import com.saleem.radeef.databinding.ItemPassengerRequestBinding
+import com.saleem.radeef.util.RideWithDistance
 import com.saleem.radeef.util.formatCost
 import com.saleem.radeef.util.formatDistance
-import com.saleem.radeef.util.logD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,7 +25,6 @@ class PassengerRequestsAdapter(val context: Context) :
                 oldItem: RideWithDistance,
                 newItem: RideWithDistance
             ): Boolean {
-                logD("adapter - are items the same: old:$oldItem\nnew:$newItem")
                 return oldItem.ride.rideID == newItem.ride.rideID
             }
 
@@ -34,7 +32,6 @@ class PassengerRequestsAdapter(val context: Context) :
                 oldItem: RideWithDistance,
                 newItem: RideWithDistance
             ): Boolean {
-                logD("adapter - are items the same: old:$oldItem\nnew:$newItem")
                 return oldItem.ride.rideID == newItem.ride.rideID
             }
         }
@@ -43,33 +40,22 @@ class PassengerRequestsAdapter(val context: Context) :
 
     private var list: MutableList<RideWithDistance> = arrayListOf()
 
-    //var getDistance: ((LatLng, LatLng) -> Double)? = null
     var getCost: ((Double) -> Double)? = null
     var onItemClick: ((RideWithDistance) -> Unit)? = null
     var onAccept: ((RideWithDistance, Double) -> Unit)? = null
     var onHide: ((String) -> Unit)? = null
-    //var getPassengerName: ((String) -> String)? = null
 
-
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-        super.onAttachedToRecyclerView(recyclerView)
-        logD("adapter attached")
-    }
 
     override fun onCurrentListChanged(
         previousList: MutableList<RideWithDistance>,
         currentList: MutableList<RideWithDistance>
     ) {
         super.onCurrentListChanged(previousList, currentList)
-        logD("list changed")
-        logD("previous: $previousList")
-        logD("current: $currentList")
     }
 
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PassengerRequestsViewHolder {
-        logD("adapter: onCreate")
         val itemView = ItemPassengerRequestBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return PassengerRequestsViewHolder(itemView)
     }
@@ -78,7 +64,6 @@ class PassengerRequestsAdapter(val context: Context) :
 
 
     override fun onBindViewHolder(holder: PassengerRequestsAdapter.PassengerRequestsViewHolder, position: Int) {
-        logD("adapter: onBind")
         val item = list[position]
         holder.bind(item)
     }
@@ -92,8 +77,6 @@ class PassengerRequestsAdapter(val context: Context) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: RideWithDistance) {
-            // Fetch data and perform calculations outside of the bind function
-            logD("inside bind")
             val distance = item.distance
             val cost = getCost?.invoke(item.distance) ?: 0.0
 
@@ -107,13 +90,10 @@ class PassengerRequestsAdapter(val context: Context) :
 
 
                 withContext(Dispatchers.Main) {
-                    // Update the UI with the retrieved and calculated data
                     binding.pickupTextView.text = pickup
                     binding.destinationTextView.text = destination
                     binding.distanceTextView.text = distance.formatDistance()
                     binding.costTextView.text = getCost?.invoke(item.distance)?.formatCost()
-                    logD("getCost: ${getCost.toString()}")
-                    //binding.costTextView.text = calculateFee(item.distance).toString()
                     binding.passengerNameTextView.text = passengerName
                 }
             }
@@ -136,4 +116,3 @@ class PassengerRequestsAdapter(val context: Context) :
         return addresses?.firstOrNull()?.featureName ?: ""
     }
 }
-data class RideWithDistance(val ride: Ride, val distance: Double)

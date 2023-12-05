@@ -12,13 +12,14 @@ const val MAX_DISTANCE_METERS_THRESHOLD = 5000
 
 const val MIN_UPDATE_DISTANCE_METERS = 500.0f
 
+const val DELAY = 1000L
 object FirestoreTables {
-    val RIDES = "rides"
-    val PASSENGERS = "passengers"
-    val DRIVERS = "drivers"
-    val VEHICLES = "vehicles"
-    val LICENSE = "license"
-    val HIDDEN_RIDES = "hidden_rides"
+    const val RIDES = "rides"
+    const val PASSENGERS = "passengers"
+    const val DRIVERS = "drivers"
+    const val VEHICLES = "vehicles"
+    const val LICENSE = "license"
+    const val HIDDEN_RIDES = "hidden_rides"
 }
 
 object Constants {
@@ -29,9 +30,9 @@ object Constants {
 }
 
 object FirebaseStorageConstants {
-    val ROOT_DIRECTORY = "app"
-    val DRIVER_DIRECTORY = "driver"
-    val Passenger_DIRECTORY = "passenger"
+    const val ROOT_DIRECTORY = "app"
+    const val DRIVER_DIRECTORY = "driver"
+    const val Passenger_DIRECTORY = "passenger"
 }
 
 object DefaultDate {
@@ -47,4 +48,4 @@ object ImageFileNames {
     const val VEHICLE = "vehicle"
 }
 
-val TAG = "savii"
+const val TAG = "savii"

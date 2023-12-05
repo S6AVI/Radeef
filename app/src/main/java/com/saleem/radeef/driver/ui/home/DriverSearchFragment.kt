@@ -27,7 +27,9 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.saleem.radeef.R
 import com.saleem.radeef.data.model.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
+import com.saleem.radeef.util.DELAY
 import com.saleem.radeef.util.SearchResultAdapter
+import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.hide
@@ -37,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.lang.Math.cos
 
-val TAG = "savii"
 
 @AndroidEntryPoint
 class DriverSearchFragment : Fragment(R.layout.fragment_search),
@@ -47,7 +48,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
     private lateinit var token: AutocompleteSessionToken
     private lateinit var handler: Handler
     private lateinit var runnable: Runnable
-    private val DELAY = 1000L
     val viewModel: DriverHomeViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
