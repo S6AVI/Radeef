@@ -45,8 +45,6 @@ class EnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
 
                 val countryCode = binding.countryCodePicker.selectedCountryCode
                 phoneNumber = getString(R.string.phone_number_format, countryCode, phoneNumber)
-                logD(phoneNumber)
-                phoneNumber = "+${countryCode}$phoneNumber"
                 viewModel.register(
                     Passenger(phoneNumber = phoneNumber),
                     phoneNumber,

@@ -44,8 +44,6 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
                 binding.textInputLayout.isErrorEnabled = false
                 val countryCode = binding.countryCodePicker.selectedCountryCode
                 phoneNumber = getString(R.string.phone_number_format, countryCode, phoneNumber)
-
-                phoneNumber = "+${countryCode}$phoneNumber"
                 viewModel.register(
                     Driver(phoneNumber = phoneNumber),
                     phoneNumber,
