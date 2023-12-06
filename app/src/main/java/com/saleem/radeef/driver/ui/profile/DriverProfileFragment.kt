@@ -1,7 +1,9 @@
 package com.saleem.radeef.driver.ui.profile
 
 import android.os.Bundle
-import android.util.Log
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Patterns
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
@@ -12,12 +14,10 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.saleem.radeef.R
 import com.saleem.radeef.data.model.Driver
 import com.saleem.radeef.databinding.DriverFragmentProfileBinding
-
-import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.genders
 import com.saleem.radeef.util.hide
-import com.saleem.radeef.util.isValidEmail
 import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,20 +38,36 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
             findNavController().popBackStack()
         }
 
-        binding.base.genderIl.isEnabled = false
-        binding.base.nameIl.isEnabled = false
+        binding.base.genderIl.disable()
+        binding.base.nameIl.disable()
 
-        binding.base.emailIl.isErrorEnabled = binding.base.emailEt.text.toString().isNotEmpty() &&
-                binding.base.emailEt.text.toString().isValidEmail()
+        binding.base.saveBtn.isEnabled = false
+
+        binding.base.emailEt.addTextChangedListener(object : TextWatcher {
+
+            override fun afterTextChanged(s: Editable?) {
+                val email = viewModel.driverData?.email
+                if (email != null) {
+                    binding.base.saveBtn.isEnabled = s.toString() != email
+                }
+
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
 
 
+        })
         binding.base.saveBtn.setOnClickListener {
             if (isDataValid()) {
+                binding.base.saveBtn.isEnabled = false
                 val driver = createDriver()
                 viewModel.updateDriverInfo(
                     driver
                 )
-
             }
         }
 
@@ -60,11 +76,11 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
                 UiState.Loading -> {
                     binding.base.saveBtn.text = ""
                     binding.base.progressBar.show()
-
                 }
 
                 is UiState.Success -> {
                     binding.base.progressBar.hide()
+                    binding.base.saveBtn.isEnabled = false
                     binding.base.saveBtn.text = getString(R.string.save_changes)
 
                     toast(state.data)
@@ -72,8 +88,9 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
 
                 is UiState.Failure -> {
                     binding.base.progressBar.hide()
+                    binding.base.saveBtn.isEnabled = true
                     binding.base.saveBtn.text = getString(R.string.save_changes)
-                    Log.d(TAG, state.error.toString())
+                    toast(state.error.toString())
                 }
             }
         }
@@ -91,7 +108,7 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
                 is UiState.Failure -> {
                     binding.base.progressBar.hide()
                     binding.base.constLayout.show()
-                    Log.d(TAG, state.error.toString())
+                    toast(state.error.toString())
                 }
 
                 is UiState.Success -> {
@@ -113,9 +130,14 @@ class DriverProfileFragment : Fragment(R.layout.driver_fragment_profile) {
     }
 
     private fun isDataValid(): Boolean {
-        return (!binding.base.nameIl.isErrorEnabled) ||
-                (!binding.base.emailIl.isErrorEnabled)
-
+        val email = binding.base.emailEt.text.toString()
+        return if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.base.emailIl.isErrorEnabled = false
+            true
+        } else {
+            binding.base.emailIl.error = getString(R.string.error_email)
+            false
+        }
     }
 
     private fun fillFields(driver: Driver) {

@@ -214,6 +214,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
     }
 
     private suspend fun handlePassengerPickup(ride: Ride, data: DriverWithVehicle) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
         viewModelScope.launch {
             val distance =
                 getDrivingDistanceInMeters(
@@ -230,6 +231,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
     }
 
     private suspend fun handleEnRoute(ride: Ride, data: DriverWithVehicle) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
         viewModelScope.launch {
             val distance =
                 getDrivingDistanceInMeters(
@@ -247,6 +249,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
 
 
     private suspend fun handleSearchingState(ride: Ride) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
         val distance =
             getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng)
                 ?: 0.0
@@ -257,6 +260,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
     }
 
     private suspend fun handleWaitingForConfirmationStatus(ride: Ride) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
         val distance =
             getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng)
                 ?: 0.0
@@ -277,6 +281,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
 
 
     private suspend fun handleDisplayPlacesState(data: Passenger) {
+        _currentHomeState.value = PassengerHomeUiState.Loading
         val distance =
             getDrivingDistanceInMeters(data.pickupLatLng, data.destinationLatLng) ?: 0.0
         _currentHomeState.value = PassengerHomeUiState.DisplayPassengerPlaces(
@@ -286,9 +291,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
         )
     }
 
-    private suspend fun getDrivingDistanceInMeters(
-        origin: LatLng,
-        destination: LatLng
+    private suspend fun getDrivingDistanceInMeters(origin: LatLng, destination: LatLng
     ): Double? {
         return withContext(Dispatchers.IO) {
             val request = DirectionsApi.newRequest(geoContext)

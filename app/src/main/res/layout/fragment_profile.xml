@@ -39,8 +39,8 @@
 
         <Button
             android:id="@+id/save_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/ButtonStyle"
+            android:enabled="false"
             android:text="@string/save_changes" />
 
         <ProgressBar

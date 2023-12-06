@@ -10,7 +10,6 @@ sealed interface DriverHomeUiState {
         val driverLatLng: LatLng,
         val driverDestinationLatLng: LatLng,
         val distance: Double
-        //val distance: Double
     ) : DriverHomeUiState
 
     object SearchingForPassengers : DriverHomeUiState
@@ -18,9 +17,7 @@ sealed interface DriverHomeUiState {
         val ride: Ride,
         val passengerId: String,
         val passengerPickupLatLng: LatLng,
-        //val passengerPickupAddress: String,
         val passengerDestinationLatLng: LatLng,
-        //val passengerDestinationAddress: String,
         val passengerName: String,
         val driverLatLng: LatLng,
         val distance: Double,
@@ -30,20 +27,11 @@ sealed interface DriverHomeUiState {
     data class PassengerPickUp(
         val ride: Ride,
         val distance: Double
-//        val passengerLatLng: LatLng,
-//        val driverLatLng: LatLng,
-//        val passengerDestinationLatLng: LatLng,
-//        val passengerDestinationAddress: String,
-//        val passengerName: String,
     ) : DriverHomeUiState
 
     data class EnRoute(
         val ride: Ride,
         val distance: Double
-//        val driverLatLng: LatLng,
-//        val passengerDestinationLatLng: LatLng,
-//        val passengerDestinationAddress: String,
-//        val passengerName: String,
     ) : DriverHomeUiState
 
     data class Arrived(

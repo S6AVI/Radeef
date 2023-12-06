@@ -1,7 +1,10 @@
 package com.saleem.radeef.passenger.ui.profile
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import android.util.Patterns
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
@@ -22,7 +25,7 @@ import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ProfileFragment: Fragment(R.layout.fragment_profile) {
+class ProfileFragment : Fragment(R.layout.fragment_profile) {
     lateinit var binding: FragmentProfileBinding
     val viewModel: ProfileViewModel by viewModels()
 
@@ -32,13 +35,9 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
 
         binding = FragmentProfileBinding.bind(view)
 
-        binding.backBtn.setOnClickListener{
+        binding.backBtn.setOnClickListener {
             findNavController().popBackStack()
         }
-
-
-        binding.emailIl.isErrorEnabled = binding.emailEt.text.toString().isNotEmpty() &&
-                binding.emailEt.text.toString().isValidEmail()
 
 
         binding.saveBtn.setOnClickListener {
@@ -46,34 +45,34 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
                 val name = binding.nameEt.text.toString()
                 val email = binding.emailEt.text.toString()
                 val gender = binding.genderAutoComplete.text.toString()
-
-                Log.d(TAG,"name:$name\nemail:$email\ngender:$gender")
-
                 val passenger = Passenger(name = name, email = email, gender = gender)
-                viewModel.updatePassengerInfo(
-                    passenger
-                )
+
+                viewModel.updatePassengerInfo(passenger)
             }
         }
 
         // observe update
-        viewModel.update.observe(viewLifecycleOwner) {state ->
-            when(state) {
+        viewModel.update.observe(viewLifecycleOwner) { state ->
+            when (state) {
                 UiState.Loading -> {
                     binding.saveBtn.text = ""
+                    binding.saveBtn.isEnabled = false
                     binding.progressBar.show()
 
                 }
+
                 is UiState.Success -> {
                     binding.progressBar.hide()
+                    binding.saveBtn.isEnabled = false
                     binding.saveBtn.text = getString(R.string.save_changes)
 
                     toast(state.data)
                 }
+
                 is UiState.Failure -> {
                     binding.progressBar.hide()
                     binding.saveBtn.text = getString(R.string.save_changes)
-                    Log.d(TAG, state.error.toString())
+                   toast(state.error.toString())
                 }
             }
         }
@@ -83,13 +82,14 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
 
 
         // observe passenger data
-        viewModel.passenger.observe(viewLifecycleOwner) {state ->
-            when(state) {
+        viewModel.passenger.observe(viewLifecycleOwner) { state ->
+            when (state) {
                 UiState.Loading -> {
                     binding.constLayout.hide()
                     binding.progressBar.show()
 
                 }
+
                 is UiState.Failure -> {
                     binding.progressBar.hide()
                     binding.constLayout.show()
@@ -104,13 +104,73 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
                 }
             }
         }
+
+
+    }
+
+    private fun observeFieldsChanges() {
+        binding.emailEt.addTextChangedListener(object : TextWatcher {
+
+            override fun afterTextChanged(s: Editable?) {
+                binding.saveBtn.isEnabled = true
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+
+        })
+
+        binding.nameEt.addTextChangedListener(object : TextWatcher {
+
+            override fun afterTextChanged(s: Editable?) {
+                binding.saveBtn.isEnabled = true
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+
+        })
+
+        binding.genderAutoComplete.addTextChangedListener(object : TextWatcher {
+
+            override fun afterTextChanged(s: Editable?) {
+                binding.saveBtn.isEnabled = true
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+        })
     }
 
     // validate data
     private fun isDataValid(): Boolean {
-        return (!binding.nameIl.isErrorEnabled) ||
-                (!binding.emailIl.isErrorEnabled) ||
-                binding.genderAutoComplete.text.toString().isEmpty()
+        var isValid = true
+
+        if (binding.nameEt.text.toString().length < 4) {
+
+            binding.nameIl.isErrorEnabled = true
+            binding.nameIl.error = getString(R.string.error_name)
+            isValid = false
+        } else {
+            binding.nameIl.isErrorEnabled = false
+        }
+
+        val email = binding.emailEt.text.toString()
+        if (email.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+
+            binding.emailIl.isErrorEnabled = true
+            binding.emailIl.error = getString(R.string.error_email)
+            isValid = false
+        } else {
+            binding.emailIl.isErrorEnabled = false
+        }
+        return isValid
     }
 
     // bind values to fields
@@ -124,12 +184,17 @@ class ProfileFragment: Fragment(R.layout.fragment_profile) {
                     ""
                 } else {
                     passenger.gender
-                })
+                }
+            )
 
-            val genderAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, genders.subList(0,2))
+            val genderAdapter =
+                ArrayAdapter(requireContext(), R.layout.dropdown_item, genders.subList(0, 2))
             binding.genderAutoComplete.setAdapter(genderAdapter)
+
+            observeFieldsChanges()
         }
     }
+
     override fun onResume() {
         super.onResume()
         val genderAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, genders)

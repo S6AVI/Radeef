@@ -34,10 +34,11 @@ import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
 import com.saleem.radeef.util.hide
 import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.lang.Math.cos
+import kotlin.math.cos
 
 
 @AndroidEntryPoint
@@ -59,8 +60,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
 
         placesClient = Places.createClient(requireContext())
 
-        // Create a new token for the autocomplete session. Pass this to FindAutocompletePredictionsRequest,
-        // and once again when the user makes a selection (for example when calling fetchPlace()).
         token = AutocompleteSessionToken.newInstance()
 
         handler = Handler(Looper.getMainLooper())
@@ -73,7 +72,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
             }
             findPredictions(query)
         }
-        Log.d(TAG, handler.toString())
 
 
         binding.searchBtn.setOnClickListener {
@@ -96,14 +94,9 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
 
     private fun findPredictions(query: String) {
 
-        Log.d(TAG, "findAutocompletePredictions called with query: $query")
-
         val bounds = getBounds()
         val request =
             FindAutocompletePredictionsRequest.builder()
-                // Call either setLocationBias() OR setLocationRestriction().
-                //.setLocationRestriction(bounds)
-                //setOrigin(LatLng(-33.8749937, 151.2041382))
                 .setOrigin(viewModel.driverData?.pickupLatLng)
                 .setCountries("SA")
                 .setLocationBias(bounds)
@@ -119,13 +112,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
                 val adapter = SearchResultAdapter(this, result)
                 binding.resultsRecyclerView.adapter = adapter
 
-                for (prediction in response.autocompletePredictions) {
-                    //if (prediction.distanceMeters == null)
-                    Log.i(TAG, prediction.getFullText(null).toString())
-                    val distance = prediction.distanceMeters?.div(1000.0) ?: 0.0
-                    Log.i(TAG, String.format("%.1f km", distance))
-                    //Log.i(TAG, prediction.getPrimaryText(null).toString())
-                }
             }.addOnFailureListener { exception: Exception? ->
                 if (exception is ApiException) {
                     Log.e(TAG, "Place not found: ${exception.statusCode}")
@@ -137,7 +123,8 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
 
         val radiusInMeters = 100000 // 100 km in meters
         val currentLocation = viewModel.driverData!!.pickupLatLng
-        val bounds = RectangularBounds.newInstance(
+
+        return RectangularBounds.newInstance(
             LatLng(
                 currentLocation.latitude - 1 / 111.0 * radiusInMeters,
                 currentLocation.longitude - 1 / (111.0 * cos(currentLocation.latitude)) * radiusInMeters
@@ -147,8 +134,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
                 currentLocation.longitude + 1 / (111.0 * cos(currentLocation.latitude)) * radiusInMeters
             )
         )
-
-        return bounds
     }
 
     override fun onItemClick(item: AutocompletePrediction) {
@@ -163,8 +148,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
             val destinationLatLng = getLatLngFromPlaceId(placeId)
             if (destinationLatLng != null) {
                 viewModel.destination = RadeefLocation(destinationLatLng, address)
-            } else {
-                // Handle error or show a message that the destination details couldn't be retrieved
             }
         }
     }
@@ -195,20 +178,17 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
                     is DriverHomeViewModel.HomeEvent.UpdateResult -> {
                         when (event.state) {
                             UiState.Loading -> {
-                                logD("loading for results in DriverSearchFragment - 139")
-                                // Handle loading state if needed
                             }
 
                             is UiState.Success -> {
                                 if (event.state.data) {
-                                    logD("DriverSearchFragment - 142: success: ${event.state.data}")
                                     findNavController().popBackStack()
                                 }
                             }
 
                             is UiState.Failure -> {
                                 logD("DriverSearchFragment - 148: failure: ${event.state.error}")
-                                //toast(state.error.toString())
+                                toast(event.state.error)
                             }
                         }
                     }
@@ -226,8 +206,6 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 handler.removeCallbacks(runnable)
                 handler.postDelayed(runnable, DELAY)
-                //Log.d(TAG, "postDelayed called with delay: $DELAY")
-                //findPredictions(s.toString())
             }
 
             override fun afterTextChanged(s: Editable?) {

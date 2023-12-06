@@ -22,6 +22,7 @@ import com.saleem.radeef.data.repository.CloudRepository
 import com.saleem.radeef.data.repository.RideRepository
 import com.saleem.radeef.driver.ui.DriverHomeUiState
 import com.saleem.radeef.data.repository.DriverRepository
+import com.saleem.radeef.passenger.ui.PassengerHomeUiState
 import com.saleem.radeef.util.MAX_DISTANCE_METERS_THRESHOLD
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.RideWithDistance
@@ -65,18 +66,12 @@ class DriverHomeViewModel @ViewModelInject constructor(
     val rideRequests: LiveData<UiState<List<RideWithDistance>>>
         get() = _rideRequests
 
-    private fun updateDriverState(newState: DriverHomeUiState) {
-        _currentHomeState.value = newState
-    }
 
     private val homeEventChannel = Channel<HomeEvent>()
     val homeEvent = homeEventChannel.receiveAsFlow()
 
-    private var isSearchingStateSet = false
-
 
     private fun setHomeUiState(status: String) {
-        logD("in home ui state setter - first line")
 
         val data = driverData!!
 
@@ -84,12 +79,11 @@ class DriverHomeViewModel @ViewModelInject constructor(
 
         when (status) {
             DriverStatus.INACTIVE.value -> {
-                logD("location: ${data.destinationLatLng}")
+
                 if (data.destinationLatLng.isDefault()) {
-                    logD("location: set places")
+
                     _currentHomeState.value = DriverHomeUiState.SettingPlaces
                 } else {
-                    logD("location: display places")
                     viewModelScope.launch {
                         _currentHomeState.value = DriverHomeUiState.DisplayDriverPlaces(
                             driverLatLng = data.pickupLatLng,
@@ -104,7 +98,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
             DriverStatus.SEARCHING.value -> {
                 ridesRepo.getCurrentRide { result ->
                     if (result is UiState.Success) {
-                        logD("inside viewModel - searching state of driver - ride: ${result.data}")
+
                         if (result.data != null) {
                             val ride = result.data
 
@@ -142,21 +136,19 @@ class DriverHomeViewModel @ViewModelInject constructor(
             DriverStatus.IN_RIDE.value -> {
                 ridesRepo.getCurrentRide { result ->
                     if (result is UiState.Success) {
-                        logD("inside viewModel - in_ride state of driver - ride: ${result.data}")
                         if (result.data != null) {
                             val ride = result.data
-                            logD("ride status: ${ride.status}")
+
                             when (ride.status) {
                                 RideStatus.PASSENGER_PICK_UP.value -> {
-                                    logD("ride status: ride confirmed!")
                                     viewModelScope.launch {
-                                        handlePassengerPickupState(ride, ride.status)
+                                        handlePassengerPickupState(ride)
                                     }
                                 }
 
                                 RideStatus.EN_ROUTE.value -> {
                                     viewModelScope.launch {
-                                        handleEnRouteState(ride, ride.status)
+                                        handleEnRouteState(ride)
                                     }
 
                                 }
@@ -172,9 +164,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
                                         DriverHomeUiState.SearchingForPassengers
                                 }
 
-                                else -> {
-                                    // Handle other ride statuses if necessary
-                                }
                             }
                         } else {
                             _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
@@ -189,7 +178,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 }
             }
         }
-        //_currentHomeState.value = DriverHomeUiState.SettingPlaces
     }
 
     private suspend fun handleArrivedState(ride: Ride) {
@@ -204,13 +192,13 @@ class DriverHomeViewModel @ViewModelInject constructor(
         _currentHomeState.value = DriverHomeUiState.ContinueRide(distance.toKm())
     }
 
-    private suspend fun handlePassengerPickupState(ride: Ride, status: String) {
+    private suspend fun handlePassengerPickupState(ride: Ride) {
         val distance =
             getDrivingDistanceInMeters(driverData!!.pickupLatLng, ride.passengerPickupLatLng) ?: 0.0
         _currentHomeState.value = DriverHomeUiState.PassengerPickUp(ride, distance.toKm())
     }
 
-    private suspend fun handleEnRouteState(ride: Ride, status: String) {
+    private suspend fun handleEnRouteState(ride: Ride) {
         val distance =
             getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
         _currentHomeState.value = DriverHomeUiState.EnRoute(ride, distance.toKm())
@@ -221,18 +209,10 @@ class DriverHomeViewModel @ViewModelInject constructor(
         repository.getDriver { state ->
 
             if (state is UiState.Success) {
-                logD("MapViewModel: in getDriver: success: ${state.data}")
-
-                val previousDriverStatus = driverData?.status
                 driverData = state.data
 
                 val currentDriverStatus = driverData?.status
 
-//                if (currentDriverStatus != previousDriverStatus) {
-//                    if (currentDriverStatus != null) {
-//                        setHomeUiState(currentDriverStatus)
-//                    }
-//                }
                 if (currentDriverStatus != null) {
                     setHomeUiState(currentDriverStatus)
                 }
@@ -244,63 +224,31 @@ class DriverHomeViewModel @ViewModelInject constructor(
     }
 
     init {
-        logD("init is called")
         getDriver()
     }
 
-    fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-        fragment: DriverHomeFragment
-    ) {
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, fragment)
-    }
-
-    fun onPermissionsDenied(fragment: Fragment, requestCode: Int, perms: List<String>) {
-        if (EasyPermissions.somePermissionPermanentlyDenied(fragment, perms)) {
-            SettingsDialog.Builder(fragment.requireActivity()).build().show()
-        } else {
-            Permissions.requestLocationPermission(fragment)
-        }
-    }
-
-    fun onPermissionsGranted(fragment: DriverHomeFragment, requestCode: Int, perms: List<String>) {
-        // Handle permissions granted here
-        val mapFragment =
-            fragment.childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
-        mapFragment?.getMapAsync(fragment)
-    }
 
 
     fun updateDriverLocations() {
-        _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
-            //updateResultChannel.send(UiState.Loading)
+
             homeEventChannel.send(HomeEvent.UpdateResult(UiState.Loading))
-            logD("pickup: ${pickup?.title}\ndestination: ${destination?.title}")
             if (destination != null) {
                 repository.updateDriverDestination(destination = destination!!.latLng!!) { result ->
-                    logD("viewModel: update destination - 78: $result")
+
                     viewModelScope.launch {
                         homeEventChannel.send(HomeEvent.UpdateResult(result))
                         setHomeUiState(driverData!!.status)
                     }
                 }
-            } else {
-                logD("something is null")
             }
         }
     }
 
     fun onSearchButtonClicked() {
-
-        logD("onSearchButtonClicked start")
         _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
-            //homeEventChannel.send(HomeEvent.StartSearching(UiState.Loading))
 
-            //driverData = driverData!!.copy(status = UserStatus.SEARCHING.value)
             repository.updateDriver(
                 driverData!!.copy(status = DriverStatus.SEARCHING.value)
             ) { result ->
@@ -308,14 +256,8 @@ class DriverHomeViewModel @ViewModelInject constructor(
                     driverData = driverData!!.copy(status = DriverStatus.SEARCHING.value)
                     _currentHomeState.value = DriverHomeUiState.SearchingForPassengers
                 } else {
-                    logD("error")
-                    //_currentHomeState.value = DriverHomeUiState.Error
+                    logD("error in onSearchButtonClicked")
                 }
-                logD("result: $result")
-//                viewModelScope.launch {
-//                    homeEventChannel.send(HomeEvent.StartSearching(result))
-//                }
-
             }
         }
     }
@@ -326,7 +268,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
         viewModelScope.launch {
             ridesRepo.getAllRidesRequests { result ->
                 if (result is UiState.Success) {
-                    logD("all rides length: ${result.data.size}")
                     viewModelScope.launch {
                         val filteredRides = withContext(Dispatchers.IO) {
                             filterRidesByProximity(result.data)
@@ -345,7 +286,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
         val filteredRides = mutableListOf<RideWithDistance>()
 
         for (ride in rides) {
-            logD("passenger pickup LatLng: ${ride.passengerPickupLatLng}")
 
             val pickupDistance = withContext(Dispatchers.IO) {
                 getDrivingDistanceInMeters(driverData!!.pickupLatLng, ride.passengerPickupLatLng)
@@ -363,14 +303,9 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng)
             }
 
-            logD("pickup net distance: ${pickupDistance?.toKm()}")
-            logD("destination net distance: ${destinationDistance?.toKm()}")
-            logD("original distance: ${originalRideDistance?.toKm()}")
-            logD("ride distance: ${rideDistance?.toKm()}")
 
             if (pickupDistance != null && destinationDistance != null && originalRideDistance != null && rideDistance != null) {
                 val netDistance = (pickupDistance + destinationDistance) + abs(originalRideDistance - rideDistance)
-                logD("netDistance: ${netDistance.toKm()}")
                 if (netDistance <= MAX_DISTANCE_METERS_THRESHOLD) {
                     filteredRides.add(RideWithDistance(ride, netDistance.toKm()))
                 }
@@ -380,8 +315,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
     }
 
     private suspend fun getDrivingDistanceInMeters(origin: LatLng, destination: LatLng): Double? {
-        logD("origin: $origin")
-        logD("dest: $destination")
+
         return withContext(Dispatchers.IO) {
             val request = DirectionsApi.newRequest(geoContext)
                 .mode(TravelMode.DRIVING)
@@ -396,24 +330,15 @@ class DriverHomeViewModel @ViewModelInject constructor(
                 val result = request.await()
                 val route = result.routes[0]
                 val leg = route.legs[0]
-                logD("time: ${leg.duration.humanReadable}")
-                logD("distance: ${leg.distance.inMeters.toInt()}")
                 leg.distance.inMeters.toDouble()
             } catch (e: Exception) {
-                // Handle API exception
-                e.printStackTrace()
                 logD("error in calc distance: ${e.message}")
                 null
             }
         }
     }
 
-    fun onAdapterItemClicked(rideWithDistance: RideWithDistance) {
-        logD("item click: Not yet implemented")
-    }
-
     fun onAdapterRideAccept(rideWithDistance: RideWithDistance, cost: Double) {
-        logD("item accept: Not yet implemented")
         _currentHomeState.value = DriverHomeUiState.Loading
 
         viewModelScope.launch {
@@ -433,7 +358,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
             ) { result ->
                 if (result is UiState.Success) {
                     val ride = rideWithDistance.ride
-                    logD("cost: ${ride.chargeAmount}")
                     _currentHomeState.value = DriverHomeUiState.WaitPassengerResponse(
                         passengerDestinationLatLng = ride.passengerDestLatLng,
                         passengerPickupLatLng = ride.passengerPickupLatLng,
@@ -450,16 +374,8 @@ class DriverHomeViewModel @ViewModelInject constructor(
     }
 
     fun onAdapterRideHide(rideId: String) {
-        //logD("item hide: Not yet implemented")
         viewModelScope.launch {
-            ridesRepo.hideRide(rideId) { result ->
-                if (result is UiState.Success) {
-                    logD("success in hiding: ${result.data}")
-                } else {
-                    logD("error in hiding")
-                }
-
-            }
+            ridesRepo.hideRide(rideId) {}
         }
     }
 
@@ -492,7 +408,6 @@ class DriverHomeViewModel @ViewModelInject constructor(
 
     fun onCancelButton(ride: Ride) {
         _currentHomeState.value = DriverHomeUiState.Loading
-        logD("viewModel - on cancel ride button clicked")
         viewModelScope.launch {
             ridesRepo.cancelRide(ride) { result ->
                 if (result is UiState.Success) {
@@ -502,25 +417,17 @@ class DriverHomeViewModel @ViewModelInject constructor(
         }
     }
 
-    fun onDriverArrivedToPassenger(ride: Ride, state: DriverHomeUiState.PassengerPickUp) {
+    fun onDriverArrivedToPassenger(ride: Ride) {
         _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
-            ridesRepo.updateCurrentRideState(ride, RideStatus.EN_ROUTE.value) { result ->
-                if (result is UiState.Success) {
-                    //_currentHomeState.value = DriverHomeUiState.SearchingForPassengers
-                }
-            }
+            ridesRepo.updateCurrentRideState(ride, RideStatus.EN_ROUTE.value) {}
         }
     }
 
-    fun onArrivedToPassengerDestination(ride: Ride, state: DriverHomeUiState.EnRoute) {
+    fun onArrivedToPassengerDestination(ride: Ride) {
         _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
-            ridesRepo.updateCurrentRideState(ride, RideStatus.ARRIVED.value) { result ->
-                if (result is UiState.Success) {
-                    //_currentHomeState.value = DriverHomeUiState.SearchingForPassengers
-                }
-            }
+            ridesRepo.updateCurrentRideState(ride, RideStatus.ARRIVED.value) {}
         }
     }
 
@@ -529,13 +436,7 @@ class DriverHomeViewModel @ViewModelInject constructor(
         viewModelScope.launch {
             repository.updateDriver(
                 driverData!!.copy(status = DriverStatus.INACTIVE.value)
-            ) { result ->
-                if (result is UiState.Success) {
-                    logD("stop: status: ${driverData!!.status}")
-                } else {
-                    logD("error on changing state to INACTIVE")
-                }
-            }
+            ) {}
         }
     }
 
@@ -544,45 +445,55 @@ class DriverHomeViewModel @ViewModelInject constructor(
         viewModelScope.launch {
             repository.updateDriver(
                 driverData!!.copy(status = DriverStatus.CONTINUE.value)
-            ) { result ->
-                if (result is UiState.Success) {
-                    logD("continue: status: ${driverData!!.status}")
-                } else {
-                    logD("error on changing state to CONTINUE")
-                }
-            }
+            ) {}
         }
     }
 
-    fun updateLocation(location: LatLng) {
-        viewModelScope.launch {
-            repository.updateDriverCurrentLocation(location) { result ->
 
-            }
-        }
-    }
 
     fun onDoneButtonClicked() {
+        _currentHomeState.value = DriverHomeUiState.Loading
         viewModelScope.launch {
             repository.updateDriver(
                 driverData!!.copy(status = DriverStatus.INACTIVE.value)
-            ) { result ->
-                if (result is UiState.Success) {
-                    logD("inactive: status: ${driverData!!.status}")
-                } else {
-                    logD("error on changing state to INACTIVE")
-                }
-            }
+            ) {}
         }
+    }
+
+
+    fun updateLocation(location: LatLng) {
+        viewModelScope.launch {
+            repository.updateDriverCurrentLocation(location) { }
+        }
+    }
+
+    fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+        fragment: DriverHomeFragment
+    ) {
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, fragment)
+    }
+
+    fun onPermissionsDenied(fragment: Fragment, requestCode: Int, perms: List<String>) {
+        if (EasyPermissions.somePermissionPermanentlyDenied(fragment, perms)) {
+            SettingsDialog.Builder(fragment.requireActivity()).build().show()
+        } else {
+            Permissions.requestLocationPermission(fragment)
+        }
+    }
+
+    fun onPermissionsGranted(fragment: DriverHomeFragment, requestCode: Int, perms: List<String>) {
+        val mapFragment =
+            fragment.childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        mapFragment?.getMapAsync(fragment)
     }
 
 
     sealed class HomeEvent {
         data class UpdateResult(val state: UiState<Boolean>) : HomeEvent()
-        data class StartSearching(val status: UiState<String>) : HomeEvent()
         data class CallPassenger(val phoneNumber: String) : HomeEvent()
     }
-
-
 }
 

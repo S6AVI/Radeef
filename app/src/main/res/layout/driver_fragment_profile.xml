@@ -4,15 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.drawer.profile.DriverProfileFragment">
+    tools:context=".driver.ui.profile.DriverProfileFragment">
 
     <include
         android:id="@+id/base"
         layout="@layout/fragment_profile" />
-
-    <!--    <TextView-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        app:layout_constraintTop_toBottomOf="@id/base"/>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
