@@ -23,27 +23,6 @@ class AuthRepositoryImpl(
     private lateinit var passenger: Passenger
     private lateinit var token: PhoneAuthProvider.ForceResendingToken
 
-
-
-
-    // check if phone number is associated already with a driver
-    override fun isPhoneNumberAssociatedWithDriver(phone: String, callback: (Boolean) -> Unit) {
-        val driversCollection = database.collection(FirestoreTables.DRIVERS)
-
-        val query = driversCollection.whereEqualTo("phoneNumber", phone)
-
-        query.get().addOnSuccessListener { querySnapshot ->
-            val drivers = querySnapshot.toObjects(Driver::class.java)
-            if (drivers.isNotEmpty()) {
-                callback(true)
-            } else {
-                callback(false)
-            }
-        }.addOnFailureListener {
-            callback(false)
-        }
-    }
-
     // start authenticating; send OTP code to user
     override fun registerPassenger(
         passenger: Passenger,
@@ -301,6 +280,24 @@ class AuthRepositoryImpl(
     }
 
 
+
+    // check if phone number is associated already with a driver
+    override fun isPhoneNumberAssociatedWithDriver(phone: String, callback: (Boolean) -> Unit) {
+        val driversCollection = database.collection(FirestoreTables.DRIVERS)
+
+        val query = driversCollection.whereEqualTo("phoneNumber", phone)
+
+        query.get().addOnSuccessListener { querySnapshot ->
+            val drivers = querySnapshot.toObjects(Driver::class.java)
+            if (drivers.isNotEmpty()) {
+                callback(true)
+            } else {
+                callback(false)
+            }
+        }.addOnFailureListener {
+            callback(false)
+        }
+    }
 
     // helper
     private fun getUserId() = auth.currentUser?.uid

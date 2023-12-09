@@ -9,41 +9,41 @@
     <Button
         android:id="@+id/cancelButton"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/error"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:backgroundTint="@color/md_theme_light_onError"
         android:text="Cancel"
-        android:textColor="@color/md_theme_light_onError"
-        app:layout_constraintBottom_toBottomOf="@id/passengerImageView"
+        android:textColor="@color/md_theme_light_error"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/passengerImageView" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/arrivedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
+        android:enabled="true"
         android:text="ARRIVED"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/cancelButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cancelButton"
         tools:visibility="visible" />
 
     <ImageButton
         android:id="@+id/callButton"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
         android:backgroundTint="@color/md_theme_light_onPrimary"
         android:src="@drawable/ic_call"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/titleTextView"
+        app:layout_constraintEnd_toEndOf="@+id/arrivedButton"
+        app:layout_constraintTop_toTopOf="@+id/titleTextView"
         app:tint="@color/md_theme_light_primary" />
 
     <ImageView
@@ -51,19 +51,24 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="24dp"
         android:src="@drawable/account"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/arrivedButton"
+        app:layout_constraintStart_toStartOf="@+id/arrivedButton"
         app:layout_constraintTop_toBottomOf="@id/titleTextView" />
 
     <TextView
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="45dp"
         android:padding="8dp"
         android:text="On way to passenger location pickup"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/passengerImageView"
+        app:layout_constraintEnd_toStartOf="@+id/callButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -71,6 +76,7 @@
         android:id="@+id/passengerNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:text="Passenger Name"
         android:textSize="16sp"
         app:layout_constraintStart_toEndOf="@id/passengerImageView"
@@ -80,6 +86,7 @@
         android:id="@+id/pickupTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Pickup"
         android:textSize="14sp"
@@ -91,10 +98,9 @@
         android:id="@+id/distanceTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:text="Distance"
         android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@id/cancelButton"
+        app:layout_constraintEnd_toEndOf="@+id/arrivedButton"
         app:layout_constraintTop_toTopOf="@id/passengerImageView" />
 
 

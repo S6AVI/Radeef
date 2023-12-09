@@ -4,34 +4,30 @@
     android:id="@+id/passengerPickupLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/md_theme_light_surface"
     android:padding="8dp">
 
     <Button
         android:id="@+id/cancelButton"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        style="@style/ButtonStyle"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
         android:backgroundTint="@color/error"
         android:text="Cancel"
         android:textColor="@color/md_theme_light_onError"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/driverImageView" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 
     <ImageButton
         android:id="@+id/callButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="8dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:backgroundTint="@color/md_theme_light_surface"
         android:src="@drawable/ic_call"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/titleTextView"
+        app:layout_constraintEnd_toEndOf="@+id/cancelButton"
         app:layout_constraintTop_toTopOf="@+id/titleTextView"
         app:tint="@color/md_theme_light_primary" />
 
@@ -41,7 +37,9 @@
         android:layout_height="64dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="24dp"
         android:src="@drawable/account"
+        app:layout_constraintBottom_toTopOf="@+id/cancelButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titleTextView" />
 
@@ -49,12 +47,14 @@
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:padding="8dp"
         android:text="Driver on way to pick you up"
         android:textColor="@color/md_theme_light_onSurface"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/driverImageView"
+        app:layout_constraintEnd_toStartOf="@+id/callButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -88,7 +88,7 @@
         android:text="AAA0000"
         android:textSize="16sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/carTextView"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="@+id/cancelButton" />
 
     <TextView
         android:id="@+id/pickupTextView"
@@ -96,10 +96,12 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:maxLength="30"
+        android:layout_marginBottom="16dp"
         android:ellipsize="end"
+        android:maxLength="30"
         android:text="Pickup"
         android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/cancelButton"
         app:layout_constraintStart_toEndOf="@id/driverImageView"
         app:layout_constraintTop_toBottomOf="@id/carTextView" />
 
@@ -108,12 +110,10 @@
         android:id="@+id/distanceTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="Distance"
         android:textSize="14sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/pickupTextView"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="@+id/cancelButton" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

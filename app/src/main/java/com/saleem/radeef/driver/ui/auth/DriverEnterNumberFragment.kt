@@ -35,8 +35,6 @@ class DriverEnterNumberFragment : Fragment(R.layout.fragement_enter_number) {
         binding = FragementEnterNumberBinding.bind(view)
 
         observer()
-
-
         binding.registerButton.setOnClickListener {
             phoneNumber = binding.phoneEt.text?.trim().toString()
             if (phoneNumber.isNotEmpty() && phoneNumber.length == 9) {

@@ -9,16 +9,16 @@
         android:id="@+id/passengerImageView"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:layout_marginTop="8dp"
         android:src="@drawable/account"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.13999999" />
+        app:layout_constraintStart_toStartOf="@+id/hideButton"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/passengerNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:text="Passenger Name"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -29,6 +29,8 @@
         android:id="@+id/pickupTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:text="Pickup"
         android:textSize="14sp"
         app:layout_constraintStart_toEndOf="@id/passengerImageView"
@@ -41,8 +43,8 @@
         android:layout_marginTop="8dp"
         android:text="Destination"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@id/passengerImageView"
-        app:layout_constraintStart_toEndOf="@id/passengerImageView"
+
+        app:layout_constraintStart_toStartOf="@+id/pickupTextView"
         app:layout_constraintTop_toBottomOf="@id/pickupTextView" />
 
     <TextView
@@ -50,9 +52,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
         android:text="Distance"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/hideButton"
         app:layout_constraintStart_toStartOf="@+id/destinationTextView"
         app:layout_constraintTop_toBottomOf="@id/destinationTextView" />
 
@@ -60,45 +63,49 @@
         android:id="@+id/costTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:text="Cost"
 
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@+id/distanceTextView"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/acceptButton"
         app:layout_constraintTop_toTopOf="@+id/distanceTextView" />
 
     <Button
         android:id="@+id/acceptButton"
-        android:layout_width="wrap_content"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:backgroundTint="@color/md_theme_light_primary"
+        android:textColor="@color/md_theme_light_onPrimary"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
         android:text="ACCEPT"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintBottom_toTopOf="@+id/materialDivider"
+        app:layout_constraintEnd_toEndOf="@+id/materialDivider"
+        app:layout_constraintStart_toEndOf="@+id/hideButton" />
 
     <Button
         android:id="@+id/hideButton"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/error"
+        android:layout_marginBottom="8dp"
         android:text="Hide"
-        android:textColor="@color/md_theme_light_onError"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textSize="20sp"
+        android:textColor="@color/md_theme_light_error"
+        app:layout_constraintBottom_toBottomOf="@+id/materialDivider"
         app:layout_constraintEnd_toStartOf="@id/acceptButton"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintStart_toStartOf="@+id/materialDivider" />
 
     <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/materialDivider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/distanceTextView" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

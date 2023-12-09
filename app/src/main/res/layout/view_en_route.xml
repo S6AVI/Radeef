@@ -10,11 +10,13 @@
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:padding="8dp"
-        android:text="En Route"
+        android:text="On Route"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/passengerImageView"
+        app:layout_constraintEnd_toStartOf="@+id/callButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -22,14 +24,18 @@
         android:id="@+id/passengerImageView"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/titleTextView"
-        android:src="@drawable/account" />
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/account"
+        app:layout_constraintBottom_toTopOf="@id/completeButton"
+        app:layout_constraintStart_toStartOf="@+id/completeButton"
+        app:layout_constraintTop_toBottomOf="@id/titleTextView" />
 
     <TextView
         android:id="@+id/passengerNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:text="Passenger Name"
         android:textSize="16sp"
         app:layout_constraintStart_toEndOf="@id/passengerImageView"
@@ -39,6 +45,7 @@
         android:id="@+id/destinationTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Destination"
         android:textSize="14sp"
@@ -49,10 +56,9 @@
         android:id="@+id/distanceTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:text="Distance"
         android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/completeButton"
         app:layout_constraintTop_toTopOf="@id/passengerImageView" />
 
     <TextView
@@ -60,35 +66,33 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
         android:text="Estimated Time"
+        android:visibility="gone"
         android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/completeButton"
+        app:layout_constraintStart_toStartOf="@+id/distanceTextView"
         app:layout_constraintTop_toBottomOf="@id/distanceTextView" />
 
     <Button
         android:id="@+id/completeButton"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        style="@style/ButtonStyle"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
         android:text="ARRIVED"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/destinationTextView" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageButton
         android:id="@+id/callButton"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
         android:backgroundTint="@color/md_theme_light_onPrimary"
         android:src="@drawable/ic_call"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/titleTextView"
+        app:layout_constraintEnd_toEndOf="@+id/completeButton"
+        app:layout_constraintTop_toTopOf="@+id/titleTextView"
         app:tint="@color/md_theme_light_primary" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,7 +4,6 @@
     android:id="@+id/enRouteLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/md_theme_light_surface"
     android:padding="8dp">
 
 
@@ -33,6 +32,7 @@
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:padding="8dp"
         android:text="On Way to your destination"
         android:textColor="@color/md_theme_light_onSurface"
@@ -81,10 +81,12 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:maxLength="30"
+        android:layout_marginBottom="24dp"
         android:ellipsize="end"
+        android:maxLength="30"
         android:text="Destination"
         android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/driverImageView"
         app:layout_constraintTop_toBottomOf="@id/carTextView" />
 
@@ -93,12 +95,10 @@
         android:id="@+id/distanceTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="Distance"
         android:textSize="14sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/destTextView"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toStartOf="@+id/plateTextView" />
 
     <TextView
         android:id="@+id/timeTextView"
@@ -107,6 +107,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Estimated time"
+        android:visibility="gone"
         android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/distanceTextView"
         app:layout_constraintEnd_toEndOf="parent" />

@@ -190,6 +190,7 @@ class DriverRepositoryImpl(
                             is UiState.Failure -> {
                                 result.invoke(UiState.Failure(state.error))
                             }
+
                             else -> {}
                         }
                     }
@@ -313,14 +314,14 @@ class DriverRepositoryImpl(
             phoneNumber = auth.currentUser!!.phoneNumber!!
         )
 
-            database.collection(FirestoreTables.DRIVERS).document(driverWithId.driverID)
-                .set(driverWithId)
-                .addOnSuccessListener {
-                    result.invoke(UiState.Success("Driver updated successfully"))
-                }
-                .addOnFailureListener { exception ->
-                    result.invoke(UiState.Failure(exception.message))
-                }
+        database.collection(FirestoreTables.DRIVERS).document(driverWithId.driverID)
+            .set(driverWithId)
+            .addOnSuccessListener {
+                result.invoke(UiState.Success("Driver updated successfully"))
+            }
+            .addOnFailureListener { exception ->
+                result.invoke(UiState.Failure(exception.message))
+            }
     }
 
 
@@ -523,6 +524,7 @@ class DriverRepositoryImpl(
                 )
             }
     }
+
     override fun updateVehicle(vehicle: Vehicle, result: (UiState<String>) -> Unit) {
         val driverId = auth.currentUser!!.uid
         val batch = database.batch()

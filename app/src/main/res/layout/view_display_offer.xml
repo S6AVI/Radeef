@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/displayOfferLayout"
-    android:background="@color/md_theme_light_surface"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="8dp">
 
@@ -11,16 +10,16 @@
         android:id="@+id/driverImageView"
         android:layout_width="64dp"
         android:layout_height="64dp"
+        android:layout_marginTop="24dp"
         android:src="@drawable/account"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.13999999" />
+        app:layout_constraintStart_toStartOf="@+id/hideButton"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/nameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:text="Driver Name"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -31,6 +30,7 @@
         android:id="@+id/carTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Make||Model"
         android:textSize="14sp"
@@ -41,12 +41,10 @@
         android:id="@+id/plateTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="Plate Number"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="@id/carTextView"
-        app:layout_constraintTop_toBottomOf="@id/carTextView" />
-
+        app:layout_constraintBaseline_toBaselineOf="@+id/carTextView"
+        app:layout_constraintEnd_toEndOf="@+id/acceptButton" />
 
 
     <TextView
@@ -75,8 +73,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
         android:text="Distance"
         android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/hideButton"
         app:layout_constraintStart_toStartOf="@id/driverImageView"
         app:layout_constraintTop_toBottomOf="@id/destinationTextView" />
 
@@ -84,34 +84,41 @@
         android:id="@+id/costTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:text="Cost"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="@+id/distanceTextView"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/acceptButton"
         app:layout_constraintTop_toTopOf="@+id/distanceTextView" />
 
     <Button
         android:id="@+id/acceptButton"
-        android:layout_width="wrap_content"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:backgroundTint="@color/md_theme_light_primary"
+        android:textColor="@color/md_theme_light_onPrimary"
+        android:textSize="20sp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
         android:text="ACCEPT"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/hideButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintStart_toEndOf="@id/hideButton" />
 
     <Button
         android:id="@+id/hideButton"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/error"
-        android:text="Hide"
-        android:textColor="@color/md_theme_light_onError"
+        android:layout_marginBottom="24dp"
+        android:backgroundTint="@color/md_theme_light_onError"
+        android:text="@string/cancel_label"
+        android:textSize="20sp"
+        android:textColor="@color/md_theme_light_error"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/acceptButton"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 

@@ -35,20 +35,18 @@ class MainActivity : AppCompatActivity() {
         val rootView = binding.root
         setContentView(rootView)
 
-
-        // app check api
-        Firebase.initialize(context = this)
-        Firebase.appCheck.installAppCheckProviderFactory(
-            PlayIntegrityAppCheckProviderFactory.getInstance(),
-        )
-
-
         // handle the two possible types
         if (isTypeSpecified()) {
             redirectToScreen()
         } else {
             setupButtonClickListeners()
         }
+
+        // app check api
+        Firebase.initialize(context = this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance(),
+        )
 
     }
 

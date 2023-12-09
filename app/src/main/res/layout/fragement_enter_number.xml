@@ -61,6 +61,7 @@
         app:layout_constraintStart_toEndOf="@id/country_code_picker"
         app:layout_constraintTop_toBottomOf="@id/enter_phone_tv">
 
+
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/phone_et"
             android:layout_width="match_parent"
