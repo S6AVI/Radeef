@@ -424,8 +424,8 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                     directions.await()
                 }
 
-
                 val route = result.routes[0]
+
 
                 val encodedPolyline = route.overviewPolyline.encodedPath
 
@@ -435,11 +435,15 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                 for (point in decodedPolyline) {
                     boundsBuilder.include(point)
                 }
+                boundsBuilder.build()
 
                 val polylineOptions = PolylineOptions()
                     .addAll(decodedPolyline)
                     .color(lineColor)
                     .width(10f)
+
+
+                map.addPolyline(polylineOptions)
 
 
                 val endMarkerOptions = MarkerOptions()
@@ -448,7 +452,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
                 map.addMarker(endMarkerOptions)
 
             } catch (e: Exception) {
-                logD(e.toString())
+                logD("error in drawLine(): ${e.message}")
             }
         }
     }
@@ -460,7 +464,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
             val addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
             addresses?.firstOrNull()?.featureName ?: ""
         } catch (e: Exception) {
-            logD("get address error: ${e.message}")
+            logD("get address error: ${e.stackTrace}")
             ""
         }
     }
