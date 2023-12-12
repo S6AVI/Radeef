@@ -28,12 +28,16 @@ import com.saleem.radeef.R
 import com.saleem.radeef.data.model.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
 import com.saleem.radeef.util.DELAY
+import com.saleem.radeef.util.HomeEvent
 import com.saleem.radeef.util.SearchResultAdapter
 import com.saleem.radeef.util.TAG
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.disable
+import com.saleem.radeef.util.enable
 import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.hideKeyboard
 import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -75,7 +79,7 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
 
 
         binding.searchBtn.setOnClickListener {
-
+            hideKeyboard()
             viewModel.updateDriverLocations()
 
         }
@@ -175,18 +179,23 @@ class DriverSearchFragment : Fragment(R.layout.fragment_search),
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.homeEvent.collect { event ->
                 when (event) {
-                    is DriverHomeViewModel.HomeEvent.UpdateResult -> {
+                    is HomeEvent.UpdateResult -> {
                         when (event.state) {
                             UiState.Loading -> {
+                                binding.progressBar.show()
+                                binding.searchBtn.disable()
                             }
 
                             is UiState.Success -> {
                                 if (event.state.data) {
+                                    binding.progressBar.hide()
                                     findNavController().popBackStack()
                                 }
                             }
 
                             is UiState.Failure -> {
+                                binding.progressBar.hide()
+                                binding.searchBtn.enable()
                                 logD("DriverSearchFragment - 148: failure: ${event.state.error}")
                                 toast(event.state.error)
                             }

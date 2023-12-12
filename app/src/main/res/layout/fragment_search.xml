@@ -63,18 +63,40 @@
     </com.google.android.material.textfield.TextInputLayout>
 
 
-    <Button
-        android:id="@+id/search_btn"
-        style="@style/ButtonStyle"
+
+    <RelativeLayout
+        android:id="@+id/button_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:enabled="false"
-        android:text="@string/done"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/destination_il"
-        tools:enabled="true" />
+        app:layout_constraintTop_toBottomOf="@+id/destination_il">
+
+        <Button
+            android:id="@+id/search_btn"
+            style="@style/ButtonStyle"
+            android:enabled="false"
+            android:text="@string/done"
+            tools:enabled="true" />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="16dp"
+            android:elevation="10dp"
+            android:indeterminateTint="@color/md_theme_light_onPrimary"
+            tools:indeterminateTint="@color/md_theme_light_onPrimary"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+    </RelativeLayout>
+
+
 
     <LinearLayout
         android:id="@+id/my_location"
@@ -86,9 +108,9 @@
         android:orientation="horizontal"
         android:padding="8dp"
         app:layout_constraintBottom_toTopOf="@id/results_recycler_view"
-        app:layout_constraintEnd_toEndOf="@+id/search_btn"
-        app:layout_constraintStart_toStartOf="@+id/search_btn"
-        app:layout_constraintTop_toBottomOf="@id/search_btn">
+        app:layout_constraintEnd_toEndOf="@+id/button_container"
+        app:layout_constraintStart_toStartOf="@+id/button_container"
+        app:layout_constraintTop_toBottomOf="@id/button_container">
 
         <ImageView
             android:layout_width="wrap_content"

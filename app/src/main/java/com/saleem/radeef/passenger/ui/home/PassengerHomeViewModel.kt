@@ -11,7 +11,6 @@ import com.saleem.radeef.data.model.Passenger
 import com.saleem.radeef.data.repository.CloudRepository
 import com.saleem.radeef.data.repository.RideRepository
 import com.saleem.radeef.data.repository.DriverRepository
-import com.saleem.radeef.driver.ui.home.DriverHomeViewModel
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.logD
 import kotlinx.coroutines.channels.Channel
@@ -25,6 +24,7 @@ import com.saleem.radeef.data.model.Ride
 import com.saleem.radeef.util.RideStatus
 import com.saleem.radeef.data.model.DriverWithVehicle
 import com.saleem.radeef.passenger.ui.PassengerHomeUiState
+import com.saleem.radeef.util.HomeEvent
 import com.saleem.radeef.util.PassengerStatus
 import com.saleem.radeef.util.isDefault
 import com.saleem.radeef.util.toGeoPoint
@@ -49,7 +49,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
     val passenger: LiveData<UiState<Passenger>>
         get() = _passenger
 
-    private val homeEventChannel = Channel<DriverHomeViewModel.HomeEvent>()
+    private val homeEventChannel = Channel<HomeEvent>()
     val homeEvent = homeEventChannel.receiveAsFlow()
 
 
@@ -87,7 +87,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
     fun updatePassengerLocations() {
 
         viewModelScope.launch {
-            homeEventChannel.send(DriverHomeViewModel.HomeEvent.UpdateResult(UiState.Loading))
+            homeEventChannel.send(HomeEvent.UpdateResult(UiState.Loading))
 
             if (pickup != null && destination != null) {
                 repository.updatePassengerLocations(
@@ -95,7 +95,7 @@ class PassengerHomeViewModel @ViewModelInject constructor(
                     destination = destination!!.latLng!!
                 ) { result ->
                     viewModelScope.launch {
-                        homeEventChannel.send(DriverHomeViewModel.HomeEvent.UpdateResult(result))
+                        homeEventChannel.send(HomeEvent.UpdateResult(result))
                     }
                 }
             }

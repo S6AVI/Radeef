@@ -146,6 +146,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
                 PassengerHomeUiState.SettingPlaces -> {
                     hideAllViews()
+                    map.clear()
                     binding.pickupIl.show()
                 }
 
@@ -257,7 +258,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
     }
 
 
-
     private fun displayDriverOffer(state: PassengerHomeUiState.DisplayDriverOffer) {
         binding.loadingView.viewLoadingLayout.show()
         val ride = state.ride
@@ -357,7 +357,6 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
             true
         }
     }
-
 
 
     @SuppressLint("MissingPermission")
@@ -475,12 +474,34 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
     }
 
     private fun loadImage(uri: String, view: ImageView) {
-        Glide.with(requireContext())
-            .load(uri)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .into(view)
+        //if (currentImageResId != R.drawable.account) {
+            Glide.with(requireContext())
+                .load(uri)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(view)
+        //}
     }
+
+    private fun loadImage2(uri: String, view: ImageView) {
+        val currentDrawable = view.drawable
+        val currentImageResId = if (currentDrawable != null) {
+            val resources = view.context.resources
+            resources.getIdentifier("account", "drawable", view.context.packageName)
+        } else {
+            0
+        }
+
+        if (currentImageResId != R.drawable.account) {
+            Glide.with(view)
+                .load(uri)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(view)
+        }
+    }
+
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

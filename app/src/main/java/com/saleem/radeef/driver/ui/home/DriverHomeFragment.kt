@@ -33,6 +33,7 @@ import configureMapSettings
 import android.content.Intent
 import android.net.Uri
 import android.os.Looper
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -43,6 +44,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
 import com.saleem.radeef.driver.ui.DriverHomeUiState
+import com.saleem.radeef.util.HomeEvent
 import com.saleem.radeef.util.MIN_UPDATE_DISTANCE_METERS
 import com.saleem.radeef.util.UiState
 import com.saleem.radeef.util.calculateFee
@@ -185,7 +187,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
         lifecycleScope.launch {
             viewModel.homeEvent.collect { event ->
                 when (event) {
-                    is DriverHomeViewModel.HomeEvent.CallPassenger -> {
+                    is HomeEvent.CallPassenger -> {
                         makePhoneCall(event.phoneNumber)
                     }
 
@@ -203,6 +205,7 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
                 DriverHomeUiState.SettingPlaces -> {
                     logD("setting places")
                     hideAllViews()
+                    map.clear()
                     binding.pickupIl.show()
                 }
 
@@ -245,8 +248,8 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
 
                 DriverHomeUiState.Loading -> {
                     logD("loading")
-                    hideAllViews()
-                    binding.loadingView.viewLoadingLayout.show()
+//                    hideAllViews()
+//                    binding.loadingView.viewLoadingLayout.show()
                 }
             }
         }
@@ -591,6 +594,10 @@ class DriverHomeFragment : Fragment(R.layout.driver_fragment_home), OnMapReadyCa
     }
 
     private fun loadImage(uri: String) {
+
+        val currentImageResId = header.findViewById<ImageView>(R.id.profile_image).id
+        logD("image tag: $currentImageResId, ${R.drawable.account}")
+
         Glide.with(requireContext())
             .load(uri)
             .diskCacheStrategy(DiskCacheStrategy.NONE)

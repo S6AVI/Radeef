@@ -26,11 +26,16 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.saleem.radeef.R
 import com.saleem.radeef.data.model.RadeefLocation
 import com.saleem.radeef.databinding.FragmentSearchBinding
-import com.saleem.radeef.driver.ui.home.DriverHomeViewModel
 import com.saleem.radeef.util.DELAY
+import com.saleem.radeef.util.HomeEvent
 import com.saleem.radeef.util.SearchResultAdapter
 import com.saleem.radeef.util.UiState
+import com.saleem.radeef.util.disable
+import com.saleem.radeef.util.enable
+import com.saleem.radeef.util.hide
+import com.saleem.radeef.util.hideKeyboard
 import com.saleem.radeef.util.logD
+import com.saleem.radeef.util.show
 import com.saleem.radeef.util.toast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -113,7 +118,9 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         }
 
         binding.searchBtn.setOnClickListener {
+            hideKeyboard()
             viewModel.updatePassengerLocations()
+
         }
 
         binding.backBtn.setOnClickListener {
@@ -190,18 +197,22 @@ class SearchFragment : Fragment(R.layout.fragment_search), SearchResultAdapter.O
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.homeEvent.collect { event ->
                 when (event) {
-                    is DriverHomeViewModel.HomeEvent.UpdateResult -> {
+                    is HomeEvent.UpdateResult -> {
                         when (event.state) {
                             UiState.Loading -> {
-
+                                binding.searchBtn.disable()
+                                binding.progressBar.show()
                             }
 
                             is UiState.Success -> {
                                 if (event.state.data) {
+                                    binding.progressBar.hide()
                                     findNavController().popBackStack()
                                 }
                             }
                             is UiState.Failure -> {
+                                binding.progressBar.hide()
+                                binding.searchBtn.enable()
                                 toast("an error has occurred: ${event.state.error}")
                             }
                         }

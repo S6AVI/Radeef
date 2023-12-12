@@ -22,7 +22,7 @@ import com.saleem.radeef.data.repository.CloudRepository
 import com.saleem.radeef.data.repository.RideRepository
 import com.saleem.radeef.driver.ui.DriverHomeUiState
 import com.saleem.radeef.data.repository.DriverRepository
-import com.saleem.radeef.passenger.ui.PassengerHomeUiState
+import com.saleem.radeef.util.HomeEvent
 import com.saleem.radeef.util.MAX_DISTANCE_METERS_THRESHOLD
 import com.saleem.radeef.util.Permissions
 import com.saleem.radeef.util.RideWithDistance
@@ -491,9 +491,5 @@ class DriverHomeViewModel @ViewModelInject constructor(
     }
 
 
-    sealed class HomeEvent {
-        data class UpdateResult(val state: UiState<Boolean>) : HomeEvent()
-        data class CallPassenger(val phoneNumber: String) : HomeEvent()
-    }
 }
 
