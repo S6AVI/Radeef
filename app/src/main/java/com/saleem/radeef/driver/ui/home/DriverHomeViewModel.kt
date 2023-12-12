@@ -193,14 +193,16 @@ class DriverHomeViewModel @ViewModelInject constructor(
     }
 
     private suspend fun handlePassengerPickupState(ride: Ride) {
+        logD("latlng in pickup ${driverData!!.pickupLatLng}")
         val distance =
             getDrivingDistanceInMeters(driverData!!.pickupLatLng, ride.passengerPickupLatLng) ?: 0.0
         _currentHomeState.value = DriverHomeUiState.PassengerPickUp(ride, distance.toKm())
     }
 
     private suspend fun handleEnRouteState(ride: Ride) {
+        logD("latlng in pickup ${driverData!!.pickupLatLng}")
         val distance =
-            getDrivingDistanceInMeters(ride.passengerPickupLatLng, ride.passengerDestLatLng) ?: 0.0
+            getDrivingDistanceInMeters(driverData!!.pickupLatLng, ride.passengerDestLatLng) ?: 0.0
         _currentHomeState.value = DriverHomeUiState.EnRoute(ride, distance.toKm())
     }
 

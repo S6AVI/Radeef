@@ -71,6 +71,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     val viewModel: PassengerHomeViewModel by activityViewModels()
     private lateinit var header: View
+    var imageUrl = ""
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -172,8 +173,8 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
                 PassengerHomeUiState.Error -> {}
                 PassengerHomeUiState.Loading -> {
-                    hideAllViews()
-                    binding.loadingView.viewLoadingLayout.show()
+//                    hideAllViews()
+//                    binding.loadingView.viewLoadingLayout.show()
                 }
 
                 is PassengerHomeUiState.PassengerPickUp -> {
@@ -201,6 +202,7 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
 
         binding.passengerArrivedView.doneButton.setOnClickListener {
             viewModel.onDoneButtonClicked()
+            imageUrl = ""
         }
     }
 
@@ -474,33 +476,23 @@ class PassengerHomeFragment : Fragment(R.layout.fragment_home), OnMapReadyCallba
     }
 
     private fun loadImage(uri: String, view: ImageView) {
-        //if (currentImageResId != R.drawable.account) {
+        if (imageUrl.isEmpty()) {
+            imageUrl = uri
             Glide.with(requireContext())
                 .load(uri)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .skipMemoryCache(true)
                 .into(view)
-        //}
-    }
-
-    private fun loadImage2(uri: String, view: ImageView) {
-        val currentDrawable = view.drawable
-        val currentImageResId = if (currentDrawable != null) {
-            val resources = view.context.resources
-            resources.getIdentifier("account", "drawable", view.context.packageName)
         } else {
-            0
-        }
-
-        if (currentImageResId != R.drawable.account) {
-            Glide.with(view)
-                .load(uri)
+            Glide.with(requireContext())
+                .load(imageUrl)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .skipMemoryCache(true)
                 .into(view)
         }
-    }
 
+        //}
+    }
 
 
     override fun onRequestPermissionsResult(
